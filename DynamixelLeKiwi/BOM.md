@@ -4,8 +4,8 @@ This page provides a complete list of parts needed to build the Dynamixel LeKiwi
 
 | Price| US  | EU  | CN |
 |---------|----:|----:|----:|
-| **Dynamixel LeKiwi** |  **$797.47**  |  **€1035.3**  |  **¥5938**  ||
-| **Base only** |  **$320.47**  |  **€362.3**  |  **¥1991.28**  |
+| **Dynamixel LeKiwi** |  **$816.47**  |  **€1051.60**  |  **¥6074**  ||
+| **Base only** |  **$339.47**  |  **€378.60**  |  **¥2127.28**  |
 
 
 > [!NOTE] 
@@ -19,8 +19,9 @@ This page provides a complete list of parts needed to build the Dynamixel LeKiwi
 | Part | Amount | Unit Cost (US) | Buy (US) | Unit Cost (EU) | Buy (EU) | Unit Cost (CN) | Buy (CN) |
 | - | - | - | - | - | - | - | - |
 | 4" Omni wheels | 3 | $9.99 | [VEX Robotics](https://www.vexrobotics.com/omni-wheels.html?srsltid=AfmBOorWdWT-FIiWSAbicYWSxqYr-d5X3CJSGxMkO33WO0thwlTn4DQu) | €24.5 | [RobotShop](https://eu.robotshop.com/products/100mm-omnidirectional-wheel-brass-bearing-rollers) |￥135 |[PDD](https://mobile.yangkeduo.com/goods.html?ps=kKWPC7xuzw "https://mobile.yangkeduo.com/goods.html?ps=kKWPC7xuzw")|
-| M2 M3 M4 Assorted Screw Set | 1 | $14.99 | [Amazon](https://www.amazon.com/Button-Socket-Washers-Assortment-Machine/dp/B0BMQGJP3F) | €23.5 | [Amazon](https://www.amazon.fr/Cylindrique-Inoxydable-M2-Socket-Assortiment/dp/B09Y8WYFWD/) |￥25 |[Taobao（M2x5+M3套装+M3x10+M4x12）](https://e.tb.cn/h.64O1J2A9Is4pIJd "https://e.tb.cn/h.64O1J2A9Is4pIJd")              |
-| **Total** || **$44.96** || **€97** || **¥430** ||
+| M2 M3 M4 Assorted Screw Set | 1 | $14.99 | [Amazon](https://www.amazon.com/Button-Socket-Washers-Assortment-Machine/dp/B0BMQGJP3F) | €23.5 | [Amazon](https://www.amazon.fr/Cylindrique-Inoxydable-M2-Socket-Assortiment/dp/B09Y8WYFWD/) |￥25 |[Taobao（M2x5+M3套装+M3x10+M4x12）](https://e.tb.cn/h.64O1J2A9Is4pIJd "https://e.tb.cn/h.64O1J2A9Is4pIJd")   
+| TB3 Waffle Plate Set | 1 | $19.00 | [ROBOTIS](https://en.robotis.com/shop_en/item.php?it_id=903-0259-000) | €16.3 | [ROBOTIS](https://en.robotis.com/shop_en/item.php?it_id=903-0259-000) |￥136 |[Robotis US (ships to China)](https://en.robotis.com/shop_en/item.php?it_id=903-0259-000)           |
+| **Total** || **$63.96** || **€€113.30** || **¥566** ||
 
 ### Sensors and Compute:
 
