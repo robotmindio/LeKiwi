@@ -8,32 +8,41 @@
 
 1. Attach the drive motor to the motor mount using 4 m2x5 tap screws.
 
-    <img src="../media/assembly_imgs/IMG_9193.jpg" width="300" />
+    <img src="../media/assembly_imgs/IMG_9193 (1).jpg" width="300" />
 
-2. Screw the drive motor mount onto the bottom base plate using 4 m3x12 machine screws.
 
-    <img src="../media/assembly_imgs/IMG_9195.jpg" width="300" />
-
-3. Attach the wheel hub to the omniwheel using 2 m4x12 machine screws.
+2. Attach the wheel hub to the omniwheel using 2 m4x12 machine screws.
 
     <img src="../media/assembly_imgs/DSC00004.jpg" width="300" />
 
-4. Attach the wheel hub to the servo horn using 4 m3x16 machine screws.
+3. Attach the wheel hub to the servo horn using 4 m3x16 machine screws.
 
     <img src="../media/assembly_imgs/IMG_9196.jpg" width="300" />
-    <img src="../media/assembly_imgs/IMG_9197.jpg" width="300" />
+
 
 
 ### 2. Bottom Plate Assembly
-1. Insert m3 nuts into the mounts for the servo controller and battery mounts. Screw both onto the bottom base plate with 4 m3x12 machine screws.
+1. Assemble both plates by attaching the 3D-printed triangular insert to the TB3 plate. Align the outer holes and secure the insert using six M3x8 machine screws and matching nuts (the ones included with the TB3 plates).
+    
+    <img src="../media/assembly_imgs/IMG_9200.jpg" width="300" />
 
-2. Add the servo driver and attach the wires to the 3 drive servos.
 
-    <img src="../media/assembly_imgs/IMG_2006.jpg" width="400" />
-3. Wiring Electronics
-   -    Use the wago lever connectors to connect the ground and power battery wire leads to the leads of the 12v->5v converter and the dc barrel plug adapter. Screw on the 12v to 5v converter to the bottom base plate with 2 m3x16 machine screws and 2 m3 nuts.
+2. Screw each drive motor mount onto the bottom plate using 2 m3x12 machine screws in the front and 2 m2.5x12 machine screws in the back.
+    <img src="../media/assembly_imgs/IMG_9235.jpg" width="300" />
 
-        <img src="../media/assembly_imgs/IMG_1925.jpg" width="400" /> <img src="../media/assembly_imgs/IMG_2008.jpg" width="400" />
+
+3. Connect the motor wires in series. Insert 2 m3 nuts into the slots on both the battery mount and the base camera mount. Then, attach the battery mount to the bottom plate using two m3x12mm machine screws. Secure the camera mount to the plate using two m3x16mm machine screws.
+    <img src="../media/assembly_imgs/IMG_9236.jpg" width="400" />
+
+    <img src="../media/assembly_imgs/IMG_9240.jpg" width="400" />
+
+
+4. Wiring Electronics
+   -    Use the wago lever connectors to connect the ground and power battery wire leads to the leads of the 12v->5v converter and the dc barrel plug adapter. 
+   <img src="../media/assembly_imgs/IMG_1925.jpg" width="400" /> 
+   -    Mount the 12V to 5V converter to the bottom plate using two m4x16mm machine screws and two m4 nuts. Then, connect the unconnected motor wire, the USB cable, and the power wires to the U2D2 PHB. Attach standoffs to the U2D2 board, and secure it to the base plate using three m3x16mm machine screws.
+   <img src="../media/assembly_imgs/IMG_9242.jpg" width="400" /> 
+
 
 
 ### 3. Top plate Assembly
