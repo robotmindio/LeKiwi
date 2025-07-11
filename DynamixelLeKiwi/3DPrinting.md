@@ -8,23 +8,20 @@ We provide ready-to-print STL files for the 3D-printed parts below. These can be
 
 | Item | Quantity | Notes | 
 |:---|:---:|:---:|
-| [Base plate Top](/3DPrintMeshes/base_plate_layer2.stl) | 1 | |
-| [Base plate Bottom](/3DPrintMeshes/base_plate_layer1.stl) | 1 | |
-| [Dynamixel Drive motor mount](3DPrintMeshes/dynamixel_drive_motor_mount.stl) | 3 | |
-| [Dynamixel Servo wheel hub](/3DPrintMeshes/dynamixel_wheel_hub.stl) | 3 | Use Supports<sup>[1](#footnote1)</sup> |
-| [Servo controller mount](/3DPrintMeshes/servo_controller_mount.stl) | 1 | |
-| [12v Battery mount](/3DPrintMeshes/battery_mount.stl) **or** [12v EU Battery mount](/3DPrintMeshes/battery_mount_eu.stl) **or** [5v Battery mount](/3DPrintMeshes/5v_specific/5v_power_bank_holder.stl)| 1 | |
+| [Center triangular insert](/3DPrintMeshes/dynamixel_specific/center_triangular_insert.stl) | 2 |  |
+| [Dynamixel Drive motor mount](/3DPrintMeshes/dynamixel_specific/dynamixel_kiwi_servo_mount.stl) | 3 | |
+| [Dynamixel Servo wheel hub](/3DPrintMeshes/dynamixel_specific/Dynamixel_omni_wheel_mount%20v2.stl) | 3 | Use Supports<sup>[1](#footnote1)</sup> | |
+| [Lipo battery mount](/3DPrintMeshes/dynamixel_specific/lipo_battery_mount.stl) | 1 | |
 | [RasPi case Top](/3DPrintMeshes/pi_case_top.stl) | 1 | <sup>[2](#footnote2)</sup> |
-| [RasPi case Bottom](/3DPrintMeshes/pi_case_bottom.stl) | 1 | <sup>[2](#footnote2)</sup> |
-| Arducam [base mount](/3DPrintMeshes/base_camera_mount.stl) | 1 | **Compatible with [this camera](https://www.amazon.com/Arducam-Camera-Computer-Without-Microphone/dp/B0972KK7BC)** |
-| Webcam [base mount](3DPrintMeshes/webcam_mount/webcam_mount.stl), [gripper insert](3DPrintMeshes/webcam_mount/so100_gripper_cam_mount_insert.stl) | 1 | **Compatible with [this camera](https://www.amazon.fr/Vinmooog-equipement-Microphone-Enregistrement-conférences/dp/B0BG1YJWFN/)** |
-| [Modified Follower Arm Base](/3DPrintMeshes/dynamixel_modified_base_arm.stl) | 1 | Use Tree Supports, **Optional, but recommended if you have not built Koch already** |
-| [Follower arm](https://github.com/jess-moss/koch-v1-1) | 1 | |
+| [RasPi case Bottom](/3DPrintMeshes/dynamixel_specific/pi_case_bottom.stl) | 1 | <sup>[2](#footnote2)</sup> ||
+| Webcam [base mount](/3DPrintMeshes/dynamixel_specific/webcam_base_mount.stl), [static gripper w/ mount](/3DPrintMeshes/dynamixel_specific/modified_static_side_with_mount.stl) | 1 | **Compatible with [this camera](https://www.amazon.fr/Vinmooog-equipement-Microphone-Enregistrement-conférences/dp/B0BG1YJWFN/)** |
+| [Modified Follower Arm Base](/3DPrintMeshes/dynamixel_specific/follower_base.stl) | 1 |  |
+| [Follower arm](https://github.com/jess-moss/koch-v1-1) | 1 |Use with the modified base and static gripper  |
 | [Leader arm](https://github.com/jess-moss/koch-v1-1) | 1 | |
 
 
 > **Note**: Make sure to enable supports where specified!
-<!-- > STL files are already oriented and ready-to-print.  -->
+
 
 
 ## Printing Instructions
