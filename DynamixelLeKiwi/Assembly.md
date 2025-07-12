@@ -28,10 +28,12 @@
 
 
 2. Screw each drive motor mount onto the bottom plate using 2 m3x12 machine screws in the front and 2 m2.5x12 machine screws in the back.
+   
     <img src="../media/assembly_imgs/IMG_9235.jpg" width="400" />
 
 
 3. Connect the motor wires in series. Insert 2 m3 nuts into the slots on both the battery mount and the base camera mount. Then, attach the battery mount to the bottom plate using two m3x12mm machine screws. Secure the camera mount to the plate using two m3x16mm machine screws.
+   
     <img src="../media/assembly_imgs/IMG_9236.jpg" width="400" />
 
     <img src="../media/assembly_imgs/IMG_9240.jpg" width="400" />
@@ -39,7 +41,8 @@
 
 4. Wiring Electronics
    -    Use the wago lever connectors to connect the ground and power battery wire leads to the leads of the 12v->5v converter and the dc barrel plug adapter. 
-   <img src="../media/assembly_imgs/IMG_1925.jpg" width="400" /> 
+   <img src="../media/assembly_imgs/IMG_1925.jpg" width="400" />
+
    -    Mount the 12V to 5V converter to the bottom plate using two m4x16mm machine screws and two m4 nuts. Then, connect the unconnected motor wire, the USB cable, and the power wires to the U2D2 power hub board. Attach standoffs to the U2D2 board, and secure it to the base plate using three m3x16mm machine screws.
    <img src="../media/assembly_imgs/IMG_9242.jpg" width="400" /> 
 
@@ -74,7 +77,7 @@
 
 3. Mount the top  plate onto the motor mounts using 6 m3x12 machine screws.
 
-    <img src="../media/assembly_imgs/IMG_9251.jpg" width="400" />
+    <img src="../media/assembly_imgs/IMG_9251.jpg" width="450" />
 
 
 
