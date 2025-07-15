@@ -1,8 +1,6 @@
 # Our Dynamixel Version!
 
-<img src="../media/assembly_imgs/IMG_9252.jpg" width="300" /> 
-
-<img src="../media/assembly_imgs/IMG_9256.jpg" width="300" /> 
+<img src="../media/assembly_imgs/IMG_9252.jpg" width="300" /> <img src="../media/assembly_imgs/IMG_9256.jpg" width="300" /> 
 
 
 
