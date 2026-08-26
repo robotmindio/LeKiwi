@@ -3,3 +3,4 @@ reference/fusion/*.dxf -text -diff
 reference/fusion/*.stp -text -diff
 cad/assembly/*.FCStd -text -diff
 cad/parts/*.FCStd -text -diff
+URDF/meshes/reauthored/*.stl -text -diff

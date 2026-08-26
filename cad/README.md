@@ -19,7 +19,7 @@ python3 scripts/verify_xacro.py URDF/LeKiwi.urdf URDF/LeKiwi.urdf.xacro
 
 ## Reauthoring a link
 
-Model each replacement solid in the link's URDF coordinate frame, in millimetres, in `LeKiwi.FCStd` (or copy it into that document from `parts/`). Do not use the full-assembly placement: the exporter treats the solid's coordinates as link-local.
+Model each replacement solid in the link's URDF coordinate frame, in millimetres, in `LeKiwi.FCStd` (or copy it into that document from `parts/`). Do not use the full-assembly placement: the exporter treats the solid's coordinates as link-local and emits reauthored visual/collision meshes with a zero origin.
 
 Attach the new solid and set its mass source:
 

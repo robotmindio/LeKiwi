@@ -48,22 +48,25 @@ def cad_inertial(link):
 
     entries = []
     for part in parts:
-        if not hasattr(part, "Shape") or part.Shape.isNull() or part.Shape.Volume <= 0:
+        if not hasattr(part, "Shape") or part.Shape.isNull() or not part.Shape.Solids:
             raise RuntimeError(f"{link.UrdfName}: {part.Label} is not a solid CAD part")
         if not hasattr(part, "MassOverride") or not hasattr(part, "MaterialDensity"):
             raise RuntimeError(
                 f"{link.UrdfName}: {part.Label} needs MassOverride and MaterialDensity properties"
             )
-        volume = part.Shape.Volume  # mm^3
+        solids = part.Shape.Solids
+        volume = sum(shape.Volume for shape in solids)  # mm^3
         mass_override = float(part.MassOverride)
         density = float(part.MaterialDensity) / 1_000_000_000  # kg/mm^3
-        mass = mass_override if mass_override > 0 else volume * density
-        if mass <= 0:
+        total_mass = mass_override if mass_override > 0 else volume * density
+        if total_mass <= 0:
             raise RuntimeError(f"{link.UrdfName}: {part.Label} has no usable mass")
-        scale = mass / volume  # scales volume inertia from mm^5 to kg*mm^2
-        center = part.Shape.CenterOfMass * 0.001  # m
-        inertia = tuple(tuple(value * scale * 1e-6 for value in row) for row in matrix_values(part.Shape.MatrixOfInertia))
-        entries.append((mass, center, inertia))
+        for shape in solids:
+            mass = total_mass * shape.Volume / volume
+            scale = mass / shape.Volume  # scales volume inertia from mm^5 to kg*mm^2
+            center = shape.CenterOfMass * 0.001  # m
+            inertia = tuple(tuple(value * scale * 1e-6 for value in row) for row in matrix_values(shape.MatrixOfInertia))
+            entries.append((mass, center, inertia))
 
     mass = sum(entry[0] for entry in entries)
     center = sum((entry[1] * entry[0] for entry in entries), App.Vector()) / mass
@@ -125,7 +128,8 @@ for link in links_group.Group:
     add(inertial_node, "inertia", **{key: inertial[key] for key in ("ixx", "iyy", "izz", "ixy", "ixz", "iyz")})
     for kind in ("Visual", "Collision"):
         element = add(node, kind.lower(), name=property_value(link, kind + "Name"))
-        add(element, "origin", xyz=property_value(link, kind + "XYZ"), rpy=property_value(link, kind + "RPY"))
+        origin = ("0 0 0", "0 0 0") if link.CadParts else (property_value(link, kind + "XYZ"), property_value(link, kind + "RPY"))
+        add(element, "origin", xyz=origin[0], rpy=origin[1])
         geometry = add(element, "geometry")
         add(geometry, "mesh", filename=mesh_path(geometry_mesh(link, kind)), scale=property_value(link, kind + "Scale"))
 

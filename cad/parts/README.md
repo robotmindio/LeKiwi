@@ -7,9 +7,20 @@ Rebuild the editable base-plate source solids from the exact laser profiles:
 ```sh
 ./scripts/build_laser_plate_sources.sh
 ./scripts/verify_laser_plate_sources.sh
+./scripts/link_base_plate_sources.sh
+./scripts/export_robot.sh
 ```
 
 Open either generated `.FCStd` file in FreeCAD. Change `Extrusion.LengthFwd` for the selected stock thickness; its `LaserProfile` is the exact profile used by the DXF. The lower plate is placed from `z=-7` to `z=0` in its URDF link frame and the upper plate from `z=0` to `z=7`.
+
+The linked plate sources already drive the Xacro visual/collision meshes. Their legacy inertial values remain active until the actual stock is known. After choosing material or measuring the finished part, activate a CAD-derived inertia explicitly; for example:
+
+```sh
+./scripts/attach_cad_part.sh cad/assembly/LeKiwi.FCStd base_plate_layer1-v5 CadBasePlateLower 1240 0
+./scripts/export_robot.sh
+```
+
+Here `1240` is only an example density in kg/m³; use `0` as the final argument only when that density represents the finished part. A measured mass is the safer override for printed or assembled parts.
 
 | Priority | Unique manufactured component | URDF links | Fusion archive reference | Status |
 | --- | --- | --- | --- | --- |

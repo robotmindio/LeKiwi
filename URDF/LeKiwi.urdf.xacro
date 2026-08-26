@@ -8,15 +8,15 @@
             <inertia ixx="0.005637109888809055" iyy="0.005628440956780792" izz="0.0112496514690387" ixy="1.3447333053523504e-16" ixz="1.7848833522297417e-20" iyz="2.6469779601696886e-23" />
         </inertial>
         <visual name="base_plate_layer1-v5_visual">
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="${mesh_dir}/base_plate_layer1-v5.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="${mesh_dir}/reauthored/base_plate_layer1-v5.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="base_plate_layer1-v5_collision">
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="${mesh_dir}/base_plate_layer1-v5.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="${mesh_dir}/reauthored/base_plate_layer1-v5.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
@@ -331,15 +331,15 @@
             <inertia ixx="0.005568248812566009" iyy="0.00562277090534615" izz="0.01117537741776278" ixy="-1.3825833742235038e-15" ixz="1.6063950170089246e-19" iyz="1.3552527156068805e-20" />
         </inertial>
         <visual name="base_plate_layer2-v3_visual">
-            <origin xyz="0.0 -6.430841866638185e-19 0.006999999999999993" rpy="0.0 -0.0 0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="${mesh_dir}/base_plate_layer2-v3.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="${mesh_dir}/reauthored/base_plate_layer2-v3.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="base_plate_layer2-v3_collision">
-            <origin xyz="0.0 -6.430841866638185e-19 0.006999999999999993" rpy="0.0 -0.0 0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="${mesh_dir}/base_plate_layer2-v3.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="${mesh_dir}/reauthored/base_plate_layer2-v3.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
