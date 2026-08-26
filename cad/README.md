@@ -1,20 +1,35 @@
 # Open CAD migration
 
-`assembly/LeKiwi_reference.FCStd` is the complete Fusion STEP export imported into FreeCAD. It is the exact visual reference, but STEP cannot preserve Fusion sketches or its feature timeline.
+`assembly/LeKiwi_reference.FCStd` is the complete Fusion STEP export imported into FreeCAD. It is the dimensional reference; STEP cannot retain Fusion sketches or its feature timeline.
 
-`assembly/LeKiwi.FCStd` is the open CAD-to-ROS source. It contains the reference geometry plus 45 named links and 44 named joints copied from the validated URDF. Every link has a link-local source object that drives the generated Xacro mesh:
+`assembly/LeKiwi.FCStd` is the open CAD-to-ROS source. Its active `CadParts` cover all 45 URDF links:
 
 - 2 editable FreeCAD laser-cut extrusions;
-- 30 STEP BREP references; and
-- 13 canonical URDF mesh references where the STEP and URDF exports differ by more than 2%.
+- 10 links driven by 6 native parametric FreeCAD printed-part sources;
+- 23 STEP BREP references; and
+- 10 canonical URDF mesh references where the STEP and URDF exports differ by more than 2%.
 
-The exact source and validation result for every link is recorded in [reference_mapping.json](reference_mapping.json). BREP references are editable in FreeCAD's Part workbench, and mesh references are editable meshes. Neither reconstructs Fusion's lost sketches or timeline.
+The exact source and validation result for every link is recorded in [reference_mapping.json](reference_mapping.json). The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
 
-The ordered set of native components still to rebuild is in [parts/](parts/README.md).
+## Native printed-part sources
+
+The complete LeKiwi-specific manufactured set represented by the URDF is editable in [parts/](parts/README.md): the two laser-cut plates plus `drive_motor_mount.FCStd`, `omni_wheel_mount.FCStd`, `servo_controller_mount.FCStd`, `lipo_battery_mount.FCStd`, `base_camera_mount.FCStd`, and `wrist_camera_mount.FCStd`.
+
+Each printed-part file has an `Editable dimensions` (`Parameters`) object and a normal FreeCAD feature tree ending in `Final`; it contains profile features, Part extrusions, primitives, fuses, and cuts—not an imported mesh or opaque BREP wrapper. Open a source file in FreeCAD, change a parameter or profile feature, and save it. Then relink and regenerate:
+
+```sh
+./scripts/link_native_part_sources.sh
+./scripts/export_robot.sh
+./scripts/verify_native_part_sources.sh
+```
+
+`build_native_part_sources.sh` reconstructs the six initial source files from the validated STEP/STL references. It intentionally overwrites those source files, so use it to reset or regenerate a baseline, not after manual edits you intend to keep.
+
+Five models preserve their STEP component frame and are placed into the URDF link frame by `link_native_part_sources.sh`. The omni-wheel source uses the canonical URDF mesh frame because its Fusion STEP revision does not match the shipped URDF mesh; its editable profiles are derived once from canonical STL planes and then built as normal FreeCAD features. The linker's validation must remain below the 2% geometry tolerance before it saves the assembly.
 
 ## Deterministic build
 
-After changing `LeKiwi.FCStd`, run:
+After changing a source or robot metadata, run:
 
 ```sh
 ./scripts/export_robot.sh
@@ -22,31 +37,35 @@ python3 scripts/verify_xacro.py URDF/LeKiwi.urdf URDF/LeKiwi.urdf.xacro
 ./scripts/verify_cad_migration.sh
 ```
 
-`export_robot.sh` exports all 45 link sources to `URDF/meshes/reauthored/` and then writes the complete Xacro. There is no hand-edited Xacro step. `verify_cad_migration.sh` checks this baseline migration against the original URDF; it is expected to fail after an intentional geometric redesign.
+`export_robot.sh` exports all 45 link sources to `URDF/meshes/reauthored/` and writes the complete Xacro. There is no hand-edited Xacro step. `verify_cad_migration.sh` checks the baseline migration against the original URDF and is expected to fail after an intentional geometric redesign.
 
-## Reauthoring a link
+## Mass and inertia
 
-Model each replacement solid in the link's URDF coordinate frame, in millimetres, in `LeKiwi.FCStd` (or copy it into that document from `parts/`). Do not use the full-assembly placement: the exporter treats the solid's coordinates as link-local and emits reauthored visual/collision meshes with a zero origin. Attaching a new solid replaces that link's generated BREP/mesh reference, so subsequent Xacro output is deterministic from the new model.
-
-Attach the new solid and set its mass source:
+Native source links deliberately keep `UseCadMass=False` until a real material density or printed mass is known. After choosing material or measuring a finished part, activate CAD-derived mass, centre of mass, and the full inertia tensor for the relevant assembly link:
 
 ```sh
-./scripts/attach_cad_part.sh cad/assembly/LeKiwi.FCStd base_plate_layer1-v5 BasePlateReauthored 1240 0.385
+./scripts/attach_cad_part.sh cad/assembly/LeKiwi.FCStd drive_motor_mount-v11-2 CadDriveMotorMountV11_2 1240 0
 ./scripts/export_robot.sh
 ```
 
-The arguments are FreeCAD document, URDF link, FreeCAD object name or unique label, material density in kg/m³, and mass override in kg. Use `0` for the override only for a uniform solid with a trustworthy density. For FDM parts, use the measured printed mass; this accounts for infill, walls, and hardware better than nominal plastic density. Run the command once for every solid belonging to a link.
+Here `1240` is only an example density in kg/m³. Use a measured printed mass instead of `0` for FDM or assembled parts; it accounts for infill, walls, and hardware. The exporter combines all solid CAD parts in a link with the parallel-axis theorem. Purchased components should use measured or vendor mass overrides.
 
-For a link with attached CAD solids, the exporter calculates mass, centre of mass, and the full inertia tensor from the FreeCAD solids, rotates/translates nothing outside the link frame, and combines multiple solids with the parallel-axis theorem. Purchased components should use their measured or vendor mass as the override; their geometry still provides the centre and inertia distribution.
+The joint names, parents, children, axes, origins, and limits are editable properties in the `LeKiwiJoints` group. Together with the link source geometry, this is the deterministic Xacro contract.
 
-The joint names, parents, children, axes, origins, and limits are editable properties in the `LeKiwiJoints` group. This is the contract that makes the Xacro regeneration deterministic. Reference objects intentionally keep the validated fallback inertias; activate CAD mass only after a native solid has a real material density or measured mass.
-
-Regenerate the reference assembly only after replacing `reference/fusion/LeKiwi.stp`:
+## Rebuild after replacing the Fusion STEP export
 
 ```sh
 ./scripts/import_step_reference.sh
 ./scripts/seed_robot_metadata.sh
+./scripts/build_laser_plate_sources.sh
+./scripts/verify_laser_plate_sources.sh
+./scripts/build_native_part_sources.sh
+./scripts/migrate_reference_links.sh --apply
 ./scripts/link_base_plate_sources.sh
+./scripts/link_native_part_sources.sh
 ./scripts/migrate_reference_links.sh --apply
 ./scripts/export_robot.sh
+./scripts/verify_native_part_sources.sh
 ```
+
+The first migration pass creates hidden placement references. The second records the validated native sources after they have been linked.

@@ -17,9 +17,20 @@ MAPPING = Path("cad/reference_mapping.json")
 MODE = os.environ.get("CAD_MIGRATION_MODE") or "report"
 MAX_ERROR = 0.02
 NATIVE_PARTS = {
-    "base_plate_layer1-v5": "CadBasePlateLower",
-    "base_plate_layer2-v3": "CadBasePlateUpper",
+    "base_plate_layer1-v5": ("CadBasePlateLower", "native FreeCAD laser-cut source"),
+    "drive_motor_mount-v11-2": ("CadDriveMotorMountV11_2", "native FreeCAD parametric source"),
+    "omni_wheel_mount-v5-2": ("CadOmniWheelMountV5_2", "native FreeCAD parametric source"),
+    "drive_motor_mount-v11-1": ("CadDriveMotorMountV11_1", "native FreeCAD parametric source"),
+    "omni_wheel_mount-v5-1": ("CadOmniWheelMountV5_1", "native FreeCAD parametric source"),
+    "drive_motor_mount-v11": ("CadDriveMotorMountV11", "native FreeCAD parametric source"),
+    "omni_wheel_mount-v5": ("CadOmniWheelMountV5", "native FreeCAD parametric source"),
+    "servo_controller_mount-v3": ("CadServoControllerMountV3", "native FreeCAD parametric source"),
+    "lipo_battery_mount-v3": ("CadLiPoBatteryMountV3", "native FreeCAD parametric source"),
+    "base_plate_layer2-v3": ("CadBasePlateUpper", "native FreeCAD laser-cut source"),
+    "Camera-Mount-v8": ("CadBaseCameraMountV8", "native FreeCAD parametric source"),
+    "Wrist-Camera-Mount-v11": ("CadWristCameraMountV11", "native FreeCAD parametric source"),
 }
+STEP_EXCEPTIONS = {"base_plate_layer1-v5", "base_plate_layer2-v3"}
 STEP_OBJECTS = {
     "drive_motor_mount-v11-2": "Part__Feature001",
     "ST3215_Servo_Motor-v1-2": "ST3215_Servo_Motor_v1",
@@ -158,7 +169,7 @@ if MODE not in ("report", "apply"):
 
 root = ET.parse(URDF).getroot()
 link_xml = {link.get("name"): link for link in root.findall("link")}
-expected = set(link_xml) - set(NATIVE_PARTS)
+expected = set(link_xml) - STEP_EXCEPTIONS
 if set(STEP_OBJECTS) != expected:
     missing = sorted(expected - set(STEP_OBJECTS))
     extra = sorted(set(STEP_OBJECTS) - expected)
@@ -171,6 +182,7 @@ if not links_group:
 metadata = {item.UrdfName: item for item in links_group.Group}
 
 matches = []
+unlinked_native_parts = []
 for link_name, xml in link_xml.items():
     visual = xml.find("visual")
     mesh_xml = visual.find("geometry/mesh") if visual is not None else None
@@ -183,23 +195,38 @@ for link_name, xml in link_xml.items():
     mesh_bounds = bounds(mesh)
     volume = mesh.Volume
     if link_name in NATIVE_PARTS:
-        source = document.getObject(NATIVE_PARTS[link_name])
+        source_name, source_kind = NATIVE_PARTS[link_name]
+        source = document.getObject(source_name)
         if not source or source.Shape.isNull():
-            raise RuntimeError(f"{link_name}: missing native source {NATIVE_PARTS[link_name]}")
-        output_bounds = bounds(source.Shape)
-        target_mesh = Mesh.Mesh(str(mesh_path))
-        target_mesh.transform(app_matrix(visual_matrix))
-        match = {
-            "urdf_link": link_name,
-            "reference_object": source.Name,
-            "reference_label": source.Label,
-            "reference_type": source.TypeId,
-            "source_kind": "native FreeCAD laser-cut source",
-            "source_bbox_error": bounds_error(output_bounds, bounds(target_mesh)),
-            "link_bbox_error": bounds_error(output_bounds, bounds(target_mesh)),
-            "volume_error": abs(source.Shape.Volume / volume - 1.0),
-            "mesh_filename": mesh_xml.get("filename"),
-        }
+            if MODE != "apply":
+                raise RuntimeError(f"{link_name}: missing native source {source_name}")
+            unlinked_native_parts.append(link_name)
+            match = {
+                "urdf_link": link_name,
+                "reference_object": source_name,
+                "reference_label": f"unlinked {source_kind}",
+                "reference_type": "App::Link",
+                "source_kind": source_kind,
+                "source_bbox_error": 0.0,
+                "link_bbox_error": 0.0,
+                "volume_error": 0.0,
+                "mesh_filename": mesh_xml.get("filename"),
+            }
+        else:
+            output_bounds = bounds(source.Shape)
+            target_mesh = Mesh.Mesh(str(mesh_path))
+            target_mesh.transform(app_matrix(visual_matrix))
+            match = {
+                "urdf_link": link_name,
+                "reference_object": source.Name,
+                "reference_label": source.Label,
+                "reference_type": source.TypeId,
+                "source_kind": source_kind,
+                "source_bbox_error": bounds_error(output_bounds, bounds(target_mesh)),
+                "link_bbox_error": bounds_error(output_bounds, bounds(target_mesh)),
+                "volume_error": abs(source.Shape.Volume / volume - 1.0),
+                "mesh_filename": mesh_xml.get("filename"),
+            }
     else:
         source = document.getObject(STEP_OBJECTS[link_name])
         if not source or source.Shape.isNull() or not source.Shape.Solids:
@@ -258,20 +285,40 @@ if MODE == "apply":
         document.removeObject(part.Name)
 
     for match in matches:
-        if match["urdf_link"] in NATIVE_PARTS:
-            continue
         link = metadata[match["urdf_link"]]
-        source = document.getObject(match["reference_object"])
-        part = document.addObject("Part::Feature" if match["source_kind"] == "STEP BREP reference" else "Mesh::Feature", object_name(link.UrdfName))
-        part.Label = f"{match['source_kind']} — {link.UrdfName}"
+        source_name = STEP_OBJECTS.get(link.UrdfName, match["reference_object"])
+        source = document.getObject(source_name)
+        source_kind = match["source_kind"]
+        if link.UrdfName in STEP_OBJECTS:
+            if not source or source.Shape.isNull() or not source.Shape.Solids:
+                raise RuntimeError(f"{link.UrdfName}: missing STEP object {source_name}")
+            raw_shape = translated_to_bounds(
+                local_shape(source), bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"])))
+            )
+            visual_origin = ET.Element("origin", {"xyz": match["visual_xyz"], "rpy": match["visual_rpy"]})
+            output_shape = transformed_shape(raw_shape, pose(visual_origin))
+            target_mesh = Mesh.Mesh(str(URDF.parent / match["mesh_filename"]))
+            target_mesh.transform(app_matrix(pose(visual_origin)))
+            source_kind = (
+                "STEP BREP reference"
+                if max(
+                    bounds_error(bounds(raw_shape), bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"])))),
+                    bounds_error(bounds(output_shape), bounds(target_mesh)),
+                    abs(raw_shape.Volume / target_mesh.Volume - 1.0),
+                )
+                <= MAX_ERROR
+                else "canonical URDF STL mesh reference"
+            )
+        part = document.addObject("Part::Feature" if source_kind == "STEP BREP reference" else "Mesh::Feature", object_name(link.UrdfName))
+        part.Label = f"{source_kind} — {link.UrdfName}"
         part.addProperty("App::PropertyString", "UrdfLink", "Source")
         part.addProperty("App::PropertyString", "ReferenceObject", "Source")
         part.addProperty("App::PropertyString", "SourceKind", "Source")
         part.UrdfLink = link.UrdfName
-        part.ReferenceObject = match["reference_object"]
-        part.SourceKind = match["source_kind"]
+        part.ReferenceObject = source.Name if source else ""
+        part.SourceKind = source_kind
         visual_origin = ET.Element("origin", {"xyz": match["visual_xyz"], "rpy": match["visual_rpy"]})
-        if match["source_kind"] == "STEP BREP reference":
+        if source_kind == "STEP BREP reference":
             part.Shape = transformed_shape(translated_to_bounds(local_shape(source), bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"])))), pose(visual_origin))
         else:
             reference_mesh = Mesh.Mesh(str(URDF.parent / match["mesh_filename"]))
@@ -279,14 +326,21 @@ if MODE == "apply":
             part.Mesh = reference_mesh
         part.Visibility = False
         group.addObject(part)
-        link.CadParts = [part]
-        link.UseCadMass = False
+        if link.UrdfName not in NATIVE_PARTS:
+            link.CadParts = [part]
+            link.UseCadMass = False
 
     document.recompute()
     document.save()
-    MAPPING.write_text(json.dumps(matches, indent=2) + "\n")
-    brep_count = sum(match["source_kind"] == "STEP BREP reference" for match in matches)
-    mesh_count = sum(match["source_kind"] == "canonical URDF STL mesh reference" for match in matches)
-    print(f"embedded {brep_count} STEP BREP and {mesh_count} canonical mesh references")
+    if unlinked_native_parts:
+        print(
+            "prepared native placement references; link the sources and rerun migration: "
+            + ", ".join(unlinked_native_parts)
+        )
+    else:
+        MAPPING.write_text(json.dumps(matches, indent=2) + "\n")
+    brep_count = sum(part.TypeId == "Part::Feature" for part in group.Group)
+    mesh_count = sum(part.TypeId == "Mesh::Feature" for part in group.Group)
+    print(f"embedded {brep_count} BREP and {mesh_count} mesh placement references")
 else:
     print(json.dumps(matches, indent=2))

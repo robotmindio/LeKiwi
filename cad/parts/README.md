@@ -1,38 +1,39 @@
-# Native-part migration queue
+# Native LeKiwi part sources
 
-Every URDF link already has a FreeCAD source in `../assembly/LeKiwi.FCStd`; see [`../reference_mapping.json`](../reference_mapping.json) for its exact BREP or mesh reference. The queue below is only the remaining work to recreate native, constrained FreeCAD feature models. Each replacement must be in its URDF-link frame, then attached with `scripts/attach_cad_part.sh` and exported with `scripts/export_robot.sh`.
+All LeKiwi-specific manufactured parts represented by the URDF assembly now have editable FreeCAD sources. `LeKiwi.FCStd` links each source's `Final` feature into the appropriate URDF link, so mesh and Xacro regeneration is deterministic.
 
-Rebuild the editable base-plate source solids from the exact laser profiles:
+| Manufactured component | Source file | URDF links | Status |
+| --- | --- | --- | --- |
+| Lower base plate | `base_plate_lower.FCStd` | `base_plate_layer1-v5` | Laser-profile extrusion |
+| Upper base plate | `base_plate_upper.FCStd` | `base_plate_layer2-v3` | Laser-profile extrusion |
+| Drive motor mount | `drive_motor_mount.FCStd` | `drive_motor_mount-v11*` | Native parametric source |
+| Omni-wheel mount | `omni_wheel_mount.FCStd` | `omni_wheel_mount-v5*` | Native parametric source |
+| Servo controller mount | `servo_controller_mount.FCStd` | `servo_controller_mount-v3` | Native parametric source |
+| LiPo battery mount | `lipo_battery_mount.FCStd` | `lipo_battery_mount-v3` | Native parametric source |
+| Base camera mount | `base_camera_mount.FCStd` | `Camera-Mount-v8` | Native parametric source |
+| Wrist camera mount | `wrist_camera_mount.FCStd` | `Wrist-Camera-Mount-v11` | Native parametric source |
+
+Open a source file in FreeCAD and edit its `Parameters` object or its named profile/Part features. Save it, then run:
 
 ```sh
-./scripts/build_laser_plate_sources.sh
-./scripts/verify_laser_plate_sources.sh
-./scripts/link_base_plate_sources.sh
+./scripts/link_native_part_sources.sh
 ./scripts/export_robot.sh
+./scripts/verify_native_part_sources.sh
 ```
 
-Open either generated `.FCStd` file in FreeCAD. Change `Extrusion.LengthFwd` for the selected stock thickness; its `LaserProfile` is the exact profile used by the DXF. The lower plate is placed from `z=-7` to `z=0` in its URDF link frame and the upper plate from `z=0` to `z=7`.
+The first script replaces only the managed native `CadParts` links and verifies their bounding boxes and volumes against the baseline. It leaves `UseCadMass=False`; set an actual printed mass or density with `attach_cad_part.sh` before asking the Xacro exporter to calculate inertia.
 
-The linked plate sources already drive the Xacro visual/collision meshes. Their legacy inertial values remain active until the actual stock is known. After choosing material or measuring the finished part, activate a CAD-derived inertia explicitly; for example:
+To recreate the initial six models from the reference STEP and canonical STL files, run:
 
 ```sh
-./scripts/attach_cad_part.sh cad/assembly/LeKiwi.FCStd base_plate_layer1-v5 CadBasePlateLower 1240 0
+./scripts/build_native_part_sources.sh
+./scripts/link_native_part_sources.sh
 ./scripts/export_robot.sh
+./scripts/verify_native_part_sources.sh
 ```
 
-Here `1240` is only an example density in kg/m³; use `0` as the final argument only when that density represents the finished part. A measured mass is the safer override for printed or assembled parts.
+The builder overwrites these six `.FCStd` files. It is a reset tool, not a save operation for manual changes.
 
-| Priority | Unique manufactured component | URDF links | Fusion archive reference | Status |
-| --- | --- | --- | --- | --- |
-| 1 | Lower base plate | `base_plate_layer1-v5` | `base_plate_layer1` | FreeCAD extrusion source available |
-| 1 | Upper base plate | `base_plate_layer2-v3` | `base_plate_layer2` | FreeCAD extrusion source available |
-| 2 | Drive motor mount | `drive_motor_mount-v11*` | `drive_motor_mount` | STEP BREP reference linked; native parametric source pending |
-| 2 | Omni-wheel mount | `omni_wheel_mount-v5*` | `omni_wheel_mount` | Exact URDF mesh reference linked; native parametric source pending |
-| 2 | Servo controller mount | `servo_controller_mount-v3` | `servo_controller_mount` | STEP BREP reference linked; native parametric source pending |
-| 2 | LiPo battery mount | `lipo_battery_mount-v3` | `lipo_battery_mount` | STEP BREP reference linked; native parametric source pending |
-| 3 | Base camera mount | `Camera-Mount-v8` | `Camera Mount` | STEP BREP reference linked; native parametric source pending |
-| 3 | Wrist camera mount | `Wrist-Camera-Mount-v11` | `wrist_camera_mount` | STEP BREP reference linked; native parametric source pending |
+The source models use independent FreeCAD profile features and standard Part operations; none embeds an external mesh or BREP as its final solid. Their dimensional starting points came from the Fusion STEP export, except the omni-wheel mount, whose canonical URDF STL revision is the authoritative geometry. The Fusion archive embeds proprietary `.f3d` files, but its timeline has no reliable open-source importer.
 
-The Fusion archive embeds the listed proprietary `.f3d` component files, but their feature timelines have no reliable open-source importer. The STEP assembly and matching STL files are the dimensional reference for each FreeCAD reconstruction.
-
-The SO-100/SO-101 arm, wheels, motors, standoffs, battery, and cameras are purchased or separately maintained designs. Keep them as measured/vendor solids and use mass overrides instead of reverse-engineering them into LeKiwi-specific sources.
+Purchased or separately maintained designs, and optional accessory prints outside this URDF assembly, remain measured/vendor references rather than reverse-engineered LeKiwi-specific source models.
