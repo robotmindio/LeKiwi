@@ -217,56 +217,57 @@ def build_drive_motor_mount(assembly):
         "LeKiwiDriveMotorMount",
         title,
         BaseThickness=5.5,
-        WallHeight=5.66,
         WallThickness=1.0,
-        PocketRadius=math.sqrt((math.sqrt(3) / 2 * 5.6**2) / math.pi),
+        LowerClearanceDepth=2.5,
+        NutTrapDepth=3.0,
     )
     base_profile = profile(
         document,
         group,
         "BaseProfile",
-        "Exact lower tray profile",
-        source_face(assembly, "Part__Feature001", 49, 1034.758),
-        "Part__Feature001 Face49",
+        "Exact lower tray outline",
+        source_outer_face(assembly, "Part__Feature001", 49, 1034.758),
+        "Part__Feature001 Face49 outer contour",
     )
     base = extrusion(document, group, "BaseExtrusion", "Editable tray base", base_profile, 5.5, True, "BaseThickness")
-    pockets = fuse(
+    lower_clearances = fuse(
         document,
         group,
-        "NutPocketTools",
-        "Editable motor screw pockets",
+        "LowerClearanceTools",
+        "Editable lower circular clearances",
         [
-            cylinder(document, group, "NutPocketA", "Motor screw pocket", 2.94, 3.0, (-20.0, -80.0, 2.5), expressions=(("Radius", "PocketRadius"),)),
-            cylinder(document, group, "NutPocketB", "Motor screw pocket", 2.94, 3.0, (-20.0, -100.0, 2.5), expressions=(("Radius", "PocketRadius"),)),
+            cylinder(document, group, "LowerClearanceA", "Lower circular clearance", 1.75, 2.5, (-20.0, -80.0, 0.0), expressions=(("Height", "LowerClearanceDepth"),)),
+            cylinder(document, group, "LowerClearanceB", "Lower circular clearance", 1.75, 2.5, (-20.0, -100.0, 0.0), expressions=(("Height", "LowerClearanceDepth"),)),
         ],
     )
-    base = cut(document, group, "BaseWithPockets", "Tray base with motor pockets", base, pockets)
-    walls = fuse(
-        document,
-        group,
-        "WallBody",
-        "Editable tray walls",
-        [
-            box(document, group, "LeftWall", "Left tray wall", 1.0, 34.0, 5.66, (-36.11, -107.0, 5.5), (("Length", "WallThickness"), ("Height", "WallHeight"))),
-            box(document, group, "BackWall", "Rear tray wall", 28.879, 1.0, 5.66, (-35.11, -107.0, 5.5), (("Width", "WallThickness"), ("Height", "WallHeight"))),
-            box(document, group, "FrontWallLeft", "Front tray wall", 12.43, 1.0, 5.66, (-35.11, -74.0, 5.5), (("Width", "WallThickness"), ("Height", "WallHeight"))),
-            box(document, group, "FrontWallRight", "Front tray wall", 3.07, 1.0, 5.66, (-9.30, -74.0, 5.5), (("Width", "WallThickness"), ("Height", "WallHeight"))),
-        ],
-    )
-    wall_holes = fuse(
-        document,
-        group,
-        "WallHoleTools",
-        "Editable top-plate screw holes",
-        [
-            cylinder(document, group, "WallHoleA", "Top-plate screw hole", 1.0, 1.2, (-29.0, -107.1, 7.61), (0, 1, 0)),
-            cylinder(document, group, "WallHoleB", "Top-plate screw hole", 1.0, 1.2, (-8.3, -107.1, 7.61), (0, 1, 0)),
-            cylinder(document, group, "WallHoleC", "Top-plate screw hole", 1.0, 1.2, (-32.75, -74.1, 7.61), (0, 1, 0)),
-            cylinder(document, group, "WallHoleD", "Top-plate screw hole", 1.0, 1.2, (-8.3, -74.1, 7.61), (0, 1, 0)),
-        ],
-    )
-    walls = cut(document, group, "WallsWithHoles", "Tray walls with screw holes", walls, wall_holes)
-    final = fuse(document, group, "Final", title, [base, walls])
+    base = cut(document, group, "BaseWithLowerClearances", "Tray base with lower clearances", base, lower_clearances)
+    nut_traps = []
+    for number, index in enumerate((7, 14), 1):
+        pocket = profile(
+            document,
+            group,
+            f"NutTrapProfile{number}",
+            f"Exact motor nut trap {number}",
+            source_outer_face(assembly, "Part__Feature001", index, 17.537),
+            f"Part__Feature001 Face{index} outer contour",
+        )
+        nut_traps.append(extrusion(document, group, f"NutTrap{number}", f"Editable motor nut trap {number}", pocket, 3.0, False, "NutTrapDepth"))
+    base = cut(document, group, "BaseWithNutTraps", "Tray base with motor nut traps", base, fuse(document, group, "NutTrapTools", "Motor nut-trap cut tools", nut_traps))
+    walls = []
+    for number, (index, area, label) in enumerate(
+        ((19, 271.235, "Front"), (20, 379.440, "Left"), (21, 320.826, "Rear")),
+        1,
+    ):
+        wall_profile = profile(
+            document,
+            group,
+            f"{label}WallProfile",
+            f"Exact {label.lower()} tray-wall profile",
+            source_face(assembly, "Part__Feature001", index, area),
+            f"Part__Feature001 Face{index}",
+        )
+        walls.append(extrusion(document, group, f"{label}Wall", f"Editable {label.lower()} tray wall", wall_profile, 1.0, True, "WallThickness"))
+    final = fuse(document, group, "Final", title, [base, *walls])
     finish(document, group, final, PARTS / "drive_motor_mount.FCStd", title, assembly.getObject("Part__Feature001").Shape)
 
 
