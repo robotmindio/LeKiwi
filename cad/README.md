@@ -4,6 +4,8 @@
 
 `assembly/LeKiwi.FCStd` is the open CAD-to-ROS source. It contains the reference geometry plus 45 named links and 44 named joints copied from the validated URDF. Its current inertias and meshes are the known-good fallback values. This preserves the robot while it is reauthored part by part.
 
+The ordered set of native components still to rebuild is in [parts/](parts/README.md).
+
 ## Deterministic build
 
 After changing `LeKiwi.FCStd`, run:
