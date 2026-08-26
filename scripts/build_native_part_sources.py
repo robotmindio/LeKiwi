@@ -42,7 +42,10 @@ def source_face(assembly, object_name, index, expected_area):
 def source_outer_face(assembly, object_name, index, expected_area):
     """Copy only a source face's outer contour, omitting its cutouts."""
     face = source_face(assembly, object_name, index, expected_area)
-    return Part.Face(face.OuterWire)
+    outer = Part.Face(face.OuterWire)
+    if outer.normalAt(0, 0).dot(face.normalAt(0, 0)) < 0:
+        outer.reverse()
+    return outer
 
 
 def mesh_plane_profile(mesh, level, tolerance=0.002):
@@ -287,7 +290,7 @@ def build_servo_controller_mount(assembly):
         source_outer_face(assembly, "Part__Feature061", 98, 2632.652),
         "Part__Feature061 Face98 outer contour",
     )
-    base = extrusion(document, group, "BaseExtrusion", "Editable controller plate", base_profile, 6.0, False, "BaseThickness")
+    base = extrusion(document, group, "BaseExtrusion", "Editable controller plate", base_profile, 6.0, True, "BaseThickness")
     counterbores = fuse(
         document,
         group,
@@ -343,6 +346,8 @@ def build_lipo_battery_mount(assembly):
         "LeKiwiLiPoBatteryMount",
         title,
         BaseThickness=6.5,
+        LowerClearanceDepth=3.0,
+        NutTrapDepth=3.5,
         WallHeight=10.0,
         WallThickness=3.0,
     )
@@ -350,11 +355,34 @@ def build_lipo_battery_mount(assembly):
         document,
         group,
         "BaseProfile",
-        "Exact battery tray floor profile",
-        source_face(assembly, "Part__Feature062", 19, 4881.31),
-        "Part__Feature062 Face19",
+        "Exact battery tray floor outline",
+        source_outer_face(assembly, "Part__Feature062", 19, 4881.31),
+        "Part__Feature062 Face19 outer contour",
     )
     base = extrusion(document, group, "BaseExtrusion", "Editable battery tray floor", base_profile, 6.5, True, "BaseThickness")
+    lower_clearances = fuse(
+        document,
+        group,
+        "LowerClearanceTools",
+        "Editable lower circular clearances",
+        [
+            cylinder(document, group, "LowerClearanceA", "Lower circular clearance", 1.75, 3.0, (-60.0, -20.0, 0.0), expressions=(("Height", "LowerClearanceDepth"),)),
+            cylinder(document, group, "LowerClearanceB", "Lower circular clearance", 1.5, 3.0, (-40.0, -20.0, 0.0), expressions=(("Height", "LowerClearanceDepth"),)),
+        ],
+    )
+    base = cut(document, group, "BaseWithLowerClearances", "Battery floor with lower clearances", base, lower_clearances)
+    nut_traps = []
+    for number, (index, area) in enumerate(((7, 17.537), (14, 20.090)), 1):
+        pocket = profile(
+            document,
+            group,
+            f"NutTrapProfile{number}",
+            f"Exact battery-tray nut trap {number}",
+            source_outer_face(assembly, "Part__Feature062", index, area),
+            f"Part__Feature062 Face{index} outer contour",
+        )
+        nut_traps.append(extrusion(document, group, f"NutTrap{number}", f"Editable battery-tray nut trap {number}", pocket, 3.5, False, "NutTrapDepth"))
+    base = cut(document, group, "BaseWithNutTraps", "Battery floor with nut traps", base, fuse(document, group, "NutTrapTools", "Battery-tray nut-trap cut tools", nut_traps))
     walls = fuse(
         document,
         group,

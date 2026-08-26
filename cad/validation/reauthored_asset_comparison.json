@@ -97,11 +97,11 @@
       "original_mesh": "meshes/lipo_battery_mount-v3.stl",
       "generated_mesh": "meshes/reauthored/lipo_battery_mount-v3.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
-      "samples": 1000,
-      "max_surface_error_mm": 1.7440986633300781,
-      "p95_surface_error_mm": 1.4200311044262286,
-      "rms_surface_error_mm": 0.6194195188179092,
-      "status": "fail"
+      "samples": 1024,
+      "max_surface_error_mm": 0.01276814696334215,
+      "p95_surface_error_mm": 0.005508693607270904,
+      "rms_surface_error_mm": 0.002319953205729996,
+      "status": "pass"
     },
     {
       "urdf_link": "base_plate_layer2-v3",
