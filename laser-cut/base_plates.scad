@@ -1,8 +1,8 @@
-// Laser profiles of the original 3D-printed base plates.
+// Laser profiles of the base plates used by the validated URDF/Fusion assembly.
 // Select one plate, then export as DXF with OpenSCAD.
 plate = "lower"; // [lower,upper]
 
 projection(cut = true)
     import(plate == "lower"
-        ? "../3DPrintMeshes/base_plate_layer1.stl"
-        : "../3DPrintMeshes/base_plate_layer2.stl");
+        ? "../URDF/meshes/base_plate_layer1-v5.stl"
+        : "../URDF/meshes/base_plate_layer2-v3.stl");

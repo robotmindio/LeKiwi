@@ -2,10 +2,19 @@
 
 Each replacement must be a FreeCAD parametric source in this directory, copied or linked into `../assembly/LeKiwi.FCStd` in its URDF-link frame. Then attach it with `scripts/attach_cad_part.sh` and run `scripts/export_robot.sh`.
 
+Rebuild the editable base-plate source solids from the exact laser profiles:
+
+```sh
+./scripts/build_laser_plate_sources.sh
+./scripts/verify_laser_plate_sources.sh
+```
+
+Open either generated `.FCStd` file in FreeCAD. Change `Extrusion.LengthFwd` for the selected stock thickness; its `LaserProfile` is the exact profile used by the DXF. The lower plate is placed from `z=-7` to `z=0` in its URDF link frame and the upper plate from `z=0` to `z=7`.
+
 | Priority | Unique manufactured component | URDF links | Fusion archive reference | Status |
 | --- | --- | --- | --- | --- |
-| 1 | Lower base plate | `base_plate_layer1-v5` | `base_plate_layer1` | Exact laser DXF available; parametric FreeCAD source pending |
-| 1 | Upper base plate | `base_plate_layer2-v3` | `base_plate_layer2` | Exact laser DXF available; parametric FreeCAD source pending |
+| 1 | Lower base plate | `base_plate_layer1-v5` | `base_plate_layer1` | FreeCAD extrusion source available |
+| 1 | Upper base plate | `base_plate_layer2-v3` | `base_plate_layer2` | FreeCAD extrusion source available |
 | 2 | Drive motor mount | `drive_motor_mount-v11*` | `drive_motor_mount` | Pending |
 | 2 | Omni-wheel mount | `omni_wheel_mount-v5*` | `omni_wheel_mount` | Pending |
 | 2 | Servo controller mount | `servo_controller_mount-v3` | `servo_controller_mount` | Pending |
