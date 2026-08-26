@@ -1,3 +1,4 @@
 # Original vendor exports: preserve bytes and avoid multi-megabyte text diffs.
 reference/fusion/*.dxf -text -diff
 reference/fusion/*.stp -text -diff
+cad/assembly/*.FCStd -text -diff
