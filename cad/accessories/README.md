@@ -45,8 +45,7 @@ native reauthoring if they are to become editable FreeCAD sources:
 `drive_motor_mount.stl`, `servo_wheel_hub.stl`, `servo_controller_mount.stl`,
 `battery_mount.stl`, `base_camera_mount.stl`, and
 `dynamixel_specific/lipo_battery_mount.stl` correspond to existing native
-URDF sources. They belong in the accuracy-rework queue below, not the
-missing-source queue.
+URDF sources, so they are not missing-source candidates.
 
 The `drive_motor_mount_v2.stl` and `wrist_camera_mount.stl` print revisions do
 not match their older URDF counterparts, so the current native URDF sources
@@ -54,14 +53,13 @@ must not be presented as editable sources for those two files.
 
 The core URDF source files in `cad/parts/` are tracked separately. Their
 current geometric-fidelity audit is recorded in
-`cad/validation/reauthored_asset_comparison.json`; matching bounds and volume
-does not by itself establish surface equivalence.
+`cad/validation/reauthored_asset_comparison.json`; all twelve native link
+instances pass its sampled surface criterion. That validation does not extend
+to the alternative accessory prints listed above.
 
-## Existing native sources that still need accuracy rework
+## Core native-source fidelity
 
-The strict audit currently passes the two laser plates only. The native
-printed sources for the drive mount, omni-wheel mount, servo-controller mount,
-LiPo mount, base camera mount, and wrist camera mount remain editable, but
-their generated URDF assets are not yet geometry-equivalent to their original
-meshes. Rework those six sources before treating the core printed assembly as
-a faithful open replacement.
+The two laser plates and all six native printed sources pass the strict
+bidirectional sampled surface audit against their corresponding original URDF
+meshes. The maximum measured deviation is 0.056 mm and the largest 95th
+percentile is 0.034 mm.

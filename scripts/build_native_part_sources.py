@@ -5,7 +5,6 @@ their profiles become independent FreeCAD features, and every output solid is
 made from built-in extrusions, primitives, fuses, and cuts.
 """
 
-import math
 import sys
 from pathlib import Path
 
@@ -58,50 +57,42 @@ def source_cylinder_face(assembly, object_name, index, expected_area):
     return face.copy()
 
 
-def mesh_plane_profile(mesh, level, tolerance=0.002):
-    """Turn one horizontal canonical-STL boundary into an editable profile face."""
-    counts = {}
-    points = {}
+def mesh_slice_profile(mesh, level, start=None):
+    """Turn one horizontal canonical-STL slice into an editable profile face."""
+    edges = {}
     for facet in mesh.Facets:
         vertices = [App.Vector(*point) for point in facet.Points]
-        if not all(abs(vertex.z - level) < tolerance for vertex in vertices):
-            continue
-        keys = [tuple(round(value, 6) for value in vertex) for vertex in vertices]
-        for key, vertex in zip(keys, vertices):
-            points[key] = vertex
-        for left, right in zip(keys, keys[1:] + keys[:1]):
-            key = tuple(sorted((left, right)))
-            counts[key] = counts.get(key, 0) + 1
-    edges = [Part.makeLine(points[left], points[right]) for (left, right), count in counts.items() if count == 1]
-    wires = [Part.Wire(group) for group in Part.sortEdges(edges)]
+        hits = []
+        for left, right in zip(vertices, vertices[1:] + vertices[:1]):
+            left_distance, right_distance = left.z - level, right.z - level
+            if left_distance * right_distance < 0:
+                hits.append(left + (right - left) * (-left_distance / (right_distance - left_distance)))
+        keys = []
+        for point in hits:
+            key = tuple(round(value, 6) for value in point)
+            if key not in keys:
+                keys.append(key)
+        if len(keys) == 2 and keys[0] != keys[1]:
+            edges[tuple(sorted(keys))] = keys
+    wires = [Part.Wire(group) for group in Part.sortEdges([Part.makeLine(App.Vector(*left), App.Vector(*right)) for left, right in edges.values()])]
     if not wires or not all(wire.isClosed() for wire in wires):
-        raise RuntimeError(f"canonical STL plane z={level}: did not produce closed profile contours")
-    faces = [Part.Face(wire) for wire in wires]
-    outer = max(faces, key=lambda item: item.Area)
-    return outer.cut(Part.makeCompound([item for item in faces if item != outer]))
-
-
-def mesh_projection_hull(mesh, level):
-    points = sorted({(round(point[0], 6), round(point[1], 6)) for facet in mesh.Facets for point in facet.Points})
-
-    def turn(origin, left, right):
-        return (left[0] - origin[0]) * (right[1] - origin[1]) - (left[1] - origin[1]) * (right[0] - origin[0])
-
-    lower = []
-    for point in points:
-        while len(lower) >= 2 and turn(lower[-2], lower[-1], point) <= 0:
-            lower.pop()
-        lower.append(point)
-    upper = []
-    for point in reversed(points):
-        while len(upper) >= 2 and turn(upper[-2], upper[-1], point) <= 0:
-            upper.pop()
-        upper.append(point)
-    hull = lower[:-1] + upper[:-1]
-    if len(hull) < 3:
-        raise RuntimeError("canonical STL projection did not produce an outer hull")
-    wire = Part.makePolygon([App.Vector(x, y, level) for x, y in [*hull, hull[0]]])
-    return Part.Face(wire)
+        raise RuntimeError(f"canonical STL slice z={level}: did not produce closed profile contours")
+    faces = sorted((Part.Face(wire) for wire in wires), key=lambda item: item.Area, reverse=True)
+    result = faces[0]
+    for index, face in enumerate(faces[1:], 1):
+        # Nested contours alternate between material and void in a mesh slice.
+        depth = sum(parent.common(face).Area >= face.Area - 0.001 for parent in faces[:index])
+        result = result.fuse(face) if depth % 2 == 0 else result.cut(face)
+    normalized = []
+    for face in result.Faces:
+        face = face.copy()
+        if face.normalAt(0, 0).z < 0:
+            face.reverse()
+        normalized.append(face)
+    result = normalized[0] if len(normalized) == 1 else Part.makeCompound(normalized)
+    if start is not None:
+        result.translate(App.Vector(0, 0, start - level))
+    return result
 
 
 def add_parameters(document, **values):
@@ -599,39 +590,60 @@ def build_omni_wheel_mount(assembly):
     title = "omni-wheel mount"
     target = Mesh.Mesh("URDF/meshes/omni_wheel_mount-v5-2.stl")
     target_box = bounds(target)
-    front_profile_shape = mesh_plane_profile(target, target_box[2])
-    web_profile_shape = mesh_projection_hull(target, target_box[2] + 4.0)
-    hub_profile_shape = mesh_plane_profile(target, target_box[5])
-    required_web_area = (target.Volume - front_profile_shape.Area * 4.0 - hub_profile_shape.Area * 6.825) / 3.175
-    web_cut_area = web_profile_shape.Area - required_web_area
-    if web_cut_area <= 0:
-        raise RuntimeError("canonical STL hull is smaller than the required structural web")
+    front_top = target_box[2] + 4.0
+    web_start = front_top + 0.3
+    web_end = web_start + 2.575
+    hub_start = web_end + 0.3
+    hub_end = target_box[5] - 0.475
+    front_profile_shape = mesh_slice_profile(target, target_box[2] + 2.0, target_box[2])
+    web_profile_shape = mesh_slice_profile(target, 0.0, web_start)
+    hub_profile_shape = mesh_slice_profile(target, 5.0, hub_start)
     document, group = new_model(
         "LeKiwiOmniWheelMount",
         title,
         FrontThickness=4.0,
-        WebThickness=3.175,
-        HubDepth=6.825,
-        WebCutRadius=math.sqrt(web_cut_area / math.pi),
+        WebThickness=2.575,
+        HubDepth=6.35,
     )
-    front_profile = profile(document, group, "FrontProfile", "Canonical STL front profile", front_profile_shape, "omni_wheel_mount-v5-2.stl z-min")
+
+    def transition_layers(name, label, lower, upper):
+        height = (upper - lower) / 3
+        items = []
+        for number in range(3):
+            start = lower + number * height
+            level = start + height / 2
+            shape = mesh_slice_profile(target, level, start)
+            section = profile(
+                document,
+                group,
+                f"{name}Profile{number + 1}",
+                f"Canonical STL {label} section {number + 1}",
+                shape,
+                f"omni_wheel_mount-v5-2.stl slice z={level:.4f}",
+            )
+            items.append(extrusion(document, group, f"{name}{number + 1}", f"Editable {label} section {number + 1}", section, height))
+        return items
+
+    front_profile = profile(document, group, "FrontProfile", "Canonical STL front profile", front_profile_shape, "omni_wheel_mount-v5-2.stl slice z=-3.5875")
     front = extrusion(document, group, "FrontPlate", "Editable front mounting plate", front_profile, 4.0, False, "FrontThickness")
-    web_profile = profile(document, group, "WebProfile", "Canonical STL outer-hull profile", web_profile_shape, "omni_wheel_mount-v5-2.stl projected outer hull")
-    web = extrusion(document, group, "StructuralWeb", "Editable structural web", web_profile, 3.175, False, "WebThickness")
-    web_cut = cylinder(
+    web_profile = profile(document, group, "WebProfile", "Canonical STL web profile", web_profile_shape, "omni_wheel_mount-v5-2.stl slice z=0")
+    web = extrusion(document, group, "StructuralWeb", "Editable structural web", web_profile, 2.575, False, "WebThickness")
+    hub_profile = profile(document, group, "HubProfile", "Canonical STL hub profile", hub_profile_shape, "omni_wheel_mount-v5-2.stl slice z=5")
+    hub = extrusion(document, group, "Hub", "Editable servo hub", hub_profile, 6.35, False, "HubDepth")
+    final = fuse(
         document,
         group,
-        "WebCut",
-        "Editable structural-web clearance",
-        math.sqrt(web_cut_area / math.pi),
-        3.175,
-        ((target_box[0] + target_box[3]) / 2, (target_box[1] + target_box[4]) / 2, target_box[2] + 4.0),
-        expressions=(("Radius", "WebCutRadius"), ("Height", "WebThickness")),
+        "Final",
+        title,
+        [
+            front,
+            *transition_layers("LowerTransition", "lower web transition", front_top, web_start),
+            web,
+            *transition_layers("UpperTransition", "upper hub transition", web_end, hub_start),
+            hub,
+            *transition_layers("TopCap", "hub top cap", hub_end, target_box[5]),
+        ],
     )
-    web = cut(document, group, "StructuralWebWithClearance", "Structural web with clearance", web, web_cut)
-    hub_profile = profile(document, group, "HubProfile", "Canonical STL hub profile", hub_profile_shape, "omni_wheel_mount-v5-2.stl z-max")
-    hub = extrusion(document, group, "Hub", "Editable servo hub", hub_profile, 6.825, True, "HubDepth")
-    final = fuse(document, group, "Final", title, [front, web, hub])
     finish(document, group, final, PARTS / "omni_wheel_mount.FCStd", title, target)
 
 

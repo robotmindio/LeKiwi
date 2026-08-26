@@ -75,12 +75,34 @@ def subtract(left, right):
     return tuple(a - b for a, b in zip(left, right))
 
 
+def point_segment_distance_squared(point, first, second):
+    segment = subtract(second, first)
+    length_squared = dot(segment, segment)
+    if length_squared == 0:
+        return dot(subtract(point, first), subtract(point, first))
+    ratio = max(0.0, min(1.0, dot(subtract(point, first), segment) / length_squared))
+    closest = tuple(first[axis] + ratio * segment[axis] for axis in range(3))
+    difference = subtract(point, closest)
+    return dot(difference, difference)
+
+
 def point_triangle_distance_squared(point, triangle):
     """Squared closest distance using the region tests from Real-Time Collision Detection."""
     first, second, third = triangle
     first_to_point = subtract(point, first)
     first_to_second = subtract(second, first)
     first_to_third = subtract(third, first)
+    normal = (
+        first_to_second[1] * first_to_third[2] - first_to_second[2] * first_to_third[1],
+        first_to_second[2] * first_to_third[0] - first_to_second[0] * first_to_third[2],
+        first_to_second[0] * first_to_third[1] - first_to_second[1] * first_to_third[0],
+    )
+    if dot(normal, normal) < 1e-18:
+        return min(
+            point_segment_distance_squared(point, first, second),
+            point_segment_distance_squared(point, second, third),
+            point_segment_distance_squared(point, third, first),
+        )
     dot_first_second = dot(first_to_second, first_to_point)
     dot_first_third = dot(first_to_third, first_to_point)
     if dot_first_second <= 0 and dot_first_third <= 0:

@@ -32,10 +32,10 @@
       "generated_mesh": "meshes/reauthored/omni_wheel_mount-v5-2.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
       "samples": 1024,
-      "max_surface_error_mm": 4.000000095367433,
-      "p95_surface_error_mm": 0.8113600796170883,
-      "rms_surface_error_mm": 0.5007361181647002,
-      "status": "fail"
+      "max_surface_error_mm": 0.05646611990294407,
+      "p95_surface_error_mm": 0.03410415165319255,
+      "rms_surface_error_mm": 0.012613333994649473,
+      "status": "pass"
     },
     {
       "urdf_link": "drive_motor_mount-v11-1",
@@ -54,10 +54,10 @@
       "generated_mesh": "meshes/reauthored/omni_wheel_mount-v5-1.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
       "samples": 1024,
-      "max_surface_error_mm": 4.000000087489768,
-      "p95_surface_error_mm": 0.8338560517558227,
-      "rms_surface_error_mm": 0.49774419049156543,
-      "status": "fail"
+      "max_surface_error_mm": 0.056465574208748426,
+      "p95_surface_error_mm": 0.03410439483877016,
+      "rms_surface_error_mm": 0.012613321642457133,
+      "status": "pass"
     },
     {
       "urdf_link": "drive_motor_mount-v11",
@@ -76,10 +76,10 @@
       "generated_mesh": "meshes/reauthored/omni_wheel_mount-v5.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
       "samples": 1024,
-      "max_surface_error_mm": 3.999999986580739,
-      "p95_surface_error_mm": 0.8113600832025801,
-      "rms_surface_error_mm": 0.500736126152798,
-      "status": "fail"
+      "max_surface_error_mm": 0.05646559445269325,
+      "p95_surface_error_mm": 0.0341051357968443,
+      "rms_surface_error_mm": 0.0126133296199751,
+      "status": "pass"
     },
     {
       "urdf_link": "servo_controller_mount-v3",
