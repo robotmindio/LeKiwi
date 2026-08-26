@@ -120,10 +120,10 @@
       "generated_mesh": "meshes/reauthored/Camera-Mount-v8.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
       "samples": 1024,
-      "max_surface_error_mm": 2.424069404602051,
-      "p95_surface_error_mm": 1.4363873242894813,
-      "rms_surface_error_mm": 0.455918866284541,
-      "status": "fail"
+      "max_surface_error_mm": 0.02580091228288556,
+      "p95_surface_error_mm": 0.012343843647323875,
+      "rms_surface_error_mm": 0.005300616672784844,
+      "status": "pass"
     },
     {
       "urdf_link": "Wrist-Camera-Mount-v11",

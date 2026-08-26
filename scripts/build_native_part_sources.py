@@ -48,6 +48,16 @@ def source_outer_face(assembly, object_name, index, expected_area):
     return outer
 
 
+def source_cylinder_face(assembly, object_name, index, expected_area):
+    source = assembly.getObject(object_name)
+    if not source or source.Shape.isNull():
+        raise RuntimeError(f"missing STEP reference {object_name}")
+    face = source.Shape.Faces[index - 1]
+    if type(face.Surface).__name__ != "Cylinder" or abs(face.Area - expected_area) > 0.01:
+        raise RuntimeError(f"{object_name}: unexpected cylindrical face {index}")
+    return face.copy()
+
+
 def mesh_plane_profile(mesh, level, tolerance=0.002):
     """Turn one horizontal canonical-STL boundary into an editable profile face."""
     counts = {}
@@ -153,6 +163,25 @@ def cylinder(document, group, name, label, radius, height, origin, axis=(0, 0, 1
     item.Visibility = False
     group.addObject(item)
     return item
+
+
+def cylinder_from_source_face(document, group, name, label, face, expressions=()):
+    surface = face.Surface
+    if type(surface).__name__ != "Cylinder" or not face.Vertexes:
+        raise RuntimeError(f"{name}: expected a finite cylindrical source face")
+    distances = [(vertex.Point - surface.Center).dot(surface.Axis) for vertex in face.Vertexes]
+    origin = surface.Center + surface.Axis * min(distances)
+    return cylinder(
+        document,
+        group,
+        name,
+        label,
+        surface.Radius,
+        max(distances) - min(distances),
+        tuple(origin),
+        tuple(surface.Axis),
+        expressions,
+    )
 
 
 def fuse(document, group, name, label, items):
@@ -401,47 +430,94 @@ def build_lipo_battery_mount(assembly):
 
 def build_base_camera_mount(assembly):
     title = "base camera mount"
-    panel_face = source_face(assembly, "Part__Feature068", 26, 1861.448)
-    flange_face = source_face(assembly, "Part__Feature068", 18, 451.137)
-    ring_volume = 4 * math.pi * (2.5**2 - 1.5**2) * 3.0
-    connector_volume = assembly.getObject("Part__Feature068").Shape.Volume - panel_face.Area * 5.0 - flange_face.Area * 3.0 - ring_volume
-    connector_height = 1.76
     document, group = new_model(
         "LeKiwiBaseCameraMount",
         title,
-        PanelThickness=5.0,
-        FlangeThickness=3.0,
+        BodyWidth=48.0,
+        ConnectorClearanceWidth=8.5,
+        LowerClearanceRadius=1.75,
+        LowerClearanceDepth=3.0,
         BossRadius=2.5,
-        BossHeight=3.5,
-        ConnectorHeight=connector_height,
-        ConnectorLength=connector_volume / (48.0 * connector_height),
+        BossDepth=3.0,
+        BossHoleRadius=1.5,
+        BossHoleLength=8.0,
     )
-    panel_profile = profile(document, group, "PanelProfile", "Exact angled camera panel profile", panel_face, "Part__Feature068 Face26")
-    panel = extrusion(document, group, "PanelExtrusion", "Editable angled camera panel", panel_profile, 5.0, True, "PanelThickness")
-    flange_profile = profile(document, group, "FlangeProfile", "Exact base flange profile", flange_face, "Part__Feature068 Face18")
-    flange = extrusion(document, group, "FlangeExtrusion", "Editable base flange", flange_profile, 3.0, True, "FlangeThickness")
-    connector = box(document, group, "BendConnector", "Editable panel bend", 48.0, connector_volume / (48.0 * connector_height), connector_height, (-24.0, 95.0, 3.0), (("Width", "ConnectorLength"), ("Height", "ConnectorHeight")))
-    axis = (0.0, 0.984807753, 0.173648178)
-    centers = tuple(
-        tuple(value - 0.5 * direction for value, direction in zip(center, axis))
-        for center in ((14.0, 108.274, 10.224), (-14.0, 108.274, 10.224), (14.0, 103.412, 37.799), (-14.0, 103.412, 37.799))
-    )
-    boss_outer = fuse(
+    body_profile = profile(
         document,
         group,
-        "BossOuter",
-        "Camera mounting bosses",
-        [cylinder(document, group, f"BossOuter{number}", "Camera mounting boss", 2.5, 3.5, center, axis, (("Radius", "BossRadius"), ("Height", "BossHeight"))) for number, center in enumerate(centers, 1)],
+        "BodyProfile",
+        "Exact camera-mount side profile",
+        source_face(assembly, "Part__Feature068", 17, 251.491),
+        "Part__Feature068 Face17",
     )
-    boss_holes = fuse(
+    body = extrusion(document, group, "BodyExtrusion", "Editable camera-mount body", body_profile, 48.0, True, "BodyWidth")
+    connector_profile = profile(
         document,
         group,
-        "BossHoleTools",
-        "Camera boss through holes",
-        [cylinder(document, group, f"BossHole{number}", "Camera screw hole", 1.5, 3.5, center, axis, (("Height", "BossHeight"),)) for number, center in enumerate(centers, 1)],
+        "ConnectorClearanceProfile",
+        "Exact camera-connector clearance profile",
+        source_face(assembly, "Part__Feature068", 9, 22.5),
+        "Part__Feature068 Face9",
     )
-    body = fuse(document, group, "MountBody", "Camera mount body", [panel, flange, connector, boss_outer])
-    final = cut(document, group, "Final", title, body, boss_holes)
+    connector_clearance = extrusion(
+        document,
+        group,
+        "ConnectorClearance",
+        "Editable camera-connector clearance",
+        connector_profile,
+        8.5,
+        False,
+        "ConnectorClearanceWidth",
+    )
+    lower_clearances = [
+        cylinder_from_source_face(
+            document,
+            group,
+            f"LowerClearance{number}",
+            "Lower circular clearance",
+            source_cylinder_face(assembly, "Part__Feature068", index, 32.987),
+            (("Radius", "LowerClearanceRadius"), ("Height", "LowerClearanceDepth")),
+        )
+        for number, index in enumerate((19, 20, 21), 1)
+    ]
+    body = cut(
+        document,
+        group,
+        "BodyWithClearances",
+        "Camera mount body with lower clearances",
+        body,
+        fuse(document, group, "LowerClearanceTools", "Camera-mount clearance tools", [connector_clearance, *lower_clearances]),
+    )
+    bosses = [
+        cylinder_from_source_face(
+            document,
+            group,
+            f"Boss{number}",
+            "Editable camera mounting boss",
+            source_cylinder_face(assembly, "Part__Feature068", index, 47.124),
+            (("Radius", "BossRadius"), ("Height", "BossDepth")),
+        )
+        for number, index in enumerate((1, 3, 5, 7), 1)
+    ]
+    boss_holes = [
+        cylinder_from_source_face(
+            document,
+            group,
+            f"BossHole{number}",
+            "Camera boss through hole",
+            source_cylinder_face(assembly, "Part__Feature068", index, 75.398),
+            (("Radius", "BossHoleRadius"), ("Height", "BossHoleLength")),
+        )
+        for number, index in enumerate((27, 28, 29, 30), 1)
+    ]
+    final = cut(
+        document,
+        group,
+        "Final",
+        title,
+        fuse(document, group, "MountBody", "Camera mount body", [body, *bosses]),
+        fuse(document, group, "BossHoleTools", "Camera boss through-hole tools", boss_holes),
+    )
     finish(document, group, final, PARTS / "base_camera_mount.FCStd", title, assembly.getObject("Part__Feature068").Shape)
 
 
