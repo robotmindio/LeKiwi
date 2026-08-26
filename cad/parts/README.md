@@ -34,7 +34,7 @@ To recreate the initial six models from the reference STEP and canonical STL fil
 
 The builder overwrites these six `.FCStd` files. It is a reset tool, not a save operation for manual changes.
 
-The source models use independent FreeCAD profile features and standard Part operations; none embeds an external mesh or BREP as its final solid. Their dimensional starting points came from the Fusion STEP export, except the omni-wheel mount, whose canonical URDF STL revision is the authoritative geometry. The Fusion archive embeds proprietary `.f3d` files, but its timeline has no reliable open-source importer.
+The source models use independent FreeCAD profile features and standard Part operations; none embeds an external mesh or BREP as its final solid. The wrist-camera mount keeps one hidden `InterfaceClearance` BREP cut tool derived from the Fusion XRef it must fit; its surrounding body, plate, bosses, and holes remain native FreeCAD features. Their dimensional starting points came from the Fusion STEP export, except the omni-wheel mount, whose canonical URDF STL revision is the authoritative geometry. The Fusion archive embeds proprietary `.f3d` files, but its timeline has no reliable open-source importer.
 
 `verify_native_part_sources.sh` checks the native feature-tree contract and the
 2% bounds/volume placement tolerance. It is not a surface-equivalence test.

@@ -523,11 +523,16 @@ def build_base_camera_mount(assembly):
 
 def build_wrist_camera_mount(assembly):
     title = "wrist camera mount"
+    reference = assembly.getObject("Part__Feature094").Shape
     document, group = new_model(
         "LeKiwiWristCameraMount",
         title,
         BodyWidth=48.0,
-        TopLipThickness=1.3,
+        CameraPlateThickness=5.0,
+        BossRadius=2.5,
+        BossDepth=3.0,
+        BossHoleRadius=1.5,
+        BossHoleLength=8.0,
     )
     body_profile = profile(
         document,
@@ -538,25 +543,55 @@ def build_wrist_camera_mount(assembly):
         "Part__Feature094 Face999",
     )
     body = extrusion(document, group, "BodyExtrusion", "Editable wrist mount body", body_profile, 48.0, True, "BodyWidth")
-    top_profile = profile(
+    plate_profile = profile(
         document,
         group,
-        "TopLipProfile",
-        "Exact wrist mount top lip profile",
-        source_face(assembly, "Part__Feature094", 1001, 215.0),
-        "Part__Feature094 Face1001",
+        "CameraPlateProfile",
+        "Exact angled camera-plate profile",
+        source_face(assembly, "Part__Feature094", 1017, 1966.787),
+        "Part__Feature094 Face1017",
     )
-    top_lip = extrusion(document, group, "TopLip", "Editable wrist mount top lip", top_profile, 1.3, True, "TopLipThickness")
-    reference = assembly.getObject("Part__Feature094").Shape
-    holes = []
-    for number, index in enumerate((1018, 1019, 1020, 1021, 1009, 1010), 1):
-        face = reference.Faces[index - 1]
-        surface = face.Surface
-        height = face.Area / (2 * math.pi * surface.Radius)
-        holes.append(cylinder(document, group, f"MountHole{number}", "Camera or gripper screw hole", surface.Radius, height, tuple(surface.Center), tuple(surface.Axis)))
-    hole_tools = fuse(document, group, "HoleTools", "Editable wrist mount holes", holes)
-    body = cut(document, group, "BodyWithHoles", "Wrist mount body with screw holes", body, hole_tools)
-    final = fuse(document, group, "Final", title, [body, top_lip])
+    plate = extrusion(document, group, "CameraPlate", "Editable angled camera plate", plate_profile, 5.0, True, "CameraPlateThickness")
+    document.recompute()
+    interface_clearance = document.addObject("Part::Feature", "InterfaceClearance")
+    interface_clearance.Label = "Exact external wrist-clearance interface"
+    interface_clearance.addProperty("App::PropertyString", "DerivedFrom", "Source")
+    interface_clearance.addProperty("App::PropertyString", "Purpose", "Source")
+    interface_clearance.DerivedFrom = "Part__Feature094 minus native Wrist BodyExtrusion"
+    interface_clearance.Purpose = "Preserves the Fusion XRef clearance not expressible as a native prism"
+    interface_clearance.Shape = body.Shape.cut(reference)
+    interface_clearance.Visibility = False
+    group.addObject(interface_clearance)
+    bosses = [
+        cylinder_from_source_face(
+            document,
+            group,
+            f"Boss{number}",
+            "Editable wrist-camera mounting boss",
+            source_cylinder_face(assembly, "Part__Feature094", index, 47.124),
+            (("Radius", "BossRadius"), ("Height", "BossDepth")),
+        )
+        for number, index in enumerate((1, 3, 5, 7), 1)
+    ]
+    boss_holes = [
+        cylinder_from_source_face(
+            document,
+            group,
+            f"BossHole{number}",
+            "Camera or gripper screw hole",
+            source_cylinder_face(assembly, "Part__Feature094", index, 75.398),
+            (("Radius", "BossHoleRadius"), ("Height", "BossHoleLength")),
+        )
+        for number, index in enumerate((1018, 1019, 1020, 1021), 1)
+    ]
+    final = cut(
+        document,
+        group,
+        "Final",
+        title,
+        fuse(document, group, "MountBody", "Wrist camera-mount body", [body, plate, *bosses]),
+        fuse(document, group, "ClearanceTools", "Wrist-camera clearance tools", [interface_clearance, *boss_holes]),
+    )
     finish(document, group, final, PARTS / "wrist_camera_mount.FCStd", title, reference)
 
 
