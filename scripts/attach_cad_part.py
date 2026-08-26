@@ -36,7 +36,7 @@ for property_name in ("MaterialDensity", "MassOverride"):
 part.MaterialDensity = density
 part.MassOverride = mass_override
 if part not in link.CadParts:
-    link.CadParts = list(link.CadParts) + [part]
+    link.CadParts = [item for item in link.CadParts if not hasattr(item, "SourceKind")] + [part]
 link.UseCadMass = True
 document.recompute()
 document.save()

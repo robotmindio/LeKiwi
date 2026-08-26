@@ -1,6 +1,6 @@
 # Native-part migration queue
 
-Each replacement must be a FreeCAD parametric source in this directory, copied or linked into `../assembly/LeKiwi.FCStd` in its URDF-link frame. Then attach it with `scripts/attach_cad_part.sh` and run `scripts/export_robot.sh`.
+Every URDF link already has a FreeCAD source in `../assembly/LeKiwi.FCStd`; see [`../reference_mapping.json`](../reference_mapping.json) for its exact BREP or mesh reference. The queue below is only the remaining work to recreate native, constrained FreeCAD feature models. Each replacement must be in its URDF-link frame, then attached with `scripts/attach_cad_part.sh` and exported with `scripts/export_robot.sh`.
 
 Rebuild the editable base-plate source solids from the exact laser profiles:
 
@@ -26,12 +26,12 @@ Here `1240` is only an example density in kg/m³; use `0` as the final argument 
 | --- | --- | --- | --- | --- |
 | 1 | Lower base plate | `base_plate_layer1-v5` | `base_plate_layer1` | FreeCAD extrusion source available |
 | 1 | Upper base plate | `base_plate_layer2-v3` | `base_plate_layer2` | FreeCAD extrusion source available |
-| 2 | Drive motor mount | `drive_motor_mount-v11*` | `drive_motor_mount` | Pending |
-| 2 | Omni-wheel mount | `omni_wheel_mount-v5*` | `omni_wheel_mount` | Pending |
-| 2 | Servo controller mount | `servo_controller_mount-v3` | `servo_controller_mount` | Pending |
-| 2 | LiPo battery mount | `lipo_battery_mount-v3` | `lipo_battery_mount` | Pending |
-| 3 | Base camera mount | `Camera-Mount-v8` | `Camera Mount` | Pending |
-| 3 | Wrist camera mount | `Wrist-Camera-Mount-v11` | `wrist_camera_mount` | Pending |
+| 2 | Drive motor mount | `drive_motor_mount-v11*` | `drive_motor_mount` | STEP BREP reference linked; native parametric source pending |
+| 2 | Omni-wheel mount | `omni_wheel_mount-v5*` | `omni_wheel_mount` | Exact URDF mesh reference linked; native parametric source pending |
+| 2 | Servo controller mount | `servo_controller_mount-v3` | `servo_controller_mount` | STEP BREP reference linked; native parametric source pending |
+| 2 | LiPo battery mount | `lipo_battery_mount-v3` | `lipo_battery_mount` | STEP BREP reference linked; native parametric source pending |
+| 3 | Base camera mount | `Camera-Mount-v8` | `Camera Mount` | STEP BREP reference linked; native parametric source pending |
+| 3 | Wrist camera mount | `Wrist-Camera-Mount-v11` | `wrist_camera_mount` | STEP BREP reference linked; native parametric source pending |
 
 The Fusion archive embeds the listed proprietary `.f3d` component files, but their feature timelines have no reliable open-source importer. The STEP assembly and matching STL files are the dimensional reference for each FreeCAD reconstruction.
 
