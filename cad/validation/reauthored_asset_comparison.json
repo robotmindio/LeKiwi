@@ -87,10 +87,10 @@
       "generated_mesh": "meshes/reauthored/servo_controller_mount-v3.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
       "samples": 1024,
-      "max_surface_error_mm": 1.4959208965301514,
-      "p95_surface_error_mm": 1.1032863027200484,
-      "rms_surface_error_mm": 0.4251938154177916,
-      "status": "fail"
+      "max_surface_error_mm": 0.029094881796935465,
+      "p95_surface_error_mm": 0.01722908284450473,
+      "rms_surface_error_mm": 0.00624490075246723,
+      "status": "pass"
     },
     {
       "urdf_link": "lipo_battery_mount-v3",

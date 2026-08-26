@@ -39,6 +39,12 @@ def source_face(assembly, object_name, index, expected_area):
     return face.copy()
 
 
+def source_outer_face(assembly, object_name, index, expected_area):
+    """Copy only a source face's outer contour, omitting its cutouts."""
+    face = source_face(assembly, object_name, index, expected_area)
+    return Part.Face(face.OuterWire)
+
+
 def mesh_plane_profile(mesh, level, tolerance=0.002):
     """Turn one horizontal canonical-STL boundary into an editable profile face."""
     counts = {}
@@ -263,24 +269,71 @@ def build_drive_motor_mount(assembly):
 
 def build_servo_controller_mount(assembly):
     title = "servo controller mount"
-    base_face = source_face(assembly, "Part__Feature061", 98, 2632.652)
-    standoff_faces = [source_face(assembly, "Part__Feature061", index, 28.611) for index in (57, 66, 75, 84)]
     target = assembly.getObject("Part__Feature061").Shape
-    standoff_area = sum(face.Area for face in standoff_faces)
-    base_thickness = (target.Volume - standoff_area * 11.0) / (base_face.Area - standoff_area)
     document, group = new_model(
         "LeKiwiServoControllerMount",
         title,
-        BaseThickness=base_thickness,
-        StandoffHeight=11.0 - base_thickness,
+        BaseThickness=6.0,
+        CounterboreDepth=3.0,
+        NutTrapDepth=3.0,
+        StandoffHeight=5.0,
+        StandoffRadius=4.0,
     )
-    base_profile = profile(document, group, "BaseProfile", "Exact controller plate profile", base_face, "Part__Feature061 Face98")
-    base = extrusion(document, group, "BaseExtrusion", "Editable controller plate", base_profile, base_thickness, True, "BaseThickness")
-    standoffs = []
-    for number, face in enumerate(standoff_faces, 1):
-        source = profile(document, group, f"StandoffProfile{number}", f"Exact standoff {number} profile", face, f"Part__Feature061 standoff {number}")
-        standoffs.append(extrusion(document, group, f"Standoff{number}", f"Editable standoff {number}", source, 11.0 - base_thickness, True, "StandoffHeight"))
-    final = fuse(document, group, "Final", title, [base, *standoffs])
+    base_profile = profile(
+        document,
+        group,
+        "BaseProfile",
+        "Exact controller plate outline",
+        source_outer_face(assembly, "Part__Feature061", 98, 2632.652),
+        "Part__Feature061 Face98 outer contour",
+    )
+    base = extrusion(document, group, "BaseExtrusion", "Editable controller plate", base_profile, 6.0, False, "BaseThickness")
+    counterbores = fuse(
+        document,
+        group,
+        "CounterboreTools",
+        "Editable lower circular clearances",
+        [
+            cylinder(document, group, f"Counterbore{number}", "Lower circular clearance", 1.75, 3.0, center, expressions=(("Height", "CounterboreDepth"),))
+            for number, center in enumerate(((-10.0, 60.0, 0.0), (0.0, 60.0, 0.0), (10.0, 60.0, 0.0), (0.0, 40.0, 0.0), (0.0, 50.0, 0.0), (0.0, 70.0, 0.0), (0.0, 80.0, 0.0)), 1)
+        ],
+    )
+    base = cut(document, group, "BaseWithCounterbores", "Controller plate with lower clearances", base, counterbores)
+    nut_traps = []
+    for number, index in enumerate((7, 14, 21, 28, 35, 42, 49), 1):
+        pocket = profile(
+            document,
+            group,
+            f"BaseNutTrapProfile{number}",
+            f"Exact base nut trap {number}",
+            source_outer_face(assembly, "Part__Feature061", index, 17.537),
+            f"Part__Feature061 Face{index} outer contour",
+        )
+        nut_traps.append(extrusion(document, group, f"BaseNutTrap{number}", f"Editable base nut trap {number}", pocket, 3.0, False, "NutTrapDepth"))
+    base = cut(document, group, "BaseWithNutTraps", "Controller plate with nut traps", base, fuse(document, group, "BaseNutTrapTools", "Base nut-trap cut tools", nut_traps))
+    standoffs = [
+        cylinder(document, group, f"Standoff{number}", "Editable controller standoff", 4.0, 5.0, center, expressions=(("Radius", "StandoffRadius"), ("Height", "StandoffHeight")))
+        for number, center in enumerate(((-14.0, 78.5, 6.0), (-14.0, 41.5, 6.0), (14.0, 78.5, 6.0), (14.0, 41.5, 6.0)), 1)
+    ]
+    standoff_traps = []
+    for number, index in enumerate((67, 76, 85, 97), 1):
+        pocket = profile(
+            document,
+            group,
+            f"StandoffNutTrapProfile{number}",
+            f"Exact standoff nut trap {number}",
+            source_face(assembly, "Part__Feature061", index, 21.654),
+            f"Part__Feature061 Face{index}",
+        )
+        standoff_traps.append(extrusion(document, group, f"StandoffNutTrap{number}", f"Editable standoff nut trap {number}", pocket, 5.0, False, "StandoffHeight"))
+    final = cut(
+        document,
+        group,
+        "Final",
+        title,
+        fuse(document, group, "MountBody", "Controller mount body", [base, *standoffs]),
+        fuse(document, group, "StandoffNutTrapTools", "Standoff nut-trap cut tools", standoff_traps),
+    )
     finish(document, group, final, PARTS / "servo_controller_mount.FCStd", title, target)
 
 
