@@ -27,6 +27,8 @@ Each printed-part file has an `Editable dimensions` (`Parameters`) object and a 
 
 Five models preserve their STEP component frame and are placed into the URDF link frame by `link_native_part_sources.sh`. The omni-wheel source uses the canonical URDF mesh frame because its Fusion STEP revision does not match the shipped URDF mesh; its editable profiles are derived once from canonical STL planes and then built as normal FreeCAD features. The linker's validation must remain below the 2% geometry tolerance before it saves the assembly.
 
+Published, non-URDF accessory sources live in [accessories/](accessories/README.md). At present, the two webcam mounts have exact LeKiwi STEP sources and are imported as editable BREP documents; their source files are not duplicated or hand-recreated.
+
 ## Deterministic build
 
 After changing a source or robot metadata, run:
@@ -38,6 +40,19 @@ python3 scripts/verify_xacro.py URDF/LeKiwi.urdf URDF/LeKiwi.urdf.xacro
 ```
 
 `export_robot.sh` exports all 45 link sources to `URDF/meshes/reauthored/` and writes the complete Xacro. There is no hand-edited Xacro step. `verify_cad_migration.sh` checks the baseline migration against the original URDF and is expected to fail after an intentional geometric redesign.
+
+For a stricter shape-fidelity audit, run:
+
+```sh
+./scripts/compare_reauthored_assets.sh
+```
+
+It compares each native FreeCAD export with its original URDF mesh using
+bidirectional sampled surface distance. Add `--strict` to fail on more than
+0.25 mm maximum or 0.10 mm 95th-percentile deviation. This is intentionally a
+separate audit: the current native printed-part baselines do not yet all meet
+that tighter criterion, even though they pass the older bounding-box and volume
+check.
 
 ## Mass and inertia
 
