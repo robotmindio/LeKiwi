@@ -2,7 +2,7 @@
 
 `generated/` contains separate, millimetre DXF profiles for the lower and upper base plates used by the validated Fusion/URDF assembly.
 
-`generated/print-templates/` contains matching 1:1 PDF templates for paper printing. Print at **Actual size / 100%** (never “Fit to page”); each PDF page is 216 × 213 mm.
+`generated/print-templates/` contains matching 1:1 PDF templates for paper printing. Print at **Actual size / 100%** (never “Fit to page”); each PDF page is 216 × 213 mm. If the printer crops them, use the `*_tiled_a4.pdf` version: print both A4 pages at 100%, cut on the dashed `CORTAR/UNIR` line, and tape the two halves together.
 
 Regenerate either profile with OpenSCAD:
 
