@@ -1,0 +1,46 @@
+[
+  {
+    "source": "drive_motor_mount",
+    "reference_object": "Part__Feature001",
+    "mesh_frame": false,
+    "links": {
+      "drive_motor_mount-v11-2": "CadDriveMotorMountV11_2",
+      "drive_motor_mount-v11-1": "CadDriveMotorMountV11_1",
+      "drive_motor_mount-v11": "CadDriveMotorMountV11"
+    }
+  },
+  {
+    "source": "omni_wheel_mount",
+    "reference_object": null,
+    "mesh_frame": true,
+    "links": {
+      "omni_wheel_mount-v5-2": "CadOmniWheelMountV5_2",
+      "omni_wheel_mount-v5-1": "CadOmniWheelMountV5_1",
+      "omni_wheel_mount-v5": "CadOmniWheelMountV5"
+    }
+  },
+  {
+    "source": "servo_controller_mount",
+    "reference_object": "Part__Feature061",
+    "mesh_frame": false,
+    "links": {"servo_controller_mount-v3": "CadServoControllerMountV3"}
+  },
+  {
+    "source": "lipo_battery_mount",
+    "reference_object": "Part__Feature062",
+    "mesh_frame": false,
+    "links": {"lipo_battery_mount-v3": "CadLiPoBatteryMountV3"}
+  },
+  {
+    "source": "base_camera_mount",
+    "reference_object": "Part__Feature068",
+    "mesh_frame": false,
+    "links": {"Camera-Mount-v8": "CadBaseCameraMountV8"}
+  },
+  {
+    "source": "wrist_camera_mount",
+    "reference_object": "Part__Feature094",
+    "mesh_frame": false,
+    "links": {"Wrist-Camera-Mount-v11": "CadWristCameraMountV11"}
+  }
+]

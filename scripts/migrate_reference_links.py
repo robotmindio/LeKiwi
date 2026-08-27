@@ -14,22 +14,18 @@ import Mesh
 ASSEMBLY = Path("cad/assembly/LeKiwi.FCStd")
 URDF = Path("URDF/LeKiwi.urdf")
 MAPPING = Path("cad/reference_mapping.json")
+NATIVE_PARTS_FILE = Path("cad/native_parts.json")
 MODE = os.environ.get("CAD_MIGRATION_MODE") or "report"
 MAX_ERROR = 0.02
 NATIVE_PARTS = {
     "base_plate_layer1-v5": ("CadBasePlateLower", "native FreeCAD laser-cut source"),
-    "drive_motor_mount-v11-2": ("CadDriveMotorMountV11_2", "native FreeCAD parametric source"),
-    "omni_wheel_mount-v5-2": ("CadOmniWheelMountV5_2", "native FreeCAD parametric source"),
-    "drive_motor_mount-v11-1": ("CadDriveMotorMountV11_1", "native FreeCAD parametric source"),
-    "omni_wheel_mount-v5-1": ("CadOmniWheelMountV5_1", "native FreeCAD parametric source"),
-    "drive_motor_mount-v11": ("CadDriveMotorMountV11", "native FreeCAD parametric source"),
-    "omni_wheel_mount-v5": ("CadOmniWheelMountV5", "native FreeCAD parametric source"),
-    "servo_controller_mount-v3": ("CadServoControllerMountV3", "native FreeCAD parametric source"),
-    "lipo_battery_mount-v3": ("CadLiPoBatteryMountV3", "native FreeCAD parametric source"),
     "base_plate_layer2-v3": ("CadBasePlateUpper", "native FreeCAD laser-cut source"),
-    "Camera-Mount-v8": ("CadBaseCameraMountV8", "native FreeCAD parametric source"),
-    "Wrist-Camera-Mount-v11": ("CadWristCameraMountV11", "native FreeCAD parametric source"),
 }
+for native_part in json.loads(NATIVE_PARTS_FILE.read_text()):
+    NATIVE_PARTS.update(
+        (link, (object_name, "native FreeCAD parametric source"))
+        for link, object_name in native_part["links"].items()
+    )
 STEP_EXCEPTIONS = {"base_plate_layer1-v5", "base_plate_layer2-v3"}
 STEP_OBJECTS = {
     "drive_motor_mount-v11-2": "Part__Feature001",

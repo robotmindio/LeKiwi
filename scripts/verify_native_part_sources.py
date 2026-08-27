@@ -1,29 +1,16 @@
 """Verify the native FreeCAD feature trees and their assembly links."""
 
+import json
 from pathlib import Path
 
 import FreeCAD as App
 
 
-PARTS = {
-    "drive_motor_mount": (
-        "drive_motor_mount-v11-2",
-        "drive_motor_mount-v11-1",
-        "drive_motor_mount-v11",
-    ),
-    "omni_wheel_mount": (
-        "omni_wheel_mount-v5-2",
-        "omni_wheel_mount-v5-1",
-        "omni_wheel_mount-v5",
-    ),
-    "servo_controller_mount": ("servo_controller_mount-v3",),
-    "lipo_battery_mount": ("lipo_battery_mount-v3",),
-    "base_camera_mount": ("Camera-Mount-v8",),
-    "wrist_camera_mount": ("Wrist-Camera-Mount-v11",),
-}
+PARTS = json.loads(Path("cad/native_parts.json").read_text())
 
 
-for name in PARTS:
+for part in PARTS:
+    name = part["source"]
     source = App.openDocument(str((Path("cad/parts") / f"{name}.FCStd").resolve()))
     final = source.getObject("Final")
     parameters = source.getObject("Parameters")
@@ -45,9 +32,10 @@ for name in PARTS:
 
 assembly = App.openDocument(str(Path("cad/assembly/LeKiwi.FCStd").resolve()))
 links = {item.UrdfName: item for item in assembly.getObject("LeKiwiLinks").Group}
-for name, urdf_links in PARTS.items():
+for source in PARTS:
+    name = source["source"]
     expected_source = f"cad/parts/{name}.FCStd#Final"
-    for urdf_link in urdf_links:
+    for urdf_link in source["links"]:
         metadata = links[urdf_link]
         if metadata.UseCadMass or len(metadata.CadParts) != 1:
             raise RuntimeError(f"{urdf_link}: expected one geometry-only native source")
@@ -57,4 +45,4 @@ for name, urdf_links in PARTS.items():
         if not part.LinkedObject or part.LinkedObject.Name != "Final":
             raise RuntimeError(f"{urdf_link}: native source does not target Final")
 
-print(f"validated {len(PARTS)} native feature trees and {sum(map(len, PARTS.values()))} assembly links")
+print(f"validated {len(PARTS)} native feature trees and {sum(len(part['links']) for part in PARTS)} assembly links")

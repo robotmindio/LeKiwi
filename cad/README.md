@@ -34,12 +34,12 @@ Published, non-URDF accessory sources live in [accessories/](accessories/README.
 After changing a source or robot metadata, run:
 
 ```sh
-./scripts/export_robot.sh
-python3 scripts/verify_xacro.py URDF/LeKiwi.urdf URDF/LeKiwi.urdf.xacro
-./scripts/verify_cad_migration.sh
+./scripts/verify_robot.sh
 ```
 
 `export_robot.sh` exports all 45 link sources to `URDF/meshes/reauthored/` and writes the complete Xacro. There is no hand-edited Xacro step. `verify_cad_migration.sh` checks the baseline migration against the original URDF and is expected to fail after an intentional geometric redesign.
+
+`native_parts.json` is the source of truth for the six parametric printed-part documents, their assembly links, and their placement references.
 
 For a stricter shape-fidelity audit, run:
 

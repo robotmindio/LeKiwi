@@ -1,5 +1,6 @@
 """Link the native printed-part sources into the FreeCAD robot assembly."""
 
+import json
 import math
 import re
 import sys
@@ -9,33 +10,8 @@ import FreeCAD as App
 
 
 ASSEMBLY = Path("cad/assembly/LeKiwi.FCStd")
+NATIVE_PARTS = Path("cad/native_parts.json")
 MAX_ERROR = 0.02
-MODELS = (
-    (
-        "drive_motor_mount",
-        "Part__Feature001",
-        False,
-        (
-            ("drive_motor_mount-v11-2", "CadDriveMotorMountV11_2"),
-            ("drive_motor_mount-v11-1", "CadDriveMotorMountV11_1"),
-            ("drive_motor_mount-v11", "CadDriveMotorMountV11"),
-        ),
-    ),
-    (
-        "omni_wheel_mount",
-        None,
-        True,
-        (
-            ("omni_wheel_mount-v5-2", "CadOmniWheelMountV5_2"),
-            ("omni_wheel_mount-v5-1", "CadOmniWheelMountV5_1"),
-            ("omni_wheel_mount-v5", "CadOmniWheelMountV5"),
-        ),
-    ),
-    ("servo_controller_mount", "Part__Feature061", False, (("servo_controller_mount-v3", "CadServoControllerMountV3"),)),
-    ("lipo_battery_mount", "Part__Feature062", False, (("lipo_battery_mount-v3", "CadLiPoBatteryMountV3"),)),
-    ("base_camera_mount", "Part__Feature068", False, (("Camera-Mount-v8", "CadBaseCameraMountV8"),)),
-    ("wrist_camera_mount", "Part__Feature094", False, (("Wrist-Camera-Mount-v11", "CadWristCameraMountV11"),)),
-)
 
 
 def bounds(shape):
@@ -96,15 +72,19 @@ if not links_group or not reference_group:
     raise RuntimeError("missing robot metadata or migrated reference geometry")
 metadata_by_name = {item.UrdfName: item for item in links_group.Group}
 reference_parts = set(reference_group.Group)
-managed_names = {name for _, _, _, links in MODELS for _, name in links}
+models = json.loads(NATIVE_PARTS.read_text())
+managed_names = {name for model in models for name in model["links"].values()}
 
-for model_name, source_reference, mesh_frame, links in MODELS:
+for model in models:
+    model_name = model["source"]
+    source_reference = model["reference_object"]
+    mesh_frame = model["mesh_frame"]
     source = App.openDocument(str((Path("cad/parts") / f"{model_name}.FCStd").resolve()))
     final = source.getObject("Final")
     if not final or final.Shape.isNull() or final.Shape.Volume <= 0:
         raise RuntimeError(f"{model_name}: missing native Final solid")
     source_shape = assembly.getObject(source_reference).Shape if source_reference else None
-    for urdf_name, object_name in links:
+    for urdf_name, object_name in model["links"].items():
         metadata = metadata_by_name[urdf_name]
         current = list(metadata.CadParts)
         foreign = [part for part in current if part not in reference_parts and part.Name not in managed_names]
