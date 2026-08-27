@@ -42,11 +42,14 @@ Open CAD and release work
     verified Apache-compatible exact source.
 
   - Run a manual FreeCAD GUI edit, relink, export, and Xacro-regeneration
-    session to validate the intended human editing flow.
+    session to validate the intended human editing flow. The equivalent
+    isolated scripted edit flow passed on 2026-08-27; GUI usability remains
+    to be confirmed.
 
-  - Investigate the three `The mesh data structure has some defects` warnings
-    emitted by `./scripts/verify_native_part_sources.sh`. The check currently
-    passes, but the warnings leave mesh integrity unconfirmed.
+  - The three mesh warnings are the canonical omni-wheel meshes, each used by
+    one wheel link. They contain non-manifold facets; repairing them removes
+    242 of 314244 facets and changes volume, so preserve source fidelity and
+    guard the explicit exception with `./scripts/verify_mesh_integrity.sh`.
 
   - Perform physical print, laser-cut, fit, fastener-clearance, strength,
     and full-assembly tests, accounting for material thickness, kerf, printer
