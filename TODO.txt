@@ -1,0 +1,70 @@
+Open CAD and release work
+
+  - Decide whether the remaining 33 URDF links need native parametric
+    FreeCAD models. The current assembly uses 23 imported STEP BREP
+    references and 10 canonical URDF mesh references; their exact mapping
+    is in cad/reference_mapping.json.
+
+  - Reauthor optional/non-URDF print assets with no exact editable source:
+      - 3DPrintMeshes/battery_mount_eu.stl
+      - 3DPrintMeshes/5v_specific/5v_power_bank_holder.stl
+      - 3DPrintMeshes/drive_motor_mount_v2.stl
+      - 3DPrintMeshes/modified_base_arm.stl
+      - 3DPrintMeshes/jetson_holder.stl
+      - 3DPrintMeshes/wrist_camera_mount.stl
+      - 3DPrintMeshes/webcam_mount/so100_gripper_cam_mount_insert.stl
+      - 3DPrintMeshes/wired_specific/cable_holder v0.stl
+      - 3DPrintMeshes/wired_specific/usb_connector_case v1.stl
+      - 3DPrintMeshes/dynamixel_specific/Dynamixel_omni_wheel_mount v2.stl
+      - 3DPrintMeshes/dynamixel_specific/center_triangular_insert.stl
+      - 3DPrintMeshes/dynamixel_specific/dynamixel_drive_motor_mount.stl
+      - 3DPrintMeshes/dynamixel_specific/dynamixel_kiwi_servo_mount.stl
+      - 3DPrintMeshes/dynamixel_specific/dynamixel_modified_base_arm.stl
+      - 3DPrintMeshes/dynamixel_specific/dynamixel_wheel_hub .stl
+      - 3DPrintMeshes/dynamixel_specific/follower_base.stl
+      - 3DPrintMeshes/dynamixel_specific/modified_static_side_with_mount.stl
+      - 3DPrintMeshes/dynamixel_specific/pi_case_bottom.stl
+      - 3DPrintMeshes/dynamixel_specific/webcam_base_mount.stl
+
+    `drive_motor_mount_v2.stl` and `wrist_camera_mount.stl` are revisions
+    distinct from the core URDF models, so each needs its own source.
+    The standard SO-100/SO-101 arm is available from the external Apache-2.0
+    project; `modified_base_arm.stl` and the gripper-camera insert are not
+    verified upstream equivalents.
+
+  - If native feature histories are required, reauthor the two webcam STEP
+    accessories; their current FreeCAD documents are editable BREP imports,
+    not reconstructed parametric models.
+
+  - Decide the licensing/provenance treatment for external sources: the
+    Raspberry Pi case is CC BY-NC, SO-100/SO-101 remains an external
+    Apache-2.0 dependency, and the VEX-derived wheel-hub derivative has no
+    verified Apache-compatible exact source.
+
+  - Run a manual FreeCAD GUI edit, relink, export, and Xacro-regeneration
+    session to validate the intended human editing flow.
+
+  - Investigate the three `The mesh data structure has some defects` warnings
+    emitted by `./scripts/verify_native_part_sources.sh`. The check currently
+    passes, but the warnings leave mesh integrity unconfirmed.
+
+  - Perform physical print, laser-cut, fit, fastener-clearance, strength,
+    and full-assembly tests, accounting for material thickness, kerf, printer
+    calibration, and print tolerances.
+
+  - Set CAD-derived mass and inertia from chosen material/infill density or
+    measured finished-part masses, including hardware.
+
+  - Provision a ROS environment and run runtime validation in RViz, Gazebo,
+    and/or MoveIt after finalizing geometry and mass properties.
+
+Conditional / blocked work
+
+  - Run a denser or full-mesh Hausdorff, clearance, collision, and
+    manufacturing-tolerance audit only when a redesign needs a stricter
+    threshold than the existing sampled surface check.
+
+  - Original Fusion parametric history is unavailable through an open
+    importer. Recreate the omni-wheel and wrist-camera design intent only if
+    original sketches/constraints become available or a manual reauthoring
+    specification is approved.
