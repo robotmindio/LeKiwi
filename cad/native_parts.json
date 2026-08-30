@@ -1,6 +1,7 @@
 [
   {
     "source": "drive_motor_mount",
+    "legacy_print": "3DPrintMeshes/drive_motor_mount.stl",
     "reference_object": "Part__Feature001",
     "mesh_frame": false,
     "links": {
@@ -21,18 +22,21 @@
   },
   {
     "source": "servo_controller_mount",
+    "legacy_print": "3DPrintMeshes/servo_controller_mount.stl",
     "reference_object": "Part__Feature061",
     "mesh_frame": false,
     "links": {"servo_controller_mount-v3": "CadServoControllerMountV3"}
   },
   {
     "source": "lipo_battery_mount",
+    "legacy_print": "3DPrintMeshes/battery_mount.stl",
     "reference_object": "Part__Feature062",
     "mesh_frame": false,
     "links": {"lipo_battery_mount-v3": "CadLiPoBatteryMountV3"}
   },
   {
     "source": "base_camera_mount",
+    "legacy_print": "3DPrintMeshes/base_camera_mount.stl",
     "reference_object": "Part__Feature068",
     "mesh_frame": false,
     "links": {"Camera-Mount-v8": "CadBaseCameraMountV8"}

@@ -1,43 +1,274 @@
 {
-  "schema": 1,
+  "schema": 2,
   "prints": [
-    {"id":"power-bank-holder-5v","stl":"3DPrintMeshes/5v_specific/5v_power_bank_holder.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor around the selected power bank"},
-    {"id":"base-camera-mount","stl":"3DPrintMeshes/base_camera_mount.stl","source_state":"open_parametric","source":"cad/parts/base_camera_mount.FCStd","fidelity":"candidate","next":"compare this legacy print before releasing from the FreeCAD source"},
-    {"id":"base-plate-lower-legacy","stl":"3DPrintMeshes/base_plate_layer1.stl","source_state":"fusion_parametric","source":"reference/fusion/LeKiwi.f3z#base_plate_layer1","fidelity":"not_checked","flat_source":"laser-cut/base_plates.scad","cut_outputs":["laser-cut/generated/base_plate_lower.dxf","laser-cut/generated/print-templates/base_plate_lower_1to1.pdf"],"next":"use the SCAD/DXF for cutting; compare Fusion history only if reproducing the legacy print"},
-    {"id":"base-plate-upper-legacy","stl":"3DPrintMeshes/base_plate_layer2.stl","source_state":"fusion_parametric","source":"reference/fusion/LeKiwi.f3z#base_plate_layer2","fidelity":"not_checked","flat_source":"laser-cut/base_plates.scad","cut_outputs":["laser-cut/generated/base_plate_upper.dxf","laser-cut/generated/print-templates/base_plate_upper_1to1.pdf"],"next":"use the SCAD/DXF for cutting; compare Fusion history only if reproducing the legacy print"},
-    {"id":"battery-mount-12v","stl":"3DPrintMeshes/battery_mount.stl","source_state":"open_parametric","source":"cad/parts/lipo_battery_mount.FCStd","fidelity":"candidate","next":"compare the selected 12 V battery envelope before release"},
-    {"id":"battery-mount-eu","stl":"3DPrintMeshes/battery_mount_eu.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor around the selected EU battery"},
-    {"id":"drive-motor-mount-v1","stl":"3DPrintMeshes/drive_motor_mount.stl","source_state":"open_parametric","source":"cad/parts/drive_motor_mount.FCStd","fidelity":"candidate","next":"compare this legacy print before release"},
-    {"id":"drive-motor-mount-v2","stl":"3DPrintMeshes/drive_motor_mount_v2.stl","source_state":"fusion_parametric","source":"reference/fusion/LeKiwi.f3z#drive_motor_mount","fidelity":"not_checked","next":"open and compare the retained Fusion component; the open FreeCAD v1 source is not claimed to match"},
-    {"id":"dynamixel-omni-wheel-mount-v2","stl":"3DPrintMeshes/dynamixel_specific/Dynamixel_omni_wheel_mount v2.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor for the XL430 interface"},
-    {"id":"dynamixel-center-triangular-insert","stl":"3DPrintMeshes/dynamixel_specific/center_triangular_insert.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor"},
-    {"id":"dynamixel-drive-motor-mount","stl":"3DPrintMeshes/dynamixel_specific/dynamixel_drive_motor_mount.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor for the XL430 interface"},
-    {"id":"dynamixel-kiwi-servo-mount","stl":"3DPrintMeshes/dynamixel_specific/dynamixel_kiwi_servo_mount.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor"},
-    {"id":"dynamixel-modified-base-arm","stl":"3DPrintMeshes/dynamixel_specific/dynamixel_modified_base_arm.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor"},
-    {"id":"dynamixel-wheel-hub","stl":"3DPrintMeshes/dynamixel_specific/dynamixel_wheel_hub .stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor"},
-    {"id":"dynamixel-follower-base","stl":"3DPrintMeshes/dynamixel_specific/follower_base.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor"},
-    {"id":"dynamixel-lipo-battery-mount","stl":"3DPrintMeshes/dynamixel_specific/lipo_battery_mount.stl","source_state":"open_parametric","source":"cad/parts/lipo_battery_mount.FCStd","fidelity":"candidate","next":"compare the Dynamixel print before release"},
-    {"id":"dynamixel-modified-static-side","stl":"3DPrintMeshes/dynamixel_specific/modified_static_side_with_mount.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor"},
-    {"id":"dynamixel-pi-case-bottom","stl":"3DPrintMeshes/dynamixel_specific/pi_case_bottom.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor"},
-    {"id":"dynamixel-webcam-base-mount","stl":"3DPrintMeshes/dynamixel_specific/webcam_base_mount.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor"},
-    {"id":"jetson-holder","stl":"3DPrintMeshes/jetson_holder.stl","source_state":"stl_only","fidelity":"none","next":"select the Jetson carrier, then measure and reauthor"},
-    {"id":"modified-so100-base","stl":"3DPrintMeshes/modified_base_arm.stl","source_state":"stl_only","fidelity":"none","reference":"cad/upstream/SO-ARM100/STEP/SO100/Base_08q.step","next":"measure and reauthor; this is a broad LeKiwi modification, not an upstream base"},
-    {"id":"pi-case-bottom","stl":"3DPrintMeshes/pi_case_bottom.stl","source_state":"fusion_parametric","source":"reference/fusion/LeKiwi.f3z#Bottom V2","fidelity":"not_checked","next":"compare the retained Fusion source; external Printables STEP is non-identical and CC BY-NC"},
-    {"id":"pi-case-top","stl":"3DPrintMeshes/pi_case_top.stl","source_state":"fusion_parametric","source":"reference/fusion/LeKiwi.f3z#Top V2","fidelity":"not_checked","next":"compare the retained Fusion source; external Printables STEP is non-identical and CC BY-NC"},
-    {"id":"servo-controller-mount","stl":"3DPrintMeshes/servo_controller_mount.stl","source_state":"open_parametric","source":"cad/parts/servo_controller_mount.FCStd","fidelity":"candidate","next":"compare this legacy print before release"},
-    {"id":"servo-wheel-hub","stl":"3DPrintMeshes/servo_wheel_hub.stl","source_state":"stl_only","fidelity":"none","next":"reauthor after selecting the VEX hub interface; vendor CAD is not the LeKiwi derivative"},
-    {"id":"so100-webcam-gripper-insert","stl":"3DPrintMeshes/webcam_mount/so100_gripper_cam_mount_insert.stl","source_state":"derived_brep","source":"cad/accessories/so100_gripper_cam_mount_insert.FCStd","fidelity":"approximate","reference":"cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step","next":"replace only if an exact published source appears"},
-    {"id":"webcam-base-mount","stl":"3DPrintMeshes/webcam_mount/webcam_mount.stl","source_state":"open_brep","source":"cad/accessories/webcam_base_mount.FCStd","reference":"3DPrintMeshes/webcam_mount/webcam_mount.step","fidelity":"exact"},
-    {"id":"webcam-wrist-mount","stl":"3DPrintMeshes/webcam_mount/webcam_mount_wrist.stl","source_state":"open_brep","source":"cad/accessories/webcam_wrist_mount.FCStd","reference":"3DPrintMeshes/webcam_mount/webcam_mount_wrist.step","fidelity":"exact"},
-    {"id":"wired-cable-holder","stl":"3DPrintMeshes/wired_specific/cable_holder v0.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor after choosing cable diameter"},
-    {"id":"wired-usb-connector-case","stl":"3DPrintMeshes/wired_specific/usb_connector_case v1.stl","source_state":"stl_only","fidelity":"none","next":"measure and reauthor after choosing connector"},
-    {"id":"wrist-camera-mount","stl":"3DPrintMeshes/wrist_camera_mount.stl","source_state":"fusion_parametric","source":"reference/fusion/LeKiwi.f3z#wrist_camera_mount","fidelity":"not_checked","next":"open and compare the retained Fusion component; the FreeCAD URDF source is an older non-matching revision"}
+    {
+      "id": "power-bank-holder-5v",
+      "stl": "3DPrintMeshes/5v_specific/5v_power_bank_holder.stl",
+      "source_state": "open_parametric",
+      "source": "cad/reverse_engineered/recovery_helpers/parts.json#power-bank-holder-5v",
+      "validation": "cad/reverse_engineered/recovery_helpers/validation/results.json#power-bank-holder-5v",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "base-camera-mount",
+      "stl": "3DPrintMeshes/base_camera_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/parts/base_camera_mount.FCStd#Final",
+      "validation": "scripts/verify_native_part_sources.py",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "base-plate-lower-legacy",
+      "stl": "3DPrintMeshes/base_plate_layer1.stl",
+      "source_state": "open_cut_profile",
+      "source": "laser-cut/base_plates.scad#lower",
+      "solid_source": "cad/parts/base_plate_lower.FCStd#Extrusion",
+      "validation": "scripts/verify_laser_plate_sources.py",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "base-plate-upper-legacy",
+      "stl": "3DPrintMeshes/base_plate_layer2.stl",
+      "source_state": "open_cut_profile",
+      "source": "cad/reverse_engineered/standard/parts.json#base-plate-layer2-legacy",
+      "validation": "cad/reverse_engineered/standard/validation/results.json#base-plate-layer2-legacy",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "battery-mount-12v",
+      "stl": "3DPrintMeshes/battery_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/parts/lipo_battery_mount.FCStd#Final",
+      "validation": "scripts/verify_native_part_sources.py",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "battery-mount-eu",
+      "stl": "3DPrintMeshes/battery_mount_eu.stl",
+      "source_state": "open_parametric",
+      "source": "cad/reverse_engineered/recovery_helpers/parts.json#battery-mount-eu",
+      "validation": "cad/reverse_engineered/recovery_helpers/validation/results.json#battery-mount-eu",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "drive-motor-mount-v1",
+      "stl": "3DPrintMeshes/drive_motor_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/parts/drive_motor_mount.FCStd#Final",
+      "validation": "scripts/verify_native_part_sources.py",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "drive-motor-mount-v2",
+      "stl": "3DPrintMeshes/drive_motor_mount_v2.stl",
+      "source_state": "open_contour_stack",
+      "source": "cad/reverse_engineered/standard/parts.json#drive-motor-mount-v2",
+      "validation": "cad/reverse_engineered/standard/validation/results.json#drive-motor-mount-v2",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-omni-wheel-mount-v2",
+      "stl": "3DPrintMeshes/dynamixel_specific/Dynamixel_omni_wheel_mount v2.stl",
+      "source_state": "external_fusion_history",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-omni-wheel-mount-v2",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-center-triangular-insert",
+      "stl": "3DPrintMeshes/dynamixel_specific/center_triangular_insert.stl",
+      "source_state": "external_fusion_history",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-center-triangular-insert",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-drive-motor-mount",
+      "stl": "3DPrintMeshes/dynamixel_specific/dynamixel_drive_motor_mount.stl",
+      "source_state": "open_contour_stack",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-drive-motor-mount",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-kiwi-servo-mount",
+      "stl": "3DPrintMeshes/dynamixel_specific/dynamixel_kiwi_servo_mount.stl",
+      "source_state": "external_fusion_history",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-kiwi-servo-mount",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-modified-base-arm",
+      "stl": "3DPrintMeshes/dynamixel_specific/dynamixel_modified_base_arm.stl",
+      "source_state": "open_contour_stack",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-modified-base-arm",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-wheel-hub",
+      "stl": "3DPrintMeshes/dynamixel_specific/dynamixel_wheel_hub .stl",
+      "source_state": "external_fusion_history",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-wheel-hub",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-follower-base",
+      "stl": "3DPrintMeshes/dynamixel_specific/follower_base.stl",
+      "source_state": "external_fusion_history",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-follower-base",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-lipo-battery-mount",
+      "stl": "3DPrintMeshes/dynamixel_specific/lipo_battery_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-lipo-battery-mount",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-modified-static-side",
+      "stl": "3DPrintMeshes/dynamixel_specific/modified_static_side_with_mount.stl",
+      "source_state": "external_fusion_history_with_patch",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-modified-static-side",
+      "fidelity": "compositional_validated"
+    },
+    {
+      "id": "dynamixel-pi-case-bottom",
+      "stl": "3DPrintMeshes/dynamixel_specific/pi_case_bottom.stl",
+      "source_state": "external_fusion_history",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-pi-case-bottom",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "dynamixel-webcam-base-mount",
+      "stl": "3DPrintMeshes/dynamixel_specific/webcam_base_mount.stl",
+      "source_state": "external_fusion_history",
+      "source": "cad/reverse_engineered/dynamixel/parts.json#dynamixel-webcam-base-mount",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "jetson-holder",
+      "stl": "3DPrintMeshes/jetson_holder.stl",
+      "source_state": "open_multibody_contour_stack",
+      "source": "cad/reverse_engineered/standard/parts.json#jetson-holder",
+      "validation": "cad/reverse_engineered/standard/validation/results.json#jetson-holder",
+      "fidelity": "component_surface_validated"
+    },
+    {
+      "id": "modified-so100-base",
+      "stl": "3DPrintMeshes/modified_base_arm.stl",
+      "source_state": "open_contour_stack",
+      "source": "cad/reverse_engineered/standard/parts.json#modified-base-arm",
+      "validation": "cad/reverse_engineered/standard/validation/results.json#modified-base-arm",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "pi-case-bottom",
+      "stl": "3DPrintMeshes/pi_case_bottom.stl",
+      "source_state": "retained_fusion_history",
+      "source": "cad/reverse_engineered/standard/parts.json#pi-case-bottom",
+      "validation": "cad/reverse_engineered/standard/validation/provenance.json#pi-case-bottom",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "pi-case-top",
+      "stl": "3DPrintMeshes/pi_case_top.stl",
+      "source_state": "retained_fusion_history",
+      "source": "cad/reverse_engineered/standard/parts.json#pi-case-top",
+      "validation": "cad/reverse_engineered/standard/validation/provenance.json#pi-case-top",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "servo-controller-mount",
+      "stl": "3DPrintMeshes/servo_controller_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/parts/servo_controller_mount.FCStd#Final",
+      "validation": "scripts/verify_native_part_sources.py",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "servo-wheel-hub",
+      "stl": "3DPrintMeshes/servo_wheel_hub.stl",
+      "source_state": "open_contour_stack",
+      "source": "cad/reverse_engineered/standard/parts.json#servo-wheel-hub",
+      "validation": "cad/reverse_engineered/standard/validation/results.json#servo-wheel-hub",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "so100-webcam-gripper-insert",
+      "stl": "3DPrintMeshes/webcam_mount/so100_gripper_cam_mount_insert.stl",
+      "source_state": "derived_brep",
+      "source": "cad/accessories/so100_gripper_cam_mount_insert.FCStd#Final",
+      "reference": "cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step",
+      "validation": "scripts/verify_accessory_sources.py",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "webcam-base-mount",
+      "stl": "3DPrintMeshes/webcam_mount/webcam_mount.stl",
+      "source_state": "open_brep",
+      "source": "cad/accessories/webcam_base_mount.FCStd#Final",
+      "reference": "3DPrintMeshes/webcam_mount/webcam_mount.step",
+      "validation": "scripts/verify_accessory_sources.py",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "webcam-wrist-mount",
+      "stl": "3DPrintMeshes/webcam_mount/webcam_mount_wrist.stl",
+      "source_state": "open_brep",
+      "source": "cad/accessories/webcam_wrist_mount.FCStd#Final",
+      "reference": "3DPrintMeshes/webcam_mount/webcam_mount_wrist.step",
+      "validation": "scripts/verify_accessory_sources.py",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "wired-cable-holder",
+      "stl": "3DPrintMeshes/wired_specific/cable_holder v0.stl",
+      "source_state": "open_parametric",
+      "source": "cad/reverse_engineered/recovery_helpers/parts.json#wired-cable-holder",
+      "validation": "cad/reverse_engineered/recovery_helpers/validation/results.json#wired-cable-holder",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "wired-usb-connector-case",
+      "stl": "3DPrintMeshes/wired_specific/usb_connector_case v1.stl",
+      "source_state": "open_parametric",
+      "source": "cad/reverse_engineered/recovery_helpers/parts.json#wired-usb-connector-case",
+      "validation": "cad/reverse_engineered/recovery_helpers/validation/results.json#wired-usb-connector-case",
+      "fidelity": "surface_validated"
+    },
+    {
+      "id": "wrist-camera-mount",
+      "stl": "3DPrintMeshes/wrist_camera_mount.stl",
+      "source_state": "retained_fusion_history",
+      "source": "cad/reverse_engineered/standard/parts.json#wrist-camera-mount",
+      "validation": "cad/reverse_engineered/standard/validation/provenance.json#wrist-camera-mount",
+      "fidelity": "surface_validated"
+    }
   ],
   "additional_prints": [
-    {"id":"robotskin-ld06-mount","output":"URDF/meshes/reauthored/robotskin_lidar_mount.stl","source_state":"open_parametric","source":"cad/upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad","build":"scripts/sync_robotskin_lidar.sh","fidelity":"exact"}
+    {
+      "id": "robotskin-ld06-mount",
+      "output": "URDF/meshes/reauthored/robotskin_lidar_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad",
+      "build": "scripts/sync_robotskin_lidar.sh",
+      "fidelity": "assembly_validated"
+    }
   ],
   "flat_parts": [
-    {"id":"base-plate-lower","source":"laser-cut/base_plates.scad","dxf":"laser-cut/generated/base_plate_lower.dxf","pdf":"laser-cut/generated/print-templates/base_plate_lower_1to1.pdf","fidelity":"validated assembly projection"},
-    {"id":"base-plate-upper","source":"laser-cut/base_plates.scad","dxf":"laser-cut/generated/base_plate_upper.dxf","pdf":"laser-cut/generated/print-templates/base_plate_upper_1to1.pdf","fidelity":"validated assembly projection"}
+    {
+      "id": "base-plate-lower-current",
+      "source": "laser-cut/base_plates.scad#lower",
+      "solid_source": "cad/parts/base_plate_lower.FCStd#Extrusion",
+      "dxf": "laser-cut/generated/base_plate_lower.dxf",
+      "pdf": "laser-cut/generated/print-templates/base_plate_lower_1to1.pdf",
+      "fidelity": "assembly_validated"
+    },
+    {
+      "id": "base-plate-upper-current",
+      "source": "laser-cut/base_plates.scad#upper",
+      "solid_source": "cad/parts/base_plate_upper.FCStd#Extrusion",
+      "dxf": "laser-cut/generated/base_plate_upper.dxf",
+      "pdf": "laser-cut/generated/print-templates/base_plate_upper_1to1.pdf",
+      "fidelity": "assembly_validated"
+    }
   ]
 }

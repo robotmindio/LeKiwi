@@ -13,12 +13,6 @@ module z_stack(directory, starts, heights) {
                     import(str(directory, "/", i, ".dxf"));
 }
 
-module uniform_z_stack(directory, start, height, count) {
-    z_stack(directory,
-        [for (i = [0 : count - 1]) start + i * height],
-        [for (i = [0 : count - 1]) height]);
-}
-
 module dynamixel_modified_base_arm() {
     // Coarsest recovered stack that clears the 0.25 mm / 0.10 mm surface gate.
     z_stack("contours/dynamixel_modified_base_arm",
@@ -32,8 +26,11 @@ module dynamixel_modified_base_arm() {
 
 module dynamixel_drive_motor_mount() {
     // 230 sections, 0.239565 mm each: the coarsest tested strict-pass stack.
-    uniform_z_stack("contours/dynamixel_drive_motor_mount",
-        -27.5499992371, 55.0999984741 / 230, 230);
+    sections = 230;
+    section_height = 55.0999984741 / sections;
+    z_stack("contours/dynamixel_drive_motor_mount",
+        [for (i = [0 : sections - 1]) -27.5499992371 + i * section_height],
+        [for (i = [0 : sections - 1]) section_height]);
 }
 
 if (part == "dynamixel_modified_base_arm")

@@ -2,23 +2,27 @@
 
 [`parts.json`](parts.json) is the build record for every print asset under
 `3DPrintMeshes/`, the two flat base plates, and the robot's extra LD06 mount.
-It distinguishes editable source from a rendered STL instead of treating an
-STL as CAD source.
+`stl` is the compiled legacy print; `source` is its editable source record;
+`validation`, when present, is the direct comparison evidence.
 
 The states mean:
 
 | State | Meaning |
 | --- | --- |
-| `open_parametric` | Editable FreeCAD feature model is in this repository. |
-| `fusion_parametric` | Original feature history is retained inside `reference/fusion/LeKiwi.f3z`; open that archive in Fusion. |
-| `open_brep` | Editable STEP/FreeCAD solid, but not the original feature timeline. |
-| `derived_brep` | Editable derivative of a published solid; its listed fidelity is binding. |
-| `stl_only` | Only the rendered print remains. It needs a measured reauthoring before it can be called source. |
+| `open_parametric` | Editable FreeCAD or OpenSCAD model is in this repository. |
+| `open_contour_stack` | Editable closed DXF profiles and a short OpenSCAD builder reconstruct the solid. |
+| `open_cut_profile` | Editable DXF cut profile and its extrusion source are in this repository. |
+| `open_multibody_contour_stack` | As above, with the legacy STL's real separate bodies retained separately. |
+| `retained_fusion_history` | Original feature history is retained inside `reference/fusion/LeKiwi.f3z`. |
+| `external_fusion_history` | Original Fusion history is available at the linked public share but is not vendored because its licence is unstated. |
+| `external_fusion_history_with_patch` | The external Fusion history plus a local editable patch. |
+| `open_brep` / `derived_brep` | Editable BREP solid, respectively imported or derived rather than the original timeline. |
 
-`fidelity` applies to the listed legacy print, not merely to a similarly named
-part. `candidate` means a source exists but has not yet been compared to that
-specific STL. `not_checked` Fusion components need an in-Fusion comparison
-before they can replace a print release.
+`surface_validated` means the source was compared bidirectionally with that
+specific legacy STL. `component_surface_validated` is the same check per real
+body for the malformed multi-body Jetson STL. `compositional_validated` is the
+documented external Fusion static-side patch proof; it is deliberately not
+reported as a direct export comparison.
 
 Flat production files are [`../laser-cut/base_plates.scad`](../laser-cut/base_plates.scad),
 the generated DXFs, and the 1:1 PDFs. The older base-plate STLs are retained as

@@ -1,12 +1,16 @@
 """Verify the native FreeCAD feature trees and their assembly links."""
 
 import json
+import runpy
 from pathlib import Path
 
 import FreeCAD as App
+import Mesh
+import MeshPart
 
 
 PARTS = json.loads(Path("cad/native_parts.json").read_text())
+compare = runpy.run_path("scripts/compare_reauthored_assets.py")
 
 
 for part in PARTS:
@@ -29,6 +33,21 @@ for part in PARTS:
         raise RuntimeError(f"{name}: source contains an external-link wrapper")
     if not any(item.TypeId == "Part::Extrusion" for item in source.Objects):
         raise RuntimeError(f"{name}: source has no editable extrusion")
+    if legacy_print := part.get("legacy_print"):
+        original = Mesh.Mesh(legacy_print)
+        generated = MeshPart.meshFromShape(
+            Shape=final.Shape, LinearDeflection=0.05, AngularDeflection=0.2
+        )
+        result = compare["aligned_comparison"](original, generated)
+        if result["status"] == "fail":
+            raise RuntimeError(
+                f"{name}: legacy-print mismatch (max={result['max_surface_error_mm']:.3f} mm, "
+                f"p95={result['p95_surface_error_mm']:.3f} mm)"
+            )
+        print(
+            f"{name}: legacy print max={result['max_surface_error_mm']:.3f} mm "
+            f"p95={result['p95_surface_error_mm']:.3f} mm"
+        )
 
 assembly = App.openDocument(str(Path("cad/assembly/LeKiwi.FCStd").resolve()))
 links = {item.UrdfName: item for item in assembly.getObject("LeKiwiLinks").Group}

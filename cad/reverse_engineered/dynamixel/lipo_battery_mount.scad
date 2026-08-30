@@ -6,10 +6,6 @@ transition_z = -0.5;
 floor_z = 3;
 top_z = 13;
 
-module rectangle(x0, y0, x1, y1) {
-    translate([x0, y0]) square([x1 - x0, y1 - y0]);
-}
-
 module lipo_battery_mount() {
     difference() {
         union() {
@@ -17,8 +13,8 @@ module lipo_battery_mount() {
             translate([0, 0, floor_z])
                 linear_extrude(top_z - floor_z)
                     difference() {
-                        rectangle(-31, -39.5, 31, 39.5);
-                        rectangle(-28, -36.5, 28, 39.5);
+                        translate([-31, -39.5]) square([62, 79]);
+                        translate([-28, -36.5]) square([56, 76]);
                     }
         }
 

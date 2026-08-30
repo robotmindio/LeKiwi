@@ -9,10 +9,10 @@ and hashes instead of a copy.
 
 ## Local sources
 
-The three legacy prints without matching exportable Fusion bodies are editable
-locally.  `dynamixel.scad` reconstructs the arm and drive mount from closed DXF
-sections; `lipo_battery_mount.scad` is a direct parametric tray model.  All
-dimensions are millimetres.  Build ignored STLs locally with:
+The three legacy prints not currently validated as matching exportable Fusion
+bodies are editable locally.  `dynamixel.scad` reconstructs the arm and drive
+mount from closed DXF sections; `lipo_battery_mount.scad` is a direct parametric
+tray model.  All dimensions are millimetres.  Build ignored STLs locally with:
 
 ```sh
 cd cad/reverse_engineered/dynamixel
@@ -34,10 +34,10 @@ through-hole as a native Combine/Cut feature.  Export the patched body together
 with the unchanged large Static Side Gripper body to produce the original
 two-body print.
 
-`validation/verify_static_composition.py` is an independently reproducible
-composition proof.  Manually export both public-source bodies as separate,
-uncommitted STLs: the unpatched small body first and the unchanged large body
-second.  Run the verifier in FreeCAD's Python console.  It directly performs a
+`validation/verify_static_composition.py` is a manual external-source
+composition check.  Export both public-source bodies as separate, uncommitted
+STLs: the unpatched small body first and the unchanged large body second.  Run
+the verifier in FreeCAD's Python console.  It directly performs a
 bidirectional *sampled* surface comparison for the large body against its own
 target component.  For the small body, it checks sampled source-to-target and
 target-to-source distances outside exactly the 52 fitted hole faces, then checks
@@ -52,5 +52,5 @@ sys.argv = [
     "/absolute/path/to/static_a_small_body.stl",
     "/absolute/path/to/static_b_large_body.stl",
 ]
-runpy.run_path("/absolute/path/to/verify_static_composition.py", run_name="__main__")
+_ = runpy.run_path("/absolute/path/to/verify_static_composition.py", run_name="__main__")
 ```

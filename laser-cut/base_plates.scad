@@ -1,8 +1,7 @@
-// Laser profiles of the base plates used by the validated URDF/Fusion assembly.
+// Editable laser profiles of the base plates used by the validated assembly.
 // Select one plate, then export as DXF with OpenSCAD.
 plate = "lower"; // [lower,upper]
 
-projection(cut = true)
-    import(plate == "lower"
-        ? "../URDF/meshes/base_plate_layer1-v5.stl"
-        : "../URDF/meshes/base_plate_layer2-v3.stl");
+import(plate == "lower"
+    ? "generated/base_plate_lower.dxf"
+    : "generated/base_plate_upper.dxf");

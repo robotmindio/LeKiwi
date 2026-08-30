@@ -20,16 +20,14 @@ module tab_2d(point, rail_x, side, r = 3.7) {
         translate([rail_x, point[1] - r]) square([point[0] - rail_x, 2 * r]);
 }
 
-module outline_2d(origin, size, tabs = [], side = "left", r = 3.7) {
-    union() {
-        translate(origin) square(size);
-        for (point = tabs) tab_2d(point, side == "left" ? origin[0] : origin[0] + size[0], side, r);
-    }
-}
-
 module through_frame(origin, outer, opening_origin, opening, h, tabs = [], side = "left", tab_r = 3.7, hole_r = 1.7) {
     difference() {
-        linear_extrude(height = h) outline_2d(origin, outer, tabs, side, tab_r);
+        linear_extrude(height = h)
+            union() {
+                translate(origin) square(outer);
+                for (point = tabs)
+                    tab_2d(point, side == "left" ? origin[0] : origin[0] + outer[0], side, tab_r);
+            }
         translate([opening_origin[0], opening_origin[1], -eps]) cube([opening[0], opening[1], h + 2 * eps]);
         m3_holes(tabs, hole_r, h + 2 * eps);
     }
@@ -114,7 +112,7 @@ module cable_holder() {
             extrude_y(7.5) polygon(points = profile);
             linear_extrude(height = 4)
                 union() {
-                    translate([0, 0]) square([6, 7.5]);
+                    square([6, 7.5]);
                     tab_2d([-4, 3.75], 0, "left", 3.6);
                     translate([23.5, 0]) square([8.5, 7.5]);
                     tab_2d([36, 3.75], 32, "right", 3.6);
