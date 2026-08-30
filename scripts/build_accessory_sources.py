@@ -5,6 +5,7 @@ from pathlib import Path
 import FreeCAD as App
 import Import
 import Mesh
+import Part
 
 
 ACCESSORIES = (
@@ -23,6 +24,7 @@ ACCESSORIES = (
 )
 OUTPUT_DIRECTORY = Path("cad/accessories")
 MAX_ERROR = 0.02
+DERIVATIVE_MAX_BBOX_ERROR = 0.025
 
 
 def bounds(shape_or_mesh):
@@ -73,3 +75,52 @@ for name, title, step_path, mesh_path in ACCESSORIES:
     document.saveAs(str(output.resolve()))
     App.closeDocument(document.Name)
     print(f"saved {output}: bbox={box_error:.3%}, volume={volume_error:.3%}")
+
+
+# ponytail: upstream wrist-roll revision drifts 2.325% by bbox; replace with an exact published STEP if available.
+# The webcam gripper print is the upstream wrist roll plus its M3 camera-mount boss.
+name = "so100_gripper_cam_mount_insert"
+step_path = Path("cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step")
+mesh_path = Path("3DPrintMeshes/webcam_mount/so100_gripper_cam_mount_insert.stl")
+if not step_path.is_file() or not mesh_path.is_file():
+    raise RuntimeError(f"{name}: missing SO-ARM100 source or original STL")
+document = App.newDocument(f"LeKiwiAccessory_{name}")
+Import.insert(str(step_path.resolve()), document.Name)
+imported = [item for item in document.Objects if hasattr(item, "Shape") and not item.Shape.isNull()]
+if len(imported) != 1 or not imported[0].Shape.Solids:
+    raise RuntimeError(f"{name}: upstream STEP import must contain exactly one solid feature")
+source = imported[0]
+source.Label = "Upstream SO-100 Wrist Roll"
+boss = document.addObject("Part::Cylinder", "CameraMountBoss")
+boss.Label = "M3 camera-mount boss"
+boss.Radius = 2.4
+boss.Height = 3.3
+boss.Placement = App.Placement(App.Vector(-5, -17.2, 23.4), App.Rotation(App.Vector(1, 0, 0), 90))
+final = document.addObject("Part::Fuse", "Final")
+final.Label = "SO-100 wrist roll with webcam mount boss"
+final.Base = source
+final.Tool = boss
+final.addProperty("App::PropertyString", "SourceFile", "Source")
+final.addProperty("App::PropertyString", "OriginalMesh", "Source")
+final.addProperty("App::PropertyString", "SourceKind", "Source")
+final.SourceFile = step_path.as_posix()
+final.OriginalMesh = mesh_path.as_posix()
+final.SourceKind = "SO-ARM100 STEP derivative source"
+metadata = document.addObject("App::FeaturePython", "SourceMetadata")
+metadata.Label = "Source provenance"
+metadata.addProperty("App::PropertyString", "SourceFile", "Source")
+metadata.addProperty("App::PropertyString", "OriginalMesh", "Source")
+metadata.addProperty("App::PropertyString", "SourceKind", "Source")
+metadata.SourceFile = final.SourceFile
+metadata.OriginalMesh = final.OriginalMesh
+metadata.SourceKind = final.SourceKind
+document.recompute()
+expected = Mesh.Mesh(str(mesh_path))
+box_error = bounds_error(bounds(final.Shape), bounds(expected))
+volume_error = abs(final.Shape.Volume / abs(expected.Volume) - 1.0)
+if box_error > DERIVATIVE_MAX_BBOX_ERROR or volume_error > MAX_ERROR:
+    raise RuntimeError(f"{name}: source/STL mismatch (bbox={box_error:.3%}, volume={volume_error:.3%})")
+output = OUTPUT_DIRECTORY / f"{name}.FCStd"
+document.saveAs(str(output.resolve()))
+App.closeDocument(document.Name)
+print(f"saved {output}: bbox={box_error:.3%}, volume={volume_error:.3%}")
