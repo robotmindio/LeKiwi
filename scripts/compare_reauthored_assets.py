@@ -10,6 +10,7 @@ import math
 import re
 import sys
 import xml.etree.ElementTree as ET
+from itertools import permutations, product
 from pathlib import Path
 
 import FreeCAD as App
@@ -205,64 +206,143 @@ def filename(name):
     return re.sub(r"[^0-9A-Za-z_.-]", "_", name) + ".stl"
 
 
-if set(sys.argv[1:]) - {"--strict"}:
-    raise SystemExit("usage: compare_reauthored_assets.py [--strict]")
-
-strict = "--strict" in sys.argv
-root = ET.parse(URDF).getroot()
-visuals = {link.get("name"): link.find("visual") for link in root.findall("link")}
-entries = []
-for item in json.loads(MAPPING.read_text()):
-    if not item["source_kind"].startswith("native FreeCAD"):
-        continue
-    name = item["urdf_link"]
-    visual = visuals.get(name)
-    mesh_xml = visual.find("geometry/mesh") if visual is not None else None
-    if mesh_xml is None:
-        raise RuntimeError(f"{name}: missing original URDF visual mesh")
-    original = Mesh.Mesh(str(URDF.parent / mesh_xml.get("filename")))
-    origin = visual.find("origin")
-    original.transform(matrix(origin if origin is not None else ET.Element("origin")))
-    generated_path = URDF.parent / "meshes/reauthored" / filename(name)
-    if not generated_path.is_file():
-        raise RuntimeError(f"{name}: missing generated mesh {generated_path}")
-    generated = Mesh.Mesh(str(generated_path))
+def comparison(original, generated):
     distances = surface_distances(original, generated) + surface_distances(generated, original)
     maximum = max(distances)
     p95 = quantile(distances, 0.95)
-    rms = math.sqrt(sum(value * value for value in distances) / len(distances))
-    entry = {
-        "urdf_link": name,
-        "original_mesh": mesh_xml.get("filename"),
-        "generated_mesh": str(generated_path.relative_to(URDF.parent)),
+    return {
         "method": "bidirectional sampled closest point-to-triangle surface distance",
         "samples": len(distances),
         "max_surface_error_mm": maximum,
         "p95_surface_error_mm": p95,
-        "rms_surface_error_mm": rms,
+        "rms_surface_error_mm": math.sqrt(sum(value * value for value in distances) / len(distances)),
         "status": "pass" if maximum <= MAX_SURFACE_ERROR_MM and p95 <= MAX_P95_ERROR_MM else "fail",
     }
-    entries.append(entry)
-    print(
-        f"{name}: {entry['status']} max={maximum:.3f} mm p95={p95:.3f} mm rms={rms:.3f} mm "
-        f"({len(distances)} samples)"
-    )
 
-OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-OUTPUT.write_text(
-    json.dumps(
-        {
-            "method": "bidirectional sampled closest point-to-triangle surface distance",
-            "samples_per_direction": SAMPLES_PER_DIRECTION * 2,
-            "max_surface_error_mm": MAX_SURFACE_ERROR_MM,
-            "max_p95_error_mm": MAX_P95_ERROR_MM,
-            "entries": entries,
-        },
-        indent=2,
+
+def axis_aligned_rotations():
+    """Yield the 24 right-handed 90-degree rotations used by print exports."""
+    for order in permutations(range(3)):
+        inversions = sum(order[left] > order[right] for left in range(3) for right in range(left + 1, 3))
+        for signs in product((-1, 1), repeat=3):
+            if math.prod(signs) * (-1) ** inversions != 1:
+                continue
+            matrix = App.Matrix()
+            for row in range(4):
+                for column in range(4):
+                    setattr(matrix, f"A{row + 1}{column + 1}", 0)
+            matrix.A44 = 1
+            for row, column in enumerate(order):
+                setattr(matrix, f"A{row + 1}{column + 1}", signs[row])
+            yield matrix, order, signs
+
+
+def scaled(mesh, factor):
+    if factor == 1:
+        return mesh
+    matrix = App.Matrix()
+    matrix.A11 = matrix.A22 = matrix.A33 = factor
+    result = mesh.copy()
+    result.transform(matrix)
+    return result
+
+
+def aligned_comparison(original, generated):
+    """Compare after the best rigid 90-degree print-orientation transform."""
+    # Autodesk's binary STL exporter sometimes writes metres while OpenSCAD and
+    # FreeCAD write millimetres. LeKiwi has no sub-millimetre print, so this
+    # is an unambiguous boundary normalization, not a geometry change.
+    original_scale = 1000 if max(original.BoundBox.XLength, original.BoundBox.YLength, original.BoundBox.ZLength) < 1 <= max(generated.BoundBox.XLength, generated.BoundBox.YLength, generated.BoundBox.ZLength) else 1
+    original = scaled(original, original_scale)
+    original_box = original.BoundBox
+    original_lengths = (original_box.XLength, original_box.YLength, original_box.ZLength)
+    candidates = []
+    for rotation, order, signs in axis_aligned_rotations():
+        candidate = generated.copy()
+        candidate.transform(rotation)
+        box = candidate.BoundBox
+        lengths = (box.XLength, box.YLength, box.ZLength)
+        if max(abs(left - right) for left, right in zip(original_lengths, lengths)) > 0.05:
+            continue
+        translation = App.Matrix()
+        translation.A14 = original_box.XMin - box.XMin
+        translation.A24 = original_box.YMin - box.YMin
+        translation.A34 = original_box.ZMin - box.ZMin
+        candidate.transform(translation)
+        result = comparison(original, candidate)
+        result["rigid_transform"] = {"axis_order": order, "axis_signs": signs}
+        result["original_unit_scale_to_mm"] = original_scale
+        candidates.append(result)
+    if not candidates:
+        raise RuntimeError("no axis-aligned rigid transform has matching bounding-box dimensions")
+    return min(candidates, key=lambda result: (result["rms_surface_error_mm"], result["max_surface_error_mm"]))
+
+
+def main(arguments):
+    if len(arguments) == 3 and arguments[0] in {"--mesh", "--mesh-align"}:
+        original_path, generated_path = map(Path, arguments[1:])
+        if not original_path.is_file() or not generated_path.is_file():
+            raise SystemExit("--mesh requires two existing STL files")
+        original, generated = Mesh.Mesh(str(original_path)), Mesh.Mesh(str(generated_path))
+        result = aligned_comparison(original, generated) if arguments[0] == "--mesh-align" else comparison(original, generated)
+        result.update(original_mesh=str(original_path), generated_mesh=str(generated_path))
+        print(json.dumps(result, indent=2))
+        raise SystemExit(0 if result["status"] == "pass" else 1)
+
+    if set(arguments) - {"--strict"}:
+        raise SystemExit("usage: compare_reauthored_assets.py [--strict] | --mesh ORIGINAL.stl GENERATED.stl | --mesh-align ORIGINAL.stl GENERATED.stl")
+
+    strict = "--strict" in arguments
+    root = ET.parse(URDF).getroot()
+    visuals = {link.get("name"): link.find("visual") for link in root.findall("link")}
+    entries = []
+    for item in json.loads(MAPPING.read_text()):
+        if not item["source_kind"].startswith("native FreeCAD"):
+            continue
+        name = item["urdf_link"]
+        visual = visuals.get(name)
+        mesh_xml = visual.find("geometry/mesh") if visual is not None else None
+        if mesh_xml is None:
+            raise RuntimeError(f"{name}: missing original URDF visual mesh")
+        original = Mesh.Mesh(str(URDF.parent / mesh_xml.get("filename")))
+        origin = visual.find("origin")
+        original.transform(matrix(origin if origin is not None else ET.Element("origin")))
+        generated_path = URDF.parent / "meshes/reauthored" / filename(name)
+        if not generated_path.is_file():
+            raise RuntimeError(f"{name}: missing generated mesh {generated_path}")
+        generated = Mesh.Mesh(str(generated_path))
+        entry = {
+            "urdf_link": name,
+            "original_mesh": mesh_xml.get("filename"),
+            "generated_mesh": str(generated_path.relative_to(URDF.parent)),
+            **comparison(original, generated),
+        }
+        entries.append(entry)
+        print(
+            f"{name}: {entry['status']} max={entry['max_surface_error_mm']:.3f} mm "
+            f"p95={entry['p95_surface_error_mm']:.3f} mm rms={entry['rms_surface_error_mm']:.3f} mm "
+            f"({entry['samples']} samples)"
+        )
+
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT.write_text(
+        json.dumps(
+            {
+                "method": "bidirectional sampled closest point-to-triangle surface distance",
+                "samples_per_direction": SAMPLES_PER_DIRECTION * 2,
+                "max_surface_error_mm": MAX_SURFACE_ERROR_MM,
+                "max_p95_error_mm": MAX_P95_ERROR_MM,
+                "entries": entries,
+            },
+            indent=2,
+        )
+        + "\n"
     )
-    + "\n"
-)
-failures = [entry["urdf_link"] for entry in entries if entry["status"] == "fail"]
-print(f"wrote {OUTPUT}; {len(entries) - len(failures)}/{len(entries)} native link instances pass")
-if strict and failures:
-    raise SystemExit("surface-fidelity failures: " + ", ".join(failures))
+    failures = [entry["urdf_link"] for entry in entries if entry["status"] == "fail"]
+    print(f"wrote {OUTPUT}; {len(entries) - len(failures)}/{len(entries)} native link instances pass")
+    if strict and failures:
+        raise SystemExit("surface-fidelity failures: " + ", ".join(failures))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

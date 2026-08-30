@@ -9,7 +9,7 @@ the Arducam configuration represented in `LeKiwi.FCStd`.
 | --- | --- | --- | --- |
 | Webcam base mount | `3DPrintMeshes/webcam_mount/webcam_mount.step` | `webcam_base_mount.FCStd` | Imported STEP BREP |
 | Webcam wrist mount | `3DPrintMeshes/webcam_mount/webcam_mount_wrist.step` | `webcam_wrist_mount.FCStd` | Imported STEP BREP |
-| SO-100 webcam gripper insert | `cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step` + editable M3 boss | `so100_gripper_cam_mount_insert.FCStd` | SO-ARM100 STEP derivative |
+| SO-100 webcam gripper insert | `cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step` + editable M3 clearance and hex-nut pocket | `so100_gripper_cam_mount_insert.FCStd` | SO-ARM100 STEP derivative |
 
 Build or reset those documents, then verify that they still match their
 corresponding print STLs:
