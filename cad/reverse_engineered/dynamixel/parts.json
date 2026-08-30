@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "source_bundle": {
+    "title": "Dynamixel LeKiwi with TurtleBot Plates",
+    "source_url": "https://a360.co/44YAcMn",
+    "format": "Fusion 360 F3D, version 35",
+    "f3d_sha256": "7a73d635506e7688cc95a9ecec44a5d1b3a1f70610f8f47872b8488d13dbac2f",
+    "f3z_sha256": "68b42167109313b56f82cf524fd6f8927de5a7056cef2be0f7185249bd107e4c",
+    "redistribution": "The public share has no stated redistribution license; the native files are deliberately not vendored here."
+  },
+  "parts": [
+    {
+      "id": "dynamixel-omni-wheel-mount-v2",
+      "original": "3DPrintMeshes/dynamixel_specific/Dynamixel_omni_wheel_mount v2.stl",
+      "original_sha256": "989591bce0723063da58a52333a41262a82d3973a6df63b43683769e0c508b2d",
+      "original_scale_to_mm": 1000,
+      "canonical_source_id": "dynamixel-omni-wheel-mount-v2",
+      "source": {"component": "Dynamixel_omni_wheel_mount", "version": 2, "f3z_member": "d132e9b4-39dd-495f-959c-652d5d907cf7.f3d"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d",
+      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 15768.346, "original_volume_mm3": 15767.222, "volume_delta_percent": 0.007}
+    },
+    {
+      "id": "dynamixel-center-triangular-insert",
+      "original": "3DPrintMeshes/dynamixel_specific/center_triangular_insert.stl",
+      "original_sha256": "5f9bc4f360f85a1f5f39a4d095572bef6ffb486523a75f0549133bb68fdb5881",
+      "original_scale_to_mm": 1000,
+      "canonical_source_id": "new-triangle-v7",
+      "source": {"component": "New Triangle", "version": 7, "f3z_member": "f67e8cee-1532-41c0-ae6e-f2573153d6ff.f3d"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d",
+      "validation": {"status": "candidate", "method": "component name/date and AP242 BRep volume", "source_volume_mm3": 46151.734, "original_volume_mm3": 47769.926, "volume_delta_percent": 3.388, "next": "isolate the intended body in Fusion before replacing the legacy STL"}
+    },
+    {
+      "id": "dynamixel-drive-motor-mount",
+      "original": "3DPrintMeshes/dynamixel_specific/dynamixel_drive_motor_mount.stl",
+      "original_sha256": "223239bddc9b3a763568c1af8e3e83e126a9fafe967c4cab87658d55271480ec",
+      "original_scale_to_mm": 1,
+      "canonical_source_id": "dynamixel-kiwi-servo-mount-v11",
+      "source": {"component": "Dynamixel Kiwi Servo Mount", "version": 11, "f3z_member": "fc889f4e-5a73-4446-9c0e-c98b3b885ff2.f3d"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d",
+      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 20789.124, "original_volume_mm3": 20796.292, "volume_delta_percent": 0.034}
+    },
+    {
+      "id": "dynamixel-kiwi-servo-mount",
+      "original": "3DPrintMeshes/dynamixel_specific/dynamixel_kiwi_servo_mount.stl",
+      "original_sha256": "2505824c2842a1efe25575827d00148080b021b57bfcd0fa8d81e9ed6ae92be0",
+      "original_scale_to_mm": 1000,
+      "canonical_source_id": "dynamixel-kiwi-servo-mount-v11",
+      "source": {"component": "Dynamixel Kiwi Servo Mount", "version": 11, "f3z_member": "fc889f4e-5a73-4446-9c0e-c98b3b885ff2.f3d"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d",
+      "validation": {"status": "verified", "method": "same normalized geometry as dynamixel-drive-motor-mount; named F3Z component", "source_volume_mm3": 20789.124, "original_volume_mm3": 20796.672, "volume_delta_percent": 0.036}
+    },
+    {
+      "id": "dynamixel-modified-base-arm",
+      "original": "3DPrintMeshes/dynamixel_specific/dynamixel_modified_base_arm.stl",
+      "original_sha256": "37fad56632d1cfddd20f1009deccdbb85ff6583ee32b6b4e05fbc90c69527c5e",
+      "original_scale_to_mm": 1,
+      "canonical_source_id": "arm-v24",
+      "source": {"component": "arm", "version": 24, "f3z_member": "b01427a5-dc40-449c-a028-cccde49a2d70.f3d"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d",
+      "validation": {"status": "candidate", "method": "native arm assembly provenance", "next": "select the legacy base body in Fusion and compare it before releasing a replacement STL"}
+    },
+    {
+      "id": "dynamixel-wheel-hub",
+      "original": "3DPrintMeshes/dynamixel_specific/dynamixel_wheel_hub .stl",
+      "original_sha256": "259b4443c48d7219b4572543b284ac89cc91e6c84ca12381fe348059feed8951",
+      "original_scale_to_mm": 1,
+      "canonical_source_id": "dynamixel-omni-wheel-mount-v2",
+      "source": {"component": "Dynamixel_omni_wheel_mount", "version": 2, "f3z_member": "d132e9b4-39dd-495f-959c-652d5d907cf7.f3d"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d",
+      "validation": {"status": "verified", "method": "same normalized geometry as Dynamixel_omni_wheel_mount v2; named F3Z component", "source_volume_mm3": 15768.346, "original_volume_mm3": 15767.222, "volume_delta_percent": 0.007}
+    },
+    {
+      "id": "dynamixel-follower-base",
+      "original": "3DPrintMeshes/dynamixel_specific/follower_base.stl",
+      "original_sha256": "5a8bb576572135a033606ff37fa260ba6996608a635043a29bdc472dd431cf45",
+      "original_scale_to_mm": 1,
+      "canonical_source_id": "follower-base-v8",
+      "source": {"component": "Follower_Base", "version": 8, "f3z_member": "e2afaa13-b752-4fa9-98ac-4bfdac267f7d.f3d"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d",
+      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 42160.562, "original_volume_mm3": 42171.333, "volume_delta_percent": 0.026}
+    },
+    {
+      "id": "dynamixel-modified-static-side",
+      "original": "3DPrintMeshes/dynamixel_specific/modified_static_side_with_mount.stl",
+      "original_sha256": "46e1036de8ee78d31b33c430b6294f7a3c53eeaf86c8288fcce202166f7a5dd4",
+      "original_scale_to_mm": 1,
+      "canonical_source_id": "static-side-gripper-v1-with-webcam-mount-v6",
+      "source": [
+        {"component": "Static Side Gripper", "version": 1, "f3z_member": "3c62cd0a-d4c0-481e-a1d4-9ee7ce978b22.f3d"},
+        {"component": "webcam_mount", "version": 6, "f3z_member": "651eab57-c96e-48ad-a58c-bff7ce7badc1.f3d"}
+      ],
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d_assembly",
+      "validation": {"status": "verified", "method": "two AP242 assembly bodies versus legacy combined STL", "source_volume_mm3": 34234.279, "original_volume_mm3": 34231.79, "volume_delta_percent": 0.007}
+    },
+    {
+      "id": "dynamixel-pi-case-bottom",
+      "original": "3DPrintMeshes/dynamixel_specific/pi_case_bottom.stl",
+      "original_sha256": "1a0fe8bb2d8bab33e282ba8b2b052c77a64019aad80ffa5f1647eb01402e5d2d",
+      "original_scale_to_mm": 1000,
+      "canonical_source_id": "bottom-v2",
+      "source": {"component": "Bottom V2", "version": 2, "f3z_member": "aea3ad43-4bb7-4577-bf2e-c55ce408532e.f3d"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d",
+      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 18584.54, "original_volume_mm3": 18584.093, "volume_delta_percent": 0.002}
+    },
+    {
+      "id": "dynamixel-webcam-base-mount",
+      "original": "3DPrintMeshes/dynamixel_specific/webcam_base_mount.stl",
+      "original_sha256": "8ce8196ecd08f1cc8a08109fb7996aa35d4fef51b184c29c0f80e9ca94c68200",
+      "original_scale_to_mm": 1000,
+      "canonical_source_id": "webcam-mount-v6",
+      "source": {"component": "webcam_mount", "version": 6, "f3z_member": "651eab57-c96e-48ad-a58c-bff7ce7badc1.f3d"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "native_fusion_f3d",
+      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 17015.348, "original_volume_mm3": 17011.824, "volume_delta_percent": 0.021}
+    }
+  ]
+}
