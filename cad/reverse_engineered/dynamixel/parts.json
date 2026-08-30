@@ -18,29 +18,31 @@
       "source": {"component": "Dynamixel_omni_wheel_mount", "version": 2, "f3z_member": "d132e9b4-39dd-495f-959c-652d5d907cf7.f3d"},
       "source_url": "https://a360.co/44YAcMn",
       "source_kind": "native_fusion_f3d",
-      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 15768.346, "original_volume_mm3": 15767.222, "volume_delta_percent": 0.007}
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.019049, "p95_surface_error_mm": 0.012062}
     },
     {
       "id": "dynamixel-center-triangular-insert",
       "original": "3DPrintMeshes/dynamixel_specific/center_triangular_insert.stl",
       "original_sha256": "5f9bc4f360f85a1f5f39a4d095572bef6ffb486523a75f0549133bb68fdb5881",
       "original_scale_to_mm": 1000,
-      "canonical_source_id": "new-triangle-v7",
-      "source": {"component": "New Triangle", "version": 7, "f3z_member": "f67e8cee-1532-41c0-ae6e-f2573153d6ff.f3d"},
+      "canonical_source_id": "new-triangle-v7-assembled",
+      "source": {"component": "New Triangle", "version": 7, "f3z_member": "f67e8cee-1532-41c0-ae6e-f2573153d6ff.f3d", "assembly_bodies": "New Triangle v7 plus child bodies v001 through v012"},
       "source_url": "https://a360.co/44YAcMn",
       "source_kind": "native_fusion_f3d",
-      "validation": {"status": "candidate", "method": "component name/date and AP242 BRep volume", "source_volume_mm3": 46151.734, "original_volume_mm3": 47769.926, "volume_delta_percent": 3.388, "next": "isolate the intended body in Fusion before replacing the legacy STL"}
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.244723, "p95_surface_error_mm": 0.012949}
     },
     {
       "id": "dynamixel-drive-motor-mount",
       "original": "3DPrintMeshes/dynamixel_specific/dynamixel_drive_motor_mount.stl",
       "original_sha256": "223239bddc9b3a763568c1af8e3e83e126a9fafe967c4cab87658d55271480ec",
       "original_scale_to_mm": 1,
-      "canonical_source_id": "dynamixel-kiwi-servo-mount-v11",
-      "source": {"component": "Dynamixel Kiwi Servo Mount", "version": 11, "f3z_member": "fc889f4e-5a73-4446-9c0e-c98b3b885ff2.f3d"},
+      "canonical_source_id": "dynamixel-drive-motor-mount-contour-stack",
+      "source": {"path": "cad/reverse_engineered/dynamixel/dynamixel.scad", "selector": "dynamixel_drive_motor_mount", "contours": "cad/reverse_engineered/dynamixel/contours/dynamixel_drive_motor_mount", "section_axis": "z", "section_count": 230, "section_height_mm": 0.239565210757},
       "source_url": "https://a360.co/44YAcMn",
-      "source_kind": "native_fusion_f3d",
-      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 20789.124, "original_volume_mm3": 20796.292, "volume_delta_percent": 0.034}
+      "source_kind": "open_scad_contour_stack",
+      "provenance": {"native_candidate": {"component": "Dynamixel Kiwi Servo Mount", "version": 11, "f3z_member": "fc889f4e-5a73-4446-9c0e-c98b3b885ff2.f3d", "validation_status": "fail", "max_surface_error_mm": 1.72544, "p95_surface_error_mm": 0.031013}},
+      "output": "cad/reverse_engineered/dynamixel/generated/dynamixel_drive_motor_mount.stl",
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.11608756939122461, "p95_surface_error_mm": 0.07973423300035738, "rms_surface_error_mm": 0.03148759779485713}
     },
     {
       "id": "dynamixel-kiwi-servo-mount",
@@ -51,18 +53,33 @@
       "source": {"component": "Dynamixel Kiwi Servo Mount", "version": 11, "f3z_member": "fc889f4e-5a73-4446-9c0e-c98b3b885ff2.f3d"},
       "source_url": "https://a360.co/44YAcMn",
       "source_kind": "native_fusion_f3d",
-      "validation": {"status": "verified", "method": "same normalized geometry as dynamixel-drive-motor-mount; named F3Z component", "source_volume_mm3": 20789.124, "original_volume_mm3": 20796.672, "volume_delta_percent": 0.036}
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.013465, "p95_surface_error_mm": 0.00765}
+    },
+    {
+      "id": "dynamixel-lipo-battery-mount",
+      "original": "3DPrintMeshes/dynamixel_specific/lipo_battery_mount.stl",
+      "original_sha256": "d36131cb53565871a2600531b01ca5ebefeff2060861a172666952503b556c4b",
+      "original_scale_to_mm": 1000,
+      "canonical_source_id": "dynamixel-lipo-battery-mount-reconstruction",
+      "source": {"path": "cad/reverse_engineered/dynamixel/lipo_battery_mount.scad", "module": "lipo_battery_mount"},
+      "source_url": "https://a360.co/44YAcMn",
+      "source_kind": "open_scad_parametric",
+      "provenance": {"native_candidate": {"component": "lipo_battery_mount", "version": 5, "f3z_member": "c93be362-7064-40ec-86a5-c37c71532010.f3d", "validation_status": "fail", "reason": "native v5 bounding box is 99.416 by 93.194 by 16.5 mm; the legacy target is 62 by 79 by 16.5 mm"}},
+      "output": "cad/reverse_engineered/dynamixel/generated/lipo_battery_mount.stl",
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.00003910087499397591, "p95_surface_error_mm": 0.000028067314682016428, "rms_surface_error_mm": 0.000010673820922402807}
     },
     {
       "id": "dynamixel-modified-base-arm",
       "original": "3DPrintMeshes/dynamixel_specific/dynamixel_modified_base_arm.stl",
       "original_sha256": "37fad56632d1cfddd20f1009deccdbb85ff6583ee32b6b4e05fbc90c69527c5e",
       "original_scale_to_mm": 1,
-      "canonical_source_id": "arm-v24",
-      "source": {"component": "arm", "version": 24, "f3z_member": "b01427a5-dc40-449c-a028-cccde49a2d70.f3d"},
+      "canonical_source_id": "dynamixel-modified-base-arm-contour-stack",
+      "source": {"path": "cad/reverse_engineered/dynamixel/dynamixel.scad", "selector": "dynamixel_modified_base_arm", "contours": "cad/reverse_engineered/dynamixel/contours/dynamixel_modified_base_arm", "section_axis": "z", "section_count": 16, "maximum_section_height_mm": 0.6},
       "source_url": "https://a360.co/44YAcMn",
-      "source_kind": "native_fusion_f3d",
-      "validation": {"status": "candidate", "method": "native arm assembly provenance", "next": "select the legacy base body in Fusion and compare it before releasing a replacement STL"}
+      "source_kind": "open_scad_contour_stack",
+      "provenance": {"native_candidate": {"component": "arm", "version": 24, "f3z_member": "b01427a5-dc40-449c-a028-cccde49a2d70.f3d", "validation_status": "not_exported"}},
+      "output": "cad/reverse_engineered/dynamixel/generated/dynamixel_modified_base_arm.stl",
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.17735106614383625, "p95_surface_error_mm": 0.08370011486187, "rms_surface_error_mm": 0.042909020294257125}
     },
     {
       "id": "dynamixel-wheel-hub",
@@ -73,7 +90,7 @@
       "source": {"component": "Dynamixel_omni_wheel_mount", "version": 2, "f3z_member": "d132e9b4-39dd-495f-959c-652d5d907cf7.f3d"},
       "source_url": "https://a360.co/44YAcMn",
       "source_kind": "native_fusion_f3d",
-      "validation": {"status": "verified", "method": "same normalized geometry as Dynamixel_omni_wheel_mount v2; named F3Z component", "source_volume_mm3": 15768.346, "original_volume_mm3": 15767.222, "volume_delta_percent": 0.007}
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.01905, "p95_surface_error_mm": 0.012063}
     },
     {
       "id": "dynamixel-follower-base",
@@ -84,21 +101,22 @@
       "source": {"component": "Follower_Base", "version": 8, "f3z_member": "e2afaa13-b752-4fa9-98ac-4bfdac267f7d.f3d"},
       "source_url": "https://a360.co/44YAcMn",
       "source_kind": "native_fusion_f3d",
-      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 42160.562, "original_volume_mm3": 42171.333, "volume_delta_percent": 0.026}
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.027846, "p95_surface_error_mm": 0.01792}
     },
     {
       "id": "dynamixel-modified-static-side",
       "original": "3DPrintMeshes/dynamixel_specific/modified_static_side_with_mount.stl",
       "original_sha256": "46e1036de8ee78d31b33c430b6294f7a3c53eeaf86c8288fcce202166f7a5dd4",
       "original_scale_to_mm": 1,
-      "canonical_source_id": "static-side-gripper-v1-with-webcam-mount-v6",
+      "canonical_source_id": "static-side-gripper-v1-legacy-hole-patch",
       "source": [
         {"component": "Static Side Gripper", "version": 1, "f3z_member": "3c62cd0a-d4c0-481e-a1d4-9ee7ce978b22.f3d"},
-        {"component": "webcam_mount", "version": 6, "f3z_member": "651eab57-c96e-48ad-a58c-bff7ce7badc1.f3d"}
+        {"path": "cad/reverse_engineered/dynamixel/patch_static_legacy_hole.py", "feature": "Legacy static-side R3.14994 through-hole"}
       ],
       "source_url": "https://a360.co/44YAcMn",
-      "source_kind": "native_fusion_f3d_assembly",
-      "validation": {"status": "verified", "method": "two AP242 assembly bodies versus legacy combined STL", "source_volume_mm3": 34234.279, "original_volume_mm3": 34231.79, "volume_delta_percent": 0.007}
+      "source_kind": "native_fusion_f3d_with_parametric_patch",
+      "output": null,
+      "validation": {"status": "compositional_pass", "method": "native large-body surface pass plus fitted finite-hole decomposition of the small body", "thresholds_mm": {"max_surface_error": 0.25, "p95_surface_error": 0.1}, "large_body_to_target": {"samples": 1024, "max_surface_error_mm": 0.02976825625987341, "p95_surface_error_mm": 0.009114856373927283, "rms_surface_error_mm": 0.004020252875244508}, "candidate_to_target": {"samples": 512, "max_surface_error_mm": 0.020185647174234534, "p95_surface_error_mm": 0.015361168352459846, "rms_surface_error_mm": 0.0067665984798042905}, "target_outside_hole_to_candidate": {"samples": 496, "max_surface_error_mm": 0.020281687135590667, "p95_surface_error_mm": 0.016048344096059885, "rms_surface_error_mm": 0.006426817169852407}, "target_hole": {"face_count": 52, "radius_mm": 3.149941799199877, "radius_rms_error_mm": 0.00021692075360131867, "radius_max_error_mm": 0.0003382540289518232, "length_mm": 3.998059275501655}, "verifier": "cad/reverse_engineered/dynamixel/validation/verify_static_composition.py", "direct_patched_export": "not run: the public source proxy's BRep has a mismatched cutter span; the verifier proves every non-hole surface and the exact finite legacy cylinder"}
     },
     {
       "id": "dynamixel-pi-case-bottom",
@@ -109,7 +127,7 @@
       "source": {"component": "Bottom V2", "version": 2, "f3z_member": "aea3ad43-4bb7-4577-bf2e-c55ce408532e.f3d"},
       "source_url": "https://a360.co/44YAcMn",
       "source_kind": "native_fusion_f3d",
-      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 18584.54, "original_volume_mm3": 18584.093, "volume_delta_percent": 0.002}
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.030696, "p95_surface_error_mm": 0.022636}
     },
     {
       "id": "dynamixel-webcam-base-mount",
@@ -120,7 +138,7 @@
       "source": {"component": "webcam_mount", "version": 6, "f3z_member": "651eab57-c96e-48ad-a58c-bff7ce7badc1.f3d"},
       "source_url": "https://a360.co/44YAcMn",
       "source_kind": "native_fusion_f3d",
-      "validation": {"status": "verified", "method": "named F3Z component and AP242 BRep volume", "source_volume_mm3": 17015.348, "original_volume_mm3": 17011.824, "volume_delta_percent": 0.021}
+      "validation": {"status": "pass", "method": "bidirectional sampled closest point-to-triangle surface distance", "samples": 1024, "max_surface_error_mm": 0.014498, "p95_surface_error_mm": 0.009965}
     }
   ]
 }
