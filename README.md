@@ -55,6 +55,10 @@ We also provide the [URDF](./URDF/) exported from CAD for simulation.
 
 The open CAD migration is in [cad/](cad/): `LeKiwi_reference.FCStd` preserves the complete STEP reference assembly, while `LeKiwi.FCStd` is the editable FreeCAD-to-Xacro source covering all 47 URDF links. The SO-100 follower-arm and RobotSkin LD06 mount sources are pinned in [cad/upstream/](cad/upstream/); initialize them with `git submodule update --init --recursive`. See its [deterministic rebuild instructions](cad/README.md).
 
+The [manufacturing source index](manufacturing/) is the authoritative answer to
+what can be edited, cut, or only printed as an STL. It covers every released
+print, both laser-cut plates, and the currently identified sourced hardware.
+
 ## Check out our Dynamixel Version!
 <div style="display: flex; justify-content: center; align-items: center; padding: 25px;">
     <img src="./media/assembly_imgs/IMG_9252.jpg" width="300" /> 
