@@ -5,8 +5,4 @@ project_dir=$(cd "$(dirname "$0")/.." && pwd)
 cd "$project_dir"
 
 python3 scripts/build_reverse_engineered_sources.py
-printf '%s\n' \
-  'import runpy, sys; _freecad_excepthook = sys.excepthook; sys.excepthook = lambda *args: (_freecad_excepthook(*args), sys.exit(1))' \
-  'sys.argv = ["verify_reverse_engineered_sources.py"]' \
-  '_ = runpy.run_path("scripts/verify_reverse_engineered_sources.py", run_name="__main__")' |
-  flatpak run --command=FreeCADCmd --filesystem="$project_dir" org.freecad.FreeCAD -c
+exec "$project_dir/scripts/run_freecad_script.sh" scripts/verify_reverse_engineered_sources.py

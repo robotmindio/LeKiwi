@@ -13,8 +13,4 @@ generated_mesh=cad/generated/robotskin-lidar-mount.stl
 mkdir -p "$(dirname "$generated_mesh")"
 openscad -o "$generated_mesh" "$source_file"
 
-printf '%s\n' \
-  'import runpy, sys' \
-  'sys.argv = ["add_lidar_accessory.py", "cad/assembly/LeKiwi.FCStd", "cad/upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad", "cad/generated/robotskin-lidar-mount.stl"]' \
-  '_ = runpy.run_path("scripts/add_lidar_accessory.py", run_name="__main__")' |
-  flatpak run --command=FreeCADCmd --filesystem="$project_dir" org.freecad.FreeCAD -c
+exec "$project_dir/scripts/run_freecad_script.sh" scripts/add_lidar_accessory.py cad/assembly/LeKiwi.FCStd cad/upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad cad/generated/robotskin-lidar-mount.stl
