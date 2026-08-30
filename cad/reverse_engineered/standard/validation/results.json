@@ -1,0 +1,148 @@
+{
+  "units": "mm",
+  "method": "bidirectional sampled closest-point-to-triangle surface distance",
+  "strict_gate": {
+    "applied_to": "combined bidirectional sample set",
+    "max_surface_error_mm": 0.25,
+    "p95_surface_error_mm": 0.1
+  },
+  "base-plate-layer2-legacy": {
+    "status": "pass",
+    "source_kind": "open_cut_profile",
+    "samples_per_direction": 10000,
+    "combined": {
+      "p95_surface_error_mm": 0.00015823785088843952,
+      "max_surface_error_mm": 0.0007057016067555848,
+      "rms_surface_error_mm": 0.00007069650274532318
+    },
+    "bounds_max_delta_mm": 0.00014251708984147626,
+    "volume_relative_delta": 8.548965792163841e-7
+  },
+  "servo-wheel-hub": {
+    "status": "pass",
+    "source_kind": "open_contour_stack",
+    "contour_spacing_mm": 0.25,
+    "profiles": 56,
+    "samples_per_direction": 20000,
+    "original_to_generated": {
+      "p95_surface_error_mm": 0.075000023841858,
+      "max_surface_error_mm": 0.08476854496730968,
+      "rms_surface_error_mm": 0.03281650852258419
+    },
+    "generated_to_original": {
+      "p95_surface_error_mm": 0.075000023841858,
+      "max_surface_error_mm": 0.10912341938875396,
+      "rms_surface_error_mm": 0.033725369314161494
+    },
+    "combined": {
+      "p95_surface_error_mm": 0.075000023841858,
+      "max_surface_error_mm": 0.10912341938875396,
+      "rms_surface_error_mm": 0.03327404218748774
+    },
+    "bounds_max_delta_mm": 0.001299755859374585,
+    "volume_relative_delta": 0.006443602304830261,
+    "rejected_coarser_spacing_mm": [0.28, 0.5]
+  },
+  "drive-motor-mount-v2": {
+    "status": "pass",
+    "source_kind": "open_contour_stack",
+    "contour_spacing_mm": 0.5,
+    "profiles": 70,
+    "samples_per_direction": 20000,
+    "original_to_generated": {
+      "p95_surface_error_mm": 0.06866307528323215,
+      "max_surface_error_mm": 0.248030439615043,
+      "rms_surface_error_mm": 0.027987342715820405
+    },
+    "generated_to_original": {
+      "p95_surface_error_mm": 0.11528035613871691,
+      "max_surface_error_mm": 0.24673911321383127,
+      "rms_surface_error_mm": 0.040581896688928816
+    },
+    "combined": {
+      "p95_surface_error_mm": 0.09195499589048785,
+      "max_surface_error_mm": 0.248030439615043,
+      "rms_surface_error_mm": 0.034858153215307296
+    },
+    "bounds_max_delta_mm": 7.629394502828291e-7,
+    "volume_relative_delta": 0.0004740542141095131
+  },
+  "modified-base-arm": {
+    "status": "pass",
+    "source_kind": "open_contour_stack",
+    "contour_axis": "x",
+    "contour_spacing_mm": 0.2296583850931677,
+    "profiles": 483,
+    "sharp_tip_detail_width_mm": 0.01,
+    "samples_per_direction": 25000,
+    "original_to_generated": {
+      "p95_surface_error_mm": 0.06329999999999991,
+      "max_surface_error_mm": 0.1876638861203226,
+      "rms_surface_error_mm": 0.030888436567964746
+    },
+    "generated_to_original": {
+      "p95_surface_error_mm": 0.08763521953949661,
+      "max_surface_error_mm": 0.11454218225205323,
+      "rms_surface_error_mm": 0.04080282983373296
+    },
+    "combined": {
+      "p95_surface_error_mm": 0.07678007422737432,
+      "max_surface_error_mm": 0.1876638861203226,
+      "rms_surface_error_mm": 0.03618678236631264
+    },
+    "original_vertex_max_surface_error_mm": 0.19121200000000016,
+    "bounds_max_delta_mm": 0.00038999999999989043,
+    "volume_relative_delta": 0.0006515852628822109,
+    "rejected_coarser_stack": {
+      "contour_spacing_mm": 0.24983108108108107,
+      "combined_p95_surface_error_mm": 0.11170000000000258,
+      "combined_max_surface_error_mm": 0.2685560790736898
+    }
+  },
+  "jetson-holder": {
+    "status": "component_pass_only",
+    "reason": "The original STL contains three overlapping watertight solids plus nine redundant planar components. The OpenSCAD preview is their printable exterior union, so a raw full-STL comparison would incorrectly score its removed internal surfaces as errors.",
+    "raw_full_stl_preview": {
+      "samples_per_direction": 10000,
+      "original_to_union": {
+        "p95_surface_error_mm": 0.9778903803551511,
+        "max_surface_error_mm": 2.5,
+        "rms_surface_error_mm": 0.3948361794115641
+      },
+      "union_to_original": {
+        "p95_surface_error_mm": 1.712198325048586e-13,
+        "max_surface_error_mm": 0.0005510678417331771,
+        "rms_surface_error_mm": 0.0000259813733085617
+      }
+    },
+    "components": {
+      "jetson-holder-body-0": {
+        "status": "pass",
+        "samples_per_direction": 10000,
+        "p95_surface_error_mm": 8.532319683242877e-13,
+        "max_surface_error_mm": 0.0006423130722204166,
+        "rms_surface_error_mm": 0.00004687662872704167,
+        "bounds_max_delta_mm": 0.00020019073486388095,
+        "volume_relative_delta": 8.686132346112741e-7
+      },
+      "jetson-holder-body-5": {
+        "status": "pass",
+        "samples_per_direction": 10000,
+        "p95_surface_error_mm": 1.7763568394002505e-14,
+        "max_surface_error_mm": 6.5442711095952355e-12,
+        "rms_surface_error_mm": 1.9704968058026527e-13,
+        "bounds_max_delta_mm": 0.0,
+        "volume_relative_delta": 0.0
+      },
+      "jetson-holder-body-7": {
+        "status": "pass",
+        "samples_per_direction": 10000,
+        "p95_surface_error_mm": 3.2716477252179377e-13,
+        "max_surface_error_mm": 3.0274457483107174e-12,
+        "rms_surface_error_mm": 1.7183342690302313e-13,
+        "bounds_max_delta_mm": 0.0,
+        "volume_relative_delta": 0.0
+      }
+    }
+  }
+}

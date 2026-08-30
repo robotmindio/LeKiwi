@@ -1,0 +1,48 @@
+{
+  "f3z": {
+    "path": "reference/fusion/LeKiwi.f3z",
+    "sha256": "504d4d2aaddd90811fddbd9502b0cd0efa433212f392ccddd4ae62c9f03efecd",
+    "public_share": "https://a360.co/4k1P8yO",
+    "share_id": "SH286ddQT78850c0d8a490b5b748dfa5f64b",
+    "step_export_sha256": "2e8ee4431b6681e3c45326a98aa5b28249b031aa551e6f60308ac3f15822b374"
+  },
+  "pi-case-top": {
+    "member": "b52e0292-c8e6-4825-9237-403a8539573f.f3d",
+    "sha256": "e9fb2aa66ea0a8a2981ddca06357a7a8d75c8e7ef3a80f0ea10399337e129cff",
+    "design_name": "Top V2",
+    "status": "feature_history_retained_and_surface_pass",
+    "geometry_status": "surface_pass",
+    "validation": {
+      "method": "1024 bidirectional sampled closest-point-to-triangle surface distances from the public Fusion STEP export",
+      "max_surface_error_mm": 0.0240936947,
+      "p95_surface_error_mm": 0.0181147679,
+      "rms_surface_error_mm": 0.0077163358
+    }
+  },
+  "pi-case-bottom": {
+    "member": "69fc95b2-01a6-47e3-8045-d626fccae61e.f3d",
+    "sha256": "3a2321bc0c3091379d0b3cd27f4342967c0748ee3211d5683479db73f38c760a",
+    "design_name": "Bottom V2",
+    "status": "feature_history_retained_and_surface_pass",
+    "geometry_status": "surface_pass",
+    "validation": {
+      "method": "1024 bidirectional sampled closest-point-to-triangle surface distances from the public Fusion STEP export",
+      "max_surface_error_mm": 0.0239819194,
+      "p95_surface_error_mm": 0.0176265288,
+      "rms_surface_error_mm": 0.00855832845
+    }
+  },
+  "wrist-camera-mount": {
+    "member": "8e34b7d8-b5b3-45f5-89c4-d1e038a1527b.f3d",
+    "sha256": "509282d84017bab7fa6c4b3e091748e193ab3bdd4de84381cb9237da74a931e7",
+    "design_name": "wrist_camera_mount",
+    "status": "feature_history_retained_and_surface_pass",
+    "geometry_status": "surface_pass",
+    "validation": {
+      "method": "1024 bidirectional sampled closest-point-to-triangle surface distances from the public Fusion STEP export",
+      "max_surface_error_mm": 0.0213918606,
+      "p95_surface_error_mm": 0.00932899562,
+      "rms_surface_error_mm": 0.00408931778
+    }
+  }
+}

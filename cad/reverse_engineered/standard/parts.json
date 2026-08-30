@@ -1,0 +1,115 @@
+[
+  {
+    "id": "servo-wheel-hub",
+    "original": "3DPrintMeshes/servo_wheel_hub.stl",
+    "source": "cad/reverse_engineered/standard/standard.scad",
+    "selector": "servo_wheel_hub",
+    "output": "cad/reverse_engineered/standard/generated/servo_wheel_hub.stl",
+    "source_kind": "open_contour_stack",
+    "validation": "cad/reverse_engineered/standard/validation/results.json#servo-wheel-hub"
+  },
+  {
+    "id": "jetson-holder",
+    "original": "3DPrintMeshes/jetson_holder.stl",
+    "source": "cad/reverse_engineered/standard/standard.scad",
+    "selector": "jetson_holder",
+    "output": "cad/reverse_engineered/standard/generated/jetson_holder.stl",
+    "source_kind": "open_multibody_contour_stack",
+    "validation": "cad/reverse_engineered/standard/validation/results.json#jetson-holder",
+    "component_validations": [
+      {
+        "id": "jetson-holder-body-0",
+        "selector": "jetson_holder_body_0",
+        "output": "cad/reverse_engineered/standard/generated/jetson_holder_body_0.stl",
+        "original_component_signature": {
+          "watertight": true,
+          "face_count": 384,
+          "vertex_count": 188,
+          "bounds_mm": [[-5.0, -12.949999809265137, 0.0], [96.0, 116.44999694824219, 6.0]],
+          "volume_mm3": 12942.605845490738
+        },
+        "validation": "cad/reverse_engineered/standard/validation/results.json#jetson-holder-body-0"
+      },
+      {
+        "id": "jetson-holder-body-5",
+        "selector": "jetson_holder_body_5",
+        "output": "cad/reverse_engineered/standard/generated/jetson_holder_body_5.stl",
+        "original_component_signature": {
+          "watertight": true,
+          "face_count": 12,
+          "vertex_count": 8,
+          "bounds_mm": [[0.0, 0.0, 0.0], [91.0, 103.5, 2.5]],
+          "volume_mm3": 23546.25
+        },
+        "validation": "cad/reverse_engineered/standard/validation/results.json#jetson-holder-body-5"
+      },
+      {
+        "id": "jetson-holder-body-7",
+        "selector": "jetson_holder_body_7",
+        "output": "cad/reverse_engineered/standard/generated/jetson_holder_body_7.stl",
+        "original_component_signature": {
+          "watertight": true,
+          "face_count": 32,
+          "vertex_count": 16,
+          "bounds_mm": [[-5.0, -5.0, 0.0], [96.0, 108.5, 8.5]],
+          "volume_mm3": 17382.5
+        },
+        "validation": "cad/reverse_engineered/standard/validation/results.json#jetson-holder-body-7"
+      }
+    ]
+  },
+  {
+    "id": "drive-motor-mount-v2",
+    "original": "3DPrintMeshes/drive_motor_mount_v2.stl",
+    "source": "cad/reverse_engineered/standard/standard.scad",
+    "selector": "drive_motor_mount_v2",
+    "output": "cad/reverse_engineered/standard/generated/drive_motor_mount_v2.stl",
+    "source_kind": "open_contour_stack",
+    "validation": "cad/reverse_engineered/standard/validation/results.json#drive-motor-mount-v2"
+  },
+  {
+    "id": "modified-base-arm",
+    "original": "3DPrintMeshes/modified_base_arm.stl",
+    "source": "cad/reverse_engineered/standard/standard.scad",
+    "selector": "modified_base_arm",
+    "output": "cad/reverse_engineered/standard/generated/modified_base_arm.stl",
+    "source_kind": "open_contour_stack",
+    "validation": "cad/reverse_engineered/standard/validation/results.json#modified-base-arm"
+  },
+  {
+    "id": "base-plate-layer2-legacy",
+    "original": "3DPrintMeshes/base_plate_layer2.stl",
+    "source": "cad/reverse_engineered/standard/legacy_base_plate_layer2.scad",
+    "selector": null,
+    "output": "cad/reverse_engineered/standard/generated/base_plate_layer2.stl",
+    "source_kind": "open_cut_profile",
+    "validation": "cad/reverse_engineered/standard/validation/results.json#base-plate-layer2-legacy"
+  },
+  {
+    "id": "pi-case-top",
+    "original": "3DPrintMeshes/pi_case_top.stl",
+    "source": "reference/fusion/LeKiwi.f3z#b52e0292-c8e6-4825-9237-403a8539573f.f3d",
+    "selector": "Top V2",
+    "output": null,
+    "source_kind": "fusion_feature_history_retained",
+    "validation": "cad/reverse_engineered/standard/validation/provenance.json#pi-case-top"
+  },
+  {
+    "id": "pi-case-bottom",
+    "original": "3DPrintMeshes/pi_case_bottom.stl",
+    "source": "reference/fusion/LeKiwi.f3z#69fc95b2-01a6-47e3-8045-d626fccae61e.f3d",
+    "selector": "Bottom V2",
+    "output": null,
+    "source_kind": "fusion_feature_history_retained",
+    "validation": "cad/reverse_engineered/standard/validation/provenance.json#pi-case-bottom"
+  },
+  {
+    "id": "wrist-camera-mount",
+    "original": "3DPrintMeshes/wrist_camera_mount.stl",
+    "source": "reference/fusion/LeKiwi.f3z#8e34b7d8-b5b3-45f5-89c4-d1e038a1527b.f3d",
+    "selector": "wrist_camera_mount",
+    "output": null,
+    "source_kind": "fusion_feature_history_retained",
+    "validation": "cad/reverse_engineered/standard/validation/provenance.json#wrist-camera-mount"
+  }
+]
