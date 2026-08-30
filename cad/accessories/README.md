@@ -21,12 +21,12 @@ corresponding print STLs:
 These are editable Open STEP BREP documents in FreeCAD's Part workbench. They
 are not claimed to reconstruct the original parametric feature history.
 
-## Sources found but not vendored
+## External or non-identical sources
 
 | Accessory family | Source found | Why it remains external |
 | --- | --- | --- |
 | Raspberry Pi case top and bottom | [Printables model 605060](https://www.printables.com/model/605060-raspberry-pi-5-case-wpower-button-v2) publishes STEP files | Its CC BY-NC terms cannot be silently relicensed under this repository's Apache-2.0 license. The LeKiwi STLs are described as modified from that model, so the public STEP is not assumed to be an exact replacement either. |
-| Standard SO-100/SO-101 arm | [TheRobotStudio/SO-ARM100](https://github.com/TheRobotStudio/SO-ARM100/tree/main/STEP) publishes Apache-2.0 STEP sources | It is an independently maintained robot project; retaining it as an external dependency avoids duplicating its large source tree. The LeKiwi `modified_base_arm` and webcam gripper insert are not verified as exact upstream parts. |
+| Standard SO-100/SO-101 arm | [TheRobotStudio/SO-ARM100](../upstream/SO-ARM100/) publishes Apache-2.0 STEP sources | The repository is pinned as a Git submodule. The SO-100 follower source is checked by `scripts/verify_arm_sources.sh`; the LeKiwi `modified_base_arm` and webcam gripper insert are not verified as exact upstream parts. |
 | VEX-derived wheel hub | VEX provides downloadable CAD for its parts | `servo_wheel_hub.stl` is documented as modified from a VersaHub, not as an unmodified vendor part. No exact Apache-compatible source for the LeKiwi derivative was established, so the vendor file is not vendored here. |
 
 ## Reauthoring candidates with no exact editable source located

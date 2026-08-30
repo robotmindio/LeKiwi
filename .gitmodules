@@ -1,0 +1,3 @@
+[submodule "cad/upstream/SO-ARM100"]
+	path = cad/upstream/SO-ARM100
+	url = https://github.com/TheRobotStudio/SO-ARM100.git

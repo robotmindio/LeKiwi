@@ -12,6 +12,24 @@
 
 The exact source and validation result for every upstream link is recorded in [reference_mapping.json](reference_mapping.json). The two RobotSkin accessory links are authored directly in `LeKiwi.FCStd`. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
 
+## Arm source
+
+The upstream [SO-ARM100](upstream/SO-ARM100/) repository is a pinned Git submodule at
+commit `7629d2ad9853d10fb903093a33ef6114099d97e5` under its Apache-2.0 license. Its
+`STEP/SO100/` directory is the editable BREP source for the SO-100 follower arm
+represented by the current LeKiwi CAD and URDF; it includes the follower assembly
+and individual arm parts. It is intentionally not re-exported as STL-only copies.
+
+Initialize it after cloning, then check the expected source bundle:
+
+```sh
+git submodule update --init --recursive
+./scripts/verify_arm_sources.sh
+```
+
+The LeKiwi-specific `modified_base_arm` and webcam gripper insert are still separate
+prints: they are not asserted to match an upstream SO-ARM100 component.
+
 ## Native printed-part sources
 
 The complete LeKiwi-specific manufactured set represented by the URDF is editable in [parts/](parts/README.md): the two laser-cut plates plus `drive_motor_mount.FCStd`, `omni_wheel_mount.FCStd`, `servo_controller_mount.FCStd`, `lipo_battery_mount.FCStd`, `base_camera_mount.FCStd`, and `wrist_camera_mount.FCStd`.

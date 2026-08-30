@@ -4,6 +4,7 @@ set -euo pipefail
 project_dir=$(cd "$(dirname "$0")/.." && pwd)
 cd "$project_dir"
 
+./scripts/verify_arm_sources.sh
 ./scripts/export_robot.sh
 python3 scripts/verify_xacro.py URDF/LeKiwi.urdf URDF/LeKiwi.urdf.xacro
 ./scripts/verify_cad_migration.sh

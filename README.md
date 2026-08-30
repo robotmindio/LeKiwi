@@ -36,7 +36,7 @@
 - 3-wheel Kiwi (holonomic) drive with omni wheels
 
 #### Robot Arm
-- [SO-ARM101](https://github.com/TheRobotStudio/SO-ARM100)
+- [SO-ARM101](https://github.com/TheRobotStudio/SO-ARM100) ([pinned local CAD source](cad/upstream/SO-ARM100/))
 
 #### Sensors
 - Workspace rgb camera
@@ -53,7 +53,7 @@ Goals:
 
 We also provide the [URDF](./URDF/) exported from CAD for simulation.
 
-The open CAD migration is in [cad/](cad/): `LeKiwi_reference.FCStd` preserves the complete STEP reference assembly, while `LeKiwi.FCStd` is the editable FreeCAD-to-Xacro source covering all 47 URDF links, including the RobotSkin LD06 mount. See its [deterministic rebuild instructions](cad/README.md).
+The open CAD migration is in [cad/](cad/): `LeKiwi_reference.FCStd` preserves the complete STEP reference assembly, while `LeKiwi.FCStd` is the editable FreeCAD-to-Xacro source covering all 47 URDF links, including the RobotSkin LD06 mount. The SO-100 follower-arm source used by the current CAD/URDF is pinned in [cad/upstream/SO-ARM100](cad/upstream/SO-ARM100/); initialize it with `git submodule update --init --recursive`. See its [deterministic rebuild instructions](cad/README.md).
 
 ## Check out our Dynamixel Version!
 <div style="display: flex; justify-content: center; align-items: center; padding: 25px;">
