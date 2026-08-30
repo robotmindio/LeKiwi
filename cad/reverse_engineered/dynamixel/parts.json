@@ -116,7 +116,24 @@
       "source_url": "https://a360.co/44YAcMn",
       "source_kind": "native_fusion_f3d_with_parametric_patch",
       "output": null,
-      "validation": {"status": "compositional_pass", "method": "native large-body surface pass plus fitted finite-hole decomposition of the small body", "thresholds_mm": {"max_surface_error": 0.25, "p95_surface_error": 0.1}, "large_body_to_target": {"samples": 1024, "max_surface_error_mm": 0.02976825625987341, "p95_surface_error_mm": 0.009114856373927283, "rms_surface_error_mm": 0.004020252875244508}, "candidate_to_target": {"samples": 512, "max_surface_error_mm": 0.020185647174234534, "p95_surface_error_mm": 0.015361168352459846, "rms_surface_error_mm": 0.0067665984798042905}, "target_outside_hole_to_candidate": {"samples": 496, "max_surface_error_mm": 0.020281687135590667, "p95_surface_error_mm": 0.016048344096059885, "rms_surface_error_mm": 0.006426817169852407}, "target_hole": {"face_count": 52, "radius_mm": 3.149941799199877, "radius_rms_error_mm": 0.00021692075360131867, "radius_max_error_mm": 0.0003382540289518232, "length_mm": 3.998059275501655}, "verifier": "cad/reverse_engineered/dynamixel/validation/verify_static_composition.py", "direct_patched_export": "not run: the public source proxy's BRep has a mismatched cutter span; the verifier proves every non-hole surface and the exact finite legacy cylinder"}
+      "validation": {
+        "status": "compositional_pass",
+        "method": "large-body direct bidirectional sampled surface pass plus small-body fitted finite-hole composition",
+        "thresholds_mm": {"max_surface_error": 0.25, "p95_surface_error": 0.1},
+        "large_body_to_target": {
+          "method": "bidirectional sampled closest point-to-triangle surface distance",
+          "samples": 1024,
+          "max_surface_error_mm": 0.0248892423764664,
+          "p95_surface_error_mm": 0.009140329890091663,
+          "rms_surface_error_mm": 0.00401970491398064,
+          "status": "pass"
+        },
+        "small_candidate_to_target": {"samples": 512, "max_surface_error_mm": 0.020185647174234534, "p95_surface_error_mm": 0.015361168352459846, "rms_surface_error_mm": 0.0067665984798042905},
+        "small_target_outside_hole_to_candidate": {"samples": 496, "max_surface_error_mm": 0.020281687135590667, "p95_surface_error_mm": 0.016048344096059885, "rms_surface_error_mm": 0.006426817169852407},
+        "target_hole": {"face_count": 52, "radius_mm": 3.149941799199877, "radius_rms_error_mm": 0.00021692075360131867, "radius_max_error_mm": 0.0003382540289518232, "length_mm": 3.998059275501655},
+        "verifier": "cad/reverse_engineered/dynamixel/validation/verify_static_composition.py",
+        "direct_patched_small_export": "not run: manual external source-body proxies provide a sampled compositional proof, not a patched-output comparison"
+      }
     },
     {
       "id": "dynamixel-pi-case-bottom",

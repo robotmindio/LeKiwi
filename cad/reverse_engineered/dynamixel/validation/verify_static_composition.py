@@ -1,12 +1,13 @@
-"""Prove the legacy static-side patch from an exported current-source mesh.
+"""Sample-validate both public static-side bodies and the legacy-hole patch.
 
-Run under FreeCAD with the exported current-source proxy STL as the one required
-argument.
+Run under FreeCAD with uncommitted STL exports of the public Fusion source's
+small and large bodies, in that order.  The large body is compared directly and
+bidirectionally with its corresponding target component.  The small body's
+unpatched source export is compared everywhere except the one fitted legacy
+through-hole, whose finite cylinder is checked separately.
 
-The candidate is an uncommitted proxy exported from the public current Fusion
-body.  The proof intentionally reports ``compositional_pass`` rather than a
-direct patched-export pass: the candidate already matches every target surface
-except the one fitted legacy through-hole.
+The proof intentionally reports ``compositional_pass`` rather than a direct
+patched-small-body export pass.
 """
 
 import argparse
@@ -21,7 +22,8 @@ import Mesh
 ROOT = Path(__file__).resolve().parents[4]
 COMPARE = runpy.run_path(str(ROOT / "scripts/compare_reauthored_assets.py"))
 TARGET_DEFAULT = ROOT / "3DPrintMeshes/dynamixel_specific/modified_static_side_with_mount.stl"
-TARGET_FACETS = 2320
+SMALL_TARGET_FACETS = 2320
+LARGE_TARGET_FACETS = 7832
 MAX_ERROR = COMPARE["MAX_SURFACE_ERROR_MM"]
 P95_ERROR = COMPARE["MAX_P95_ERROR_MM"]
 
@@ -146,12 +148,17 @@ def target_outside_hole(target, candidate, faces):
     return metrics(outside), sorted(failed_faces)
 
 
-def target_component(path):
+def target_components(path):
     components = Mesh.Mesh(str(path)).getSeparateComponents()
-    matches = [component for component in components if component.CountFacets == TARGET_FACETS]
-    if len(matches) != 1:
-        raise RuntimeError(f"expected one {TARGET_FACETS}-facet target component, found {len(matches)}")
-    return matches[0]
+    counts = (SMALL_TARGET_FACETS, LARGE_TARGET_FACETS)
+    selected = {
+        count: [component for component in components if component.CountFacets == count]
+        for count in counts
+    }
+    invalid = {count: len(matches) for count, matches in selected.items() if len(matches) != 1}
+    if invalid:
+        raise RuntimeError(f"expected one target component for each facet count {counts}, found {invalid}")
+    return selected[SMALL_TARGET_FACETS][0], selected[LARGE_TARGET_FACETS][0]
 
 
 def path(value):
@@ -161,29 +168,42 @@ def path(value):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("candidate", help="exported current Fusion static-side proxy STL (not committed)")
+    parser.add_argument("small_candidate", help="unpatched exported public-source small-body STL (not committed)")
+    parser.add_argument("large_candidate", help="exported public-source large-body STL (not committed)")
     parser.add_argument("--target", default=str(TARGET_DEFAULT), help="canonical two-body static-side STL")
     args = parser.parse_args()
 
-    candidate_path, target_path = path(args.candidate), path(args.target)
-    if not candidate_path.is_file() or not target_path.is_file():
-        raise SystemExit("candidate and target must be existing STL files")
-    candidate, target = Mesh.Mesh(str(candidate_path)), target_component(target_path)
-    faces = hole_faces(target)
-    candidate_to_target = directed(candidate, target)
-    outside_target_to_candidate, failed_faces = target_outside_hole(target, candidate, faces)
-    if not strict(candidate_to_target) or not strict(outside_target_to_candidate):
+    small_path, large_path, target_path = path(args.small_candidate), path(args.large_candidate), path(args.target)
+    if not small_path.is_file() or not large_path.is_file() or not target_path.is_file():
+        raise SystemExit("both source-body proxies and target must be existing STL files")
+    small_candidate, large_candidate = Mesh.Mesh(str(small_path)), Mesh.Mesh(str(large_path))
+    small_target, large_target = target_components(target_path)
+
+    large_body_to_target = COMPARE["comparison"](large_candidate, large_target)
+    if not strict(large_body_to_target):
+        raise SystemExit("large source body failed direct bidirectional sampled surface validation")
+
+    faces = hole_faces(small_target)
+    small_candidate_to_target = directed(small_candidate, small_target)
+    small_target_outside_hole_to_candidate, failed_faces = target_outside_hole(small_target, small_candidate, faces)
+    if not strict(small_candidate_to_target) or not strict(small_target_outside_hole_to_candidate):
         raise SystemExit("surface-fidelity failure outside the fitted legacy hole")
 
     result = {
         "status": "compositional_pass",
-        "method": "candidate-to-target surface pass plus fitted finite-hole decomposition",
-        "candidate": str(candidate_path),
+        "method": "large-body direct bidirectional sampled surface pass plus small-body fitted finite-hole composition",
+        "sampling": {
+            "large_body": "bidirectional sampled closest point-to-triangle surface distance",
+            "small_body": "sampled source-to-target and target-outside-hole closest point-to-triangle surface distance",
+        },
+        "small_candidate": str(small_path),
+        "large_candidate": str(large_path),
         "target": str(target_path),
         "thresholds_mm": {"max_surface_error": MAX_ERROR, "p95_surface_error": P95_ERROR},
-        "candidate_to_target": candidate_to_target,
-        "target_outside_hole_to_candidate": outside_target_to_candidate,
-        "target_hole": fit_hole(target, faces),
+        "large_body_to_target": large_body_to_target,
+        "small_candidate_to_target": small_candidate_to_target,
+        "small_target_outside_hole_to_candidate": small_target_outside_hole_to_candidate,
+        "target_hole": fit_hole(small_target, faces),
         "failing_target_face_indices": failed_faces,
     }
     print(json.dumps(result, indent=2))
