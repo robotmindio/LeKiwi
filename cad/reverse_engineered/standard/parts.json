@@ -65,7 +65,8 @@
     "selector": "drive_motor_mount_v2",
     "output": "cad/reverse_engineered/standard/generated/drive_motor_mount_v2.stl",
     "source_kind": "open_contour_stack",
-    "validation": "cad/reverse_engineered/standard/validation/results.json#drive-motor-mount-v2"
+    "validation": "cad/reverse_engineered/standard/validation/results.json#drive-motor-mount-v2",
+    "validation_gate": "shared_deterministic_1024"
   },
   {
     "id": "modified-base-arm",

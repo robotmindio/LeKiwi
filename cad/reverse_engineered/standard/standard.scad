@@ -37,19 +37,15 @@ module jetson_holder() {
 }
 
 module drive_motor_mount_v2() {
-    // 0.5 mm X-sections are the coarsest strict-validation-passing stack.
-    step = 0.5;
-    union() {
-        for (i = [0 : 68])
+    // 0.2 mm X-sections are the coarsest shared-validator-passing stack.
+    step = 0.2;
+    profiles = 174;
+    union()
+        for (i = [0 : profiles - 1])
             translate([(i + 1) * step, 0, 0])
                 rotate([0, -90, 0])
                     linear_extrude(height = step)
-                        import(str("drive_motor_mount_v2_slices_05/", i, ".dxf"));
-        translate([34.8, 0, 0])
-            rotate([0, -90, 0])
-                linear_extrude(height = 0.3)
-                    import("drive_motor_mount_v2_slices_05/69.dxf");
-    }
+                        import(str("drive_motor_mount_v2_slices_02/", i, ".dxf"));
 }
 
 module modified_base_arm_x_section(x, height, profile) {

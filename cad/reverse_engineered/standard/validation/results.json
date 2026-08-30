@@ -3,6 +3,8 @@
   "method": "bidirectional sampled closest-point-to-triangle surface distance",
   "strict_gate": {
     "applied_to": "combined bidirectional sample set",
+    "shared_validator": "scripts/compare_reauthored_assets.py --mesh-align",
+    "shared_sampling": "centroid and cyclic vertex from 256 evenly spaced facets in each direction (1024 points total)",
     "max_surface_error_mm": 0.25,
     "p95_surface_error_mm": 0.1
   },
@@ -46,26 +48,36 @@
   "drive-motor-mount-v2": {
     "status": "pass",
     "source_kind": "open_contour_stack",
-    "contour_spacing_mm": 0.5,
-    "profiles": 70,
-    "samples_per_direction": 20000,
-    "original_to_generated": {
-      "p95_surface_error_mm": 0.06866307528323215,
-      "max_surface_error_mm": 0.248030439615043,
-      "rms_surface_error_mm": 0.027987342715820405
-    },
-    "generated_to_original": {
-      "p95_surface_error_mm": 0.11528035613871691,
-      "max_surface_error_mm": 0.24673911321383127,
-      "rms_surface_error_mm": 0.040581896688928816
-    },
+    "contour_spacing_mm": 0.2,
+    "profiles": 174,
+    "shared_validator_samples": 1024,
     "combined": {
-      "p95_surface_error_mm": 0.09195499589048785,
-      "max_surface_error_mm": 0.248030439615043,
-      "rms_surface_error_mm": 0.034858153215307296
+      "p95_surface_error_mm": 0.07300685483002357,
+      "max_surface_error_mm": 0.09999938119115766,
+      "rms_surface_error_mm": 0.033129531918424944
     },
     "bounds_max_delta_mm": 7.629394502828291e-7,
-    "volume_relative_delta": 0.0004740542141095131
+    "volume_relative_delta": 0.0016054894596371251,
+    "rejected_coarser_candidates": [
+      {
+        "contour_spacing_mm": 0.3,
+        "profiles": 116,
+        "p95_surface_error_mm": 0.10000164107710291,
+        "max_surface_error_mm": 0.14438883463541607
+      },
+      {
+        "contour_spacing_mm": 0.4,
+        "profiles": 87,
+        "p95_surface_error_mm": 0.13495929555652222,
+        "max_surface_error_mm": 0.19695502033916573
+      },
+      {
+        "contour_spacing_mm": 0.5,
+        "profiles": 70,
+        "p95_surface_error_mm": 0.1683057285909988,
+        "max_surface_error_mm": 0.24438921610514264
+      }
+    ]
   },
   "modified-base-arm": {
     "status": "pass",
