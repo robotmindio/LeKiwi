@@ -9,13 +9,15 @@ import Mesh
 import Part
 
 
-if len(sys.argv) != 3:
-    raise SystemExit("usage: add_lidar_accessory.py ASSEMBLY.FCStd MOUNT.stl")
+if len(sys.argv) != 4:
+    raise SystemExit("usage: add_lidar_accessory.py ASSEMBLY.FCStd SOURCE.scad MOUNT.stl")
 
 
-assembly_path, mount_path = map(Path, sys.argv[1:])
+assembly_path, source_path, mount_path = map(Path, sys.argv[1:])
+if not source_path.is_file():
+    raise RuntimeError(f"missing RobotSkin OpenSCAD source: {source_path}")
 if not mount_path.is_file():
-    raise RuntimeError(f"missing RobotSkin lidar mount: {mount_path}")
+    raise RuntimeError(f"missing generated RobotSkin lidar mesh: {mount_path}")
 
 # CAD coordinates: +Y is forward.  The mount's LD06 centre is (20, -5) mm;
 # this places its scan centre 90 mm forward and 70 mm right in ROS base_link.
@@ -89,9 +91,11 @@ mount = document.addObject("Mesh::Feature", "RobotSkinLidarMount")
 mount.Label = "RobotSkin LeKiwi lidar base"
 mount.Mesh = Mesh.Mesh(str(mount_path.resolve()))
 mount.addProperty("App::PropertyString", "SourceFile", "Source")
-mount.SourceFile = mount_path.as_posix()
+mount.SourceFile = source_path.as_posix()
+mount.addProperty("App::PropertyString", "GeneratedMesh", "Source")
+mount.GeneratedMesh = mount_path.as_posix()
 mount.addProperty("App::PropertyString", "SourceKind", "Source")
-mount.SourceKind = "RobotSkin generated fabrication mesh"
+mount.SourceKind = "RobotSkin OpenSCAD source"
 mount.Visibility = False
 add_link(document, links, "robotskin_lidar_mount", mount)
 add_joint(document, joints, "robotskin_lidar_mount", "base_plate_layer1-v5", "robotskin_lidar_mount", MOUNT_ORIGIN)

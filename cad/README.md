@@ -10,7 +10,7 @@
 - 10 canonical URDF mesh references where the STEP and URDF exports differ by more than 2%; and
 - the RobotSkin LD06 base plus lidar body.
 
-The exact source and validation result for every upstream link is recorded in [reference_mapping.json](reference_mapping.json). The two RobotSkin accessory links are authored directly in `LeKiwi.FCStd`. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
+The exact source and validation result for every upstream link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount is regenerated from the pinned [RobotSkin OpenSCAD source](upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad) before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
 
 ## Arm source
 
@@ -27,8 +27,25 @@ git submodule update --init --recursive
 ./scripts/verify_arm_sources.sh
 ```
 
-The LeKiwi-specific `modified_base_arm` and webcam gripper insert are still separate
-prints: they are not asserted to match an upstream SO-ARM100 component.
+The LeKiwi-specific `modified_base_arm` remains a separate print: it is not
+asserted to match an upstream SO-ARM100 component. The webcam gripper insert has
+an editable derivative in [accessories/](accessories/README.md).
+
+## Link identifiers
+
+Names such as `ST3215_Servo_Motor-v1-1` and
+`4-Omni-Directional-Wheel_Single_Body-v1-2` are unique Fusion-assembly
+occurrence identifiers, not a sequence of part revisions. Each needs its own
+URDF link and pose even when the physical component is the same. Do not delete
+or merge them merely because their filenames share a `-1` or `-2` suffix.
+
+## RobotSkin source
+
+`upstream/RobotSkin/` is pinned at commit `b028a962e99f8a84eaebfe314e63373a82edc8c1`.
+Its `scad/parts/lekiwi-lidar-base.scad` entry point and shared
+`scad/lib/robotskin.scad` implementation generate the lidar mount. The generated
+mesh lives under ignored `cad/generated/`; `export_robot.sh` rebuilds it and updates
+the assembly before writing the URDF meshes and Xacro.
 
 ## Native printed-part sources
 

@@ -2,3 +2,4 @@ scripts/__pycache__/
 cad/assembly/*.FCBak
 cad/parts/*.FCBak
 cad/accessories/*.FCBak
+/cad/generated/
