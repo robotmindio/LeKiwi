@@ -6,6 +6,8 @@ from pathlib import Path
 
 
 XACRO_PROPERTY = "{http://www.ros.org/wiki/xacro}property"
+ACCESSORY_LINKS = {"robotskin_lidar_mount", "ld06_body"}
+ACCESSORY_JOINTS = {"robotskin_lidar_mount", "ld06_body"}
 
 
 def normalise(element):
@@ -26,6 +28,20 @@ baseline = normalise(ET.parse(sys.argv[1]).getroot())
 generated_path = Path(sys.argv[2])
 generated_root = ET.parse(generated_path).getroot()
 baseline_root = ET.parse(sys.argv[1]).getroot()
+links = {link.get("name"): link for link in generated_root.findall("link")}
+joints = {joint.get("name"): joint for joint in generated_root.findall("joint")}
+if not ACCESSORY_LINKS <= links.keys() or not ACCESSORY_JOINTS <= joints.keys():
+    raise SystemExit("generated Xacro is missing the RobotSkin LD06 accessory")
+if joints["robotskin_lidar_mount"].find("parent").get("link") != "base_plate_layer1-v5":
+    raise SystemExit("RobotSkin lidar mount must remain attached to the base plate")
+if joints["ld06_body"].find("parent").get("link") != "robotskin_lidar_mount":
+    raise SystemExit("LD06 body must remain attached to its RobotSkin mount")
+for link in list(generated_root.findall("link")):
+    if link.get("name") in ACCESSORY_LINKS:
+        generated_root.remove(link)
+for joint in list(generated_root.findall("joint")):
+    if joint.get("name") in ACCESSORY_JOINTS:
+        generated_root.remove(joint)
 baseline_links = {link.get("name"): link for link in baseline_root.findall("link")}
 for link in generated_root.findall("link"):
     for kind in ("visual", "collision"):

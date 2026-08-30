@@ -53,7 +53,7 @@ Goals:
 
 We also provide the [URDF](./URDF/) exported from CAD for simulation.
 
-The open CAD migration is in [cad/](cad/): `LeKiwi_reference.FCStd` preserves the complete STEP reference assembly, while `LeKiwi.FCStd` is the editable FreeCAD-to-Xacro source covering all 45 URDF links. See its [deterministic rebuild instructions](cad/README.md).
+The open CAD migration is in [cad/](cad/): `LeKiwi_reference.FCStd` preserves the complete STEP reference assembly, while `LeKiwi.FCStd` is the editable FreeCAD-to-Xacro source covering all 47 URDF links, including the RobotSkin LD06 mount. See its [deterministic rebuild instructions](cad/README.md).
 
 ## Check out our Dynamixel Version!
 <div style="display: flex; justify-content: center; align-items: center; padding: 25px;">

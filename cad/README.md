@@ -2,14 +2,15 @@
 
 `assembly/LeKiwi_reference.FCStd` is the complete Fusion STEP export imported into FreeCAD. It is the dimensional reference; STEP cannot retain Fusion sketches or its feature timeline.
 
-`assembly/LeKiwi.FCStd` is the open CAD-to-ROS source. Its active `CadParts` cover all 45 URDF links:
+`assembly/LeKiwi.FCStd` is the open CAD-to-ROS source. Its active `CadParts` cover all 47 URDF links:
 
 - 2 editable FreeCAD laser-cut extrusions;
 - 10 links driven by 6 native parametric FreeCAD printed-part sources;
 - 23 STEP BREP references; and
-- 10 canonical URDF mesh references where the STEP and URDF exports differ by more than 2%.
+- 10 canonical URDF mesh references where the STEP and URDF exports differ by more than 2%; and
+- the RobotSkin LD06 base plus lidar body.
 
-The exact source and validation result for every link is recorded in [reference_mapping.json](reference_mapping.json). The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
+The exact source and validation result for every upstream link is recorded in [reference_mapping.json](reference_mapping.json). The two RobotSkin accessory links are authored directly in `LeKiwi.FCStd`. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
 
 ## Native printed-part sources
 
@@ -37,7 +38,7 @@ After changing a source or robot metadata, run:
 ./scripts/verify_robot.sh
 ```
 
-`export_robot.sh` exports all 45 link sources to `URDF/meshes/reauthored/` and writes the complete Xacro. There is no hand-edited Xacro step. `verify_cad_migration.sh` checks the baseline migration against the original URDF and is expected to fail after an intentional geometric redesign.
+`export_robot.sh` exports all 47 link sources to `URDF/meshes/reauthored/` and writes the complete Xacro. There is no hand-edited Xacro step. `verify_cad_migration.sh` checks the baseline migration against the original URDF and is expected to fail after an intentional geometric redesign.
 
 `native_parts.json` is the source of truth for the six parametric printed-part documents, their assembly links, and their placement references.
 
