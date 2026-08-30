@@ -1,0 +1,37 @@
+{
+  "method": "bidirectional sampled closest point-to-triangle surface distance",
+  "command": "scripts/compare_reauthored_assets.py --mesh-align ORIGINAL GENERATED",
+  "thresholds_mm": {"max_surface_error": 0.25, "p95_surface_error": 0.1},
+  "battery-mount-eu": {
+    "status": "pass",
+    "original": "3DPrintMeshes/battery_mount_eu.stl",
+    "output": "cad/reverse_engineered/recovery_helpers/generated/battery_mount_eu.stl",
+    "max_surface_error_mm": 0.0499990132,
+    "p95_surface_error_mm": 0.0499989986,
+    "rms_surface_error_mm": 0.0236444436
+  },
+  "power-bank-holder-5v": {
+    "status": "pass",
+    "original": "3DPrintMeshes/5v_specific/5v_power_bank_holder.stl",
+    "output": "cad/reverse_engineered/recovery_helpers/generated/5v_power_bank_holder.stl",
+    "max_surface_error_mm": 0.0366012351,
+    "p95_surface_error_mm": 0.0298259609,
+    "rms_surface_error_mm": 0.0129987139
+  },
+  "wired-cable-holder": {
+    "status": "pass",
+    "original": "3DPrintMeshes/wired_specific/cable_holder v0.stl",
+    "output": "cad/reverse_engineered/recovery_helpers/generated/cable_holder_v0.stl",
+    "max_surface_error_mm": 0.2095556259,
+    "p95_surface_error_mm": 0.0046387803,
+    "rms_surface_error_mm": 0.0191978824
+  },
+  "wired-usb-connector-case": {
+    "status": "pass",
+    "original": "3DPrintMeshes/wired_specific/usb_connector_case v1.stl",
+    "output": "cad/reverse_engineered/recovery_helpers/generated/usb_connector_case_v1.stl",
+    "max_surface_error_mm": 0.1330788904,
+    "p95_surface_error_mm": 0.0742679643,
+    "rms_surface_error_mm": 0.0353738871
+  }
+}

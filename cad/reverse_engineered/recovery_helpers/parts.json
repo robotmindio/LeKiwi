@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "parts": [
+    {
+      "id": "battery-mount-eu",
+      "original": "3DPrintMeshes/battery_mount_eu.stl",
+      "source": "cad/reverse_engineered/recovery_helpers/holders.scad",
+      "selector": "battery_mount_eu",
+      "output": "cad/reverse_engineered/recovery_helpers/generated/battery_mount_eu.stl",
+      "source_kind": "open_parametric",
+      "validation": "validation/results.json#battery-mount-eu"
+    },
+    {
+      "id": "power-bank-holder-5v",
+      "original": "3DPrintMeshes/5v_specific/5v_power_bank_holder.stl",
+      "source": "cad/reverse_engineered/recovery_helpers/holders.scad",
+      "selector": "5v_power_bank_holder",
+      "output": "cad/reverse_engineered/recovery_helpers/generated/5v_power_bank_holder.stl",
+      "source_kind": "open_parametric",
+      "validation": "validation/results.json#power-bank-holder-5v"
+    },
+    {
+      "id": "wired-cable-holder",
+      "original": "3DPrintMeshes/wired_specific/cable_holder v0.stl",
+      "source": "cad/reverse_engineered/recovery_helpers/holders.scad",
+      "selector": "cable_holder_v0",
+      "output": "cad/reverse_engineered/recovery_helpers/generated/cable_holder_v0.stl",
+      "source_kind": "open_parametric",
+      "validation": "validation/results.json#wired-cable-holder"
+    },
+    {
+      "id": "wired-usb-connector-case",
+      "original": "3DPrintMeshes/wired_specific/usb_connector_case v1.stl",
+      "source": "cad/reverse_engineered/recovery_helpers/holders.scad",
+      "selector": "usb_connector_case_v1",
+      "output": "cad/reverse_engineered/recovery_helpers/generated/usb_connector_case_v1.stl",
+      "source_kind": "open_parametric",
+      "validation": "validation/results.json#wired-usb-connector-case"
+    }
+  ]
+}
