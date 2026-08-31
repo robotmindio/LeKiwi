@@ -2,10 +2,11 @@
 
 import sys
 import xml.etree.ElementTree as ET
-import re
 from pathlib import Path
 
 import FreeCAD as App
+
+from scripts.cad_utils import mesh_filename
 
 
 XACRO_NS = "http://www.ros.org/wiki/xacro"
@@ -25,12 +26,8 @@ def mesh_path(path):
     return "${mesh_dir}/" + (path[len(prefix):] if path.startswith(prefix) else path)
 
 
-def cad_mesh_filename(link):
-    return "meshes/reauthored/" + re.sub(r"[^0-9A-Za-z_.-]", "_", link.UrdfName) + ".stl"
-
-
 def geometry_mesh(link, kind):
-    return cad_mesh_filename(link) if link.CadParts else property_value(link, kind + "Mesh")
+    return "meshes/reauthored/" + mesh_filename(link.UrdfName) if link.CadParts else property_value(link, kind + "Mesh")
 
 
 def matrix_values(matrix):

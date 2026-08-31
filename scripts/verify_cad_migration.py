@@ -1,14 +1,13 @@
 """Verify that FreeCAD-exported link meshes preserve the URDF geometry."""
 
 import json
-import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import Mesh
 
-from scripts.cad_utils import bounds, bounds_error, urdf_matrix
+from scripts.cad_utils import bounds, bounds_error, mesh_filename, urdf_matrix
 
 MAX_ERROR = 0.02
 
@@ -32,7 +31,7 @@ for link in links:
     expected = Mesh.Mesh(str(urdf_path.parent / mesh_xml.get("filename")))
     origin = visual.find("origin")
     expected.transform(urdf_matrix(origin if origin is not None else ET.Element("origin")))
-    actual_path = output_directory / (re.sub(r"[^0-9A-Za-z_.-]", "_", name) + ".stl")
+    actual_path = output_directory / mesh_filename(name)
     if not actual_path.is_file() or actual_path.stat().st_size == 0:
         raise SystemExit(f"{name}: missing exported mesh {actual_path}")
     actual = Mesh.Mesh(str(actual_path))

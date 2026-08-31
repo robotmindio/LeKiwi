@@ -7,7 +7,6 @@ finds the closest point on the opposite triangulated surface.
 
 import json
 import math
-import re
 import sys
 import xml.etree.ElementTree as ET
 from itertools import permutations, product
@@ -16,7 +15,7 @@ from pathlib import Path
 import FreeCAD as App
 import Mesh
 
-from scripts.cad_utils import urdf_matrix
+from scripts.cad_utils import mesh_filename, urdf_matrix
 
 URDF = Path("URDF/LeKiwi.urdf")
 MAPPING = Path("cad/reference_mapping.json")
@@ -182,10 +181,6 @@ def surface_distances(source, target):
     return [math.sqrt(nearest_distance_squared(point, tree)) for point in sampled_points(source, SAMPLES_PER_DIRECTION)]
 
 
-def filename(name):
-    return re.sub(r"[^0-9A-Za-z_.-]", "_", name) + ".stl"
-
-
 def comparison(original, generated):
     distances = surface_distances(original, generated) + surface_distances(generated, original)
     maximum = max(distances)
@@ -287,7 +282,7 @@ def main(arguments):
         original = Mesh.Mesh(str(URDF.parent / mesh_xml.get("filename")))
         origin = visual.find("origin")
         original.transform(urdf_matrix(origin if origin is not None else ET.Element("origin")))
-        generated_path = URDF.parent / "meshes/reauthored" / filename(name)
+        generated_path = URDF.parent / "meshes/reauthored" / mesh_filename(name)
         if not generated_path.is_file():
             raise RuntimeError(f"{name}: missing generated mesh {generated_path}")
         generated = Mesh.Mesh(str(generated_path))

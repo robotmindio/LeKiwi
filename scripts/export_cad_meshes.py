@@ -1,6 +1,5 @@
 """Export link-local FreeCAD solids or meshes to the paths used by Xacro."""
 
-import re
 import sys
 from pathlib import Path
 
@@ -8,13 +7,11 @@ import FreeCAD as App
 import Mesh
 import MeshPart
 
+from scripts.cad_utils import mesh_filename
+
 
 LINEAR_DEFLECTION_MM = 0.1
 ANGULAR_DEFLECTION_RAD = 0.5
-
-
-def filename(link):
-    return re.sub(r"[^0-9A-Za-z_.-]", "_", link.UrdfName) + ".stl"
 
 
 if len(sys.argv) != 3:
@@ -52,7 +49,7 @@ for link in links.Group:
             mesh_parts.append(mesh_part)
         else:
             mesh_parts.append(part)
-    Mesh.export(mesh_parts, str(mesh_directory / filename(link)))
+    Mesh.export(mesh_parts, str(mesh_directory / mesh_filename(link.UrdfName)))
     for part in temporary:
         document.removeObject(part.Name)
     written += 1
