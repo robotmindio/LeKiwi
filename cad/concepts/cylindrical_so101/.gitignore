@@ -1,0 +1,6 @@
+*.stl
+*.png
+*.svg
+*.dxf
+__pycache__/
+.ruff_cache/
