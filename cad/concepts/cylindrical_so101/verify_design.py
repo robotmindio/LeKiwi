@@ -12,7 +12,7 @@ from pathlib import Path
 import trimesh
 from shapely.geometry import Point
 
-from generate_kinematics import LEKIWI, fixed_mounts
+from generate_kinematics import ARM_PLATE_HOLES, LEKIWI, fixed_mounts
 
 
 HERE = Path(__file__).resolve().parent
@@ -105,6 +105,14 @@ def main() -> int:
             layer: HERE.parents[2] / f"laser-cut/generated/base_plate_{layer}.dxf"
             for layer in ("lower", "upper")
         }
+        upper_original = max(
+            trimesh.load_path(originals["upper"]).polygons_full,
+            key=lambda polygon: polygon.area,
+        )
+        upper_hole_centers = [ring.centroid for ring in upper_original.interiors]
+        for mount in ARM_PLATE_HOLES:
+            if min(Point(mount).distance(center) for center in upper_hole_centers) > 0.1:
+                raise RuntimeError(f"arm base mount is absent from upper plate: {mount}")
         footprint_reduction = 1 - area(output / "base-profile-lower.dxf") / area(
             originals["lower"]
         )

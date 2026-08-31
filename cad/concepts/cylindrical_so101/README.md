@@ -18,6 +18,11 @@ slides out through a rear cap retained by two accessible M3 screws and heat-set
 inserts. The same cap is used at all six motors. The flange uses the SO-101 H25T
 24 mm horn recess and four M3 holes at 7 mm radius.
 
+The 62 mm base foot reaches four existing M3 grid holes on the retained upper
+plate. Their plate coordinates are transformed into the arm frame by the
+kinematics generator, and verification fails if any selected hole disappears
+from the production DXF.
+
 The base intersects a convex structural outline with the validated lower and
 upper DXFs. This keeps the original holes at every current functional component
 placement while dropping unused grid holes outside the new outline. A 3 mm skin,

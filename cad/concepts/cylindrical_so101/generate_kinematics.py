@@ -31,6 +31,7 @@ LINKS = (
     "gripper_link",
 )
 SERVO_SHAFT = [12.5, 0.0, 18.7]
+ARM_PLATE_HOLES = ([20.0, 60.0], [40.0, 60.0], [20.0, 80.0], [40.0, 80.0])
 
 
 def vector(element: ET.Element, attribute: str, scale: float = 1.0) -> list[float]:
@@ -63,6 +64,13 @@ def rotation(rpy: list[float]) -> list[list[float]]:
 
 def transform(matrix: list[list[float]], vector_: list[float]) -> list[float]:
     return [sum(row[index] * vector_[index] for index in range(3)) for row in matrix]
+
+
+def inverse_transform(matrix: list[list[float]], vector_: list[float]) -> list[float]:
+    return [
+        sum(matrix[index][row] * vector_[index] for index in range(3))
+        for row in range(3)
+    ]
 
 
 def fixed_mounts(model: ET.Element, parent: str) -> list[list[float]]:
@@ -131,6 +139,19 @@ def render() -> str:
     if mount is None:
         raise ValueError("LeKiwi Xacro is missing so101_mount")
     mount_origin = mount.find("origin")
+    mount_position = vector(mount_origin, "xyz", 1000.0)
+    mount_angles = vector(mount_origin, "rpy")
+    arm_base_mounts = [
+        inverse_transform(
+            rotation(mount_angles),
+            [
+                point[0] - mount_position[0],
+                point[1] - mount_position[1],
+                -mount_position[2],
+            ],
+        )[:2]
+        for point in ARM_PLATE_HOLES
+    ]
     lower_mounts = fixed_mounts(lekiwi, "base_plate_layer1-v5")
     upper_mounts = fixed_mounts(lekiwi, "base_plate_layer2-v3")
 
@@ -142,8 +163,11 @@ def render() -> str:
         "joint_limits = [" + ", ".join(scad_vector(values) for values in limits) + "];",
         "servo_xyz = [" + ", ".join(scad_vector(values) for values in servo_xyz) + "];",
         "servo_rpy = [" + ", ".join(scad_vector(values) for values in servo_rpy) + "];",
-        f"arm_mount_xyz = {scad_vector(vector(mount_origin, 'xyz', 1000.0))};",
-        f"arm_mount_rpy = {scad_vector([math.degrees(value) for value in vector(mount_origin, 'rpy')])};",
+        f"arm_mount_xyz = {scad_vector(mount_position)};",
+        f"arm_mount_rpy = {scad_vector([math.degrees(value) for value in mount_angles])};",
+        "arm_base_mounts = ["
+        + ", ".join(scad_vector(point) for point in arm_base_mounts)
+        + "];",
         "base_lower_mounts = ["
         + ", ".join(scad_vector(point) for point in lower_mounts)
         + "];",

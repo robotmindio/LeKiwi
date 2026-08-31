@@ -16,6 +16,9 @@ wall = 2.6;
 fit_clearance = 0.6;
 link_od = 30;
 base_link_od = 36;
+base_foot_od = 62;
+base_foot_depth = 7;
+base_foot_overlap = 2;
 drive_od = 32;
 drive_width = 7;
 drive_offset = -8.5;
@@ -229,11 +232,17 @@ module moving_jaw() {
 module base_column_printed() {
     endpoint = joint_position("shoulder_pan");
     color(link_color)
-        union() {
-            cylinder(d = 48, h = 6);
-            hollow_link(endpoint, base_link_od);
-            at_joint("shoulder_pan") shaft_bezel();
-            color(pod_color) at_servo("shoulder_pan") servo_cradle_local();
+        difference() {
+            union() {
+                translate([0, 0, -base_foot_depth])
+                    cylinder(d = base_foot_od, h = base_foot_depth + base_foot_overlap);
+                hollow_link(endpoint, base_link_od);
+                at_joint("shoulder_pan") shaft_bezel();
+                color(pod_color) at_servo("shoulder_pan") servo_cradle_local();
+            }
+            for (point = arm_base_mounts)
+                translate([point[0], point[1], -base_foot_depth - 0.1])
+                    cylinder(d = m3_clearance, h = base_foot_depth + base_foot_overlap + 0.2);
         }
 }
 
