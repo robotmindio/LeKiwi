@@ -1,7 +1,6 @@
 """Create exact link-local FreeCAD reference geometry from STEP and canonical STL files."""
 
 import json
-import math
 import os
 import re
 import xml.etree.ElementTree as ET
@@ -10,7 +9,7 @@ from pathlib import Path
 import FreeCAD as App
 import Mesh
 
-from scripts.cad_utils import bounds, bounds_error
+from scripts.cad_utils import bounds, bounds_error, urdf_matrix
 
 
 ASSEMBLY = Path("cad/assembly/LeKiwi.FCStd")
@@ -76,40 +75,6 @@ STEP_OBJECTS = {
 }
 
 
-def numbers(value, scale=1.0):
-    return [float(item) * scale for item in value.split()]
-
-
-def pose(origin):
-    x, y, z = numbers(origin.get("xyz", "0 0 0"), 1000.0)
-    roll, pitch, yaw = numbers(origin.get("rpy", "0 0 0"))
-    cosine, sine = math.cos, math.sin
-    return (
-        (
-            cosine(yaw) * cosine(pitch),
-            cosine(yaw) * sine(pitch) * sine(roll) - sine(yaw) * cosine(roll),
-            cosine(yaw) * sine(pitch) * cosine(roll) + sine(yaw) * sine(roll),
-            x,
-        ),
-        (
-            sine(yaw) * cosine(pitch),
-            sine(yaw) * sine(pitch) * sine(roll) + cosine(yaw) * cosine(roll),
-            sine(yaw) * sine(pitch) * cosine(roll) - cosine(yaw) * sine(roll),
-            y,
-        ),
-        (-sine(pitch), cosine(pitch) * sine(roll), cosine(pitch) * cosine(roll), z),
-        (0.0, 0.0, 0.0, 1.0),
-    )
-
-
-def app_matrix(matrix):
-    result = App.Matrix()
-    for row in range(4):
-        for column in range(4):
-            setattr(result, f"A{row + 1}{column + 1}", matrix[row][column])
-    return result
-
-
 def bounds_center(values):
     return tuple((values[index] + values[index + 3]) / 2 for index in range(3))
 
@@ -144,7 +109,7 @@ def translated_to_bounds(shape, target_bounds):
 
 def transformed_shape(shape, matrix):
     transformed = shape.copy()
-    transformed.Placement = App.Placement(app_matrix(matrix)) * transformed.Placement
+    transformed.Placement = App.Placement(matrix) * transformed.Placement
     return transformed
 
 
@@ -179,7 +144,7 @@ for link_name, xml in link_xml.items():
     mesh_path = URDF.parent / mesh_xml.get("filename")
     mesh = Mesh.Mesh(str(mesh_path))
     origin = visual.find("origin")
-    visual_matrix = pose(origin if origin is not None else ET.Element("origin"))
+    visual_matrix = urdf_matrix(origin if origin is not None else ET.Element("origin"))
     mesh_bounds = bounds(mesh)
     volume = mesh.Volume
     if link_name in NATIVE_PARTS:
@@ -203,7 +168,7 @@ for link_name, xml in link_xml.items():
         else:
             output_bounds = bounds(source.Shape)
             target_mesh = Mesh.Mesh(str(mesh_path))
-            target_mesh.transform(app_matrix(visual_matrix))
+            target_mesh.transform(visual_matrix)
             match = {
                 "urdf_link": link_name,
                 "reference_object": source.Name,
@@ -223,7 +188,7 @@ for link_name, xml in link_xml.items():
         source_error = bounds_error(bounds(raw_shape), mesh_bounds)
         output_shape = transformed_shape(raw_shape, visual_matrix)
         target_mesh = Mesh.Mesh(str(mesh_path))
-        target_mesh.transform(app_matrix(visual_matrix))
+        target_mesh.transform(visual_matrix)
         link_error = bounds_error(bounds(output_shape), bounds(target_mesh))
         volume_error = abs(raw_shape.Volume / volume - 1.0)
         source_kind = "STEP BREP reference" if max(source_error, link_error, volume_error) <= MAX_ERROR else "canonical URDF STL mesh reference"
@@ -284,9 +249,9 @@ if MODE == "apply":
                 local_shape(source), bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"])))
             )
             visual_origin = ET.Element("origin", {"xyz": match["visual_xyz"], "rpy": match["visual_rpy"]})
-            output_shape = transformed_shape(raw_shape, pose(visual_origin))
+            output_shape = transformed_shape(raw_shape, urdf_matrix(visual_origin))
             target_mesh = Mesh.Mesh(str(URDF.parent / match["mesh_filename"]))
-            target_mesh.transform(app_matrix(pose(visual_origin)))
+            target_mesh.transform(urdf_matrix(visual_origin))
             source_kind = (
                 "STEP BREP reference"
                 if max(
@@ -307,10 +272,10 @@ if MODE == "apply":
         part.SourceKind = source_kind
         visual_origin = ET.Element("origin", {"xyz": match["visual_xyz"], "rpy": match["visual_rpy"]})
         if source_kind == "STEP BREP reference":
-            part.Shape = transformed_shape(translated_to_bounds(local_shape(source), bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"])))), pose(visual_origin))
+            part.Shape = transformed_shape(translated_to_bounds(local_shape(source), bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"])))), urdf_matrix(visual_origin))
         else:
             reference_mesh = Mesh.Mesh(str(URDF.parent / match["mesh_filename"]))
-            reference_mesh.transform(app_matrix(pose(visual_origin)))
+            reference_mesh.transform(urdf_matrix(visual_origin))
             part.Mesh = reference_mesh
         part.Visibility = False
         group.addObject(part)

@@ -1,14 +1,14 @@
 """Link the native printed-part sources into the FreeCAD robot assembly."""
 
 import json
-import math
 import re
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import FreeCAD as App
 
-from scripts.cad_utils import bounds, bounds_error
+from scripts.cad_utils import bounds, bounds_error, urdf_matrix
 
 
 ASSEMBLY = Path("cad/assembly/LeKiwi.FCStd")
@@ -20,38 +20,9 @@ def reference_name(link_name):
     return "CadReference_" + re.sub(r"[^0-9A-Za-z_]", "_", link_name)
 
 
-def app_matrix(values):
-    matrix = App.Matrix()
-    for row in range(4):
-        for column in range(4):
-            setattr(matrix, f"A{row + 1}{column + 1}", values[row][column])
-    return matrix
-
-
 def visual_placement(metadata):
-    x, y, z = (float(value) * 1000.0 for value in metadata.VisualXYZ.split())
-    roll, pitch, yaw = (float(value) for value in metadata.VisualRPY.split())
-    cosine, sine = math.cos, math.sin
-    return App.Placement(
-        app_matrix(
-            (
-                (
-                    cosine(yaw) * cosine(pitch),
-                    cosine(yaw) * sine(pitch) * sine(roll) - sine(yaw) * cosine(roll),
-                    cosine(yaw) * sine(pitch) * cosine(roll) + sine(yaw) * sine(roll),
-                    x,
-                ),
-                (
-                    sine(yaw) * cosine(pitch),
-                    sine(yaw) * sine(pitch) * sine(roll) + cosine(yaw) * cosine(roll),
-                    sine(yaw) * sine(pitch) * cosine(roll) - cosine(yaw) * sine(roll),
-                    y,
-                ),
-                (-sine(pitch), cosine(pitch) * sine(roll), cosine(pitch) * cosine(roll), z),
-                (0.0, 0.0, 0.0, 1.0),
-            )
-        )
-    )
+    origin = ET.Element("origin", {"xyz": metadata.VisualXYZ, "rpy": metadata.VisualRPY})
+    return App.Placement(urdf_matrix(origin))
 
 
 if len(sys.argv) != 1:
