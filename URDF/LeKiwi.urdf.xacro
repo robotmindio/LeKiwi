@@ -951,13 +951,7 @@
             </geometry>
         </collision>
     </link>
-    <link name="so101_gripper_frame_link">
-        <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="1e-9" />
-            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
-        </inertial>
-    </link>
+    <link name="so101_gripper_frame_link" />
     <link name="so101_moving_jaw_link">
         <inertial>
             <origin xyz="-0.00157495 -0.0300244 0.0192755" rpy="0 0 0" />

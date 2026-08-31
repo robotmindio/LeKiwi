@@ -77,6 +77,8 @@ def replace_arm(model: ET.Element) -> None:
         link.set("name", LINK_NAMES[source_link.get("name")])
         for invalid_origin in link.findall("origin"):
             link.remove(invalid_origin)
+        if source_link.get("name") == "gripper_frame_link":
+            link.remove(link.find("inertial"))
         for mesh in link.findall(".//mesh"):
             mesh.set("filename", mesh_prefix + Path(mesh.get("filename")).name)
         model.append(link)
