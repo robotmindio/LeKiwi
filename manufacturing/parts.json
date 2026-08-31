@@ -2,6 +2,13 @@
   "schema": 2,
   "prints": [
     {
+      "id": "astra-pro-between-wheels-mount",
+      "stl": "3DPrintMeshes/astra_pro_between_wheels_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/accessories/astra_pro_between_wheels_mount.scad",
+      "fidelity": "surface_validated"
+    },
+    {
       "id": "power-bank-holder-5v",
       "stl": "3DPrintMeshes/5v_specific/5v_power_bank_holder.stl",
       "source_state": "open_parametric",
