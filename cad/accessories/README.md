@@ -1,48 +1,15 @@
 # Published accessory sources
 
-This directory contains editable sources for optional hardware kept outside the
-URDF assembly. Webcam mounts are alternative camera hardware, not the Arducam
-configuration represented in `LeKiwi.FCStd`.
+This directory contains FreeCAD documents only when an exact, redistributable
+editable source is already published with LeKiwi. They are intentionally kept
+outside the URDF assembly: webcam mounts are alternative camera hardware, not
+the Arducam configuration represented in `LeKiwi.FCStd`.
 
 | Accessory | Published source | FreeCAD document | Source kind |
 | --- | --- | --- | --- |
 | Webcam base mount | `3DPrintMeshes/webcam_mount/webcam_mount.step` | `webcam_base_mount.FCStd` | Imported STEP BREP |
 | Webcam wrist mount | `3DPrintMeshes/webcam_mount/webcam_mount_wrist.step` | `webcam_wrist_mount.FCStd` | Imported STEP BREP |
 | SO-100 webcam gripper insert | `cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step` + editable M3 clearance and hex-nut pocket | `so100_gripper_cam_mount_insert.FCStd` | SO-ARM100 STEP derivative |
-
-## Astra Pro mount plate
-
-[`astra_pro_mount_plate.scad`](astra_pro_mount_plate.scad) adapts the legacy
-ORBBEC Astra Pro/Pro Plus centre foot to four holes on LeKiwi's 20 mm grid. Its
-80 x 60 x 8 mm plate has a 40 mm square M3 pattern, flush M3 head recesses, and
-a centre 6.8 mm camera-screw clearance with an underside button-head recess.
-Use the thread fitted to the physical camera: ORBBEC specifies M6 for the
-legacy 165 mm Astra series; a 1/4-20 fastener is not interchangeable even
-though both clear the printed hole.
-
-Use four M3x10 screws into a threaded mast plate, or M3x20 screws and locknuts
-through a clear deck location. Fit the camera with an M6x10 button-head screw
-only after measuring its thread depth; add washers to limit engagement. The
-camera's stock adjustable foot supplies pitch.
-
-The [ORBBEC Astra Pro Plus datasheet](https://developer-orbbec-oss.oss-cn-shenzhen.aliyuncs.com/library/product_doc/Astra_Pro_Plus_Datasheet_v1.2.pdf)
-draws the 164.85 x 48.25 x 40 mm envelope and 60 mm centre foot. ORBBEC's
-[legacy Astra-series specification](https://www.orbbec.com/products/structured-light-camera/astra-series/)
-lists the bottom M6 installation point. Neither source gives safe screw-entry
-depth, so measure the unit and limit engagement with washers before tightening.
-
-The checked-in [sensor-placement comparison](../../media/sensor-placement-comparison.svg)
-is a placement concept, not a fabrication drawing. Its 220 mm front-centre
-camera envelope overlaps the stowed wrist/gripper in the current CAD, while a
-direct front-centre deck mount overlaps the existing RGB-camera mount. Select
-the final mast position only after checking the real arm's full swept volume,
-then measure the finished pose before replacing the placeholder ROS transform.
-
-Build the print flat, without supports:
-
-```sh
-openscad --export-format binstl -o 3DPrintMeshes/astra_pro_mount_plate.stl cad/accessories/astra_pro_mount_plate.scad
-```
 
 Build or reset those documents, then verify that they still match their
 corresponding print STLs:
