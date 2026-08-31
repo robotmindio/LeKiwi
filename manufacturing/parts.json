@@ -2,6 +2,13 @@
   "schema": 2,
   "prints": [
     {
+      "id": "astra-pro-mount-plate",
+      "stl": "3DPrintMeshes/astra_pro_mount_plate.stl",
+      "source_state": "open_parametric",
+      "source": "cad/accessories/astra_pro_mount_plate.scad",
+      "fidelity": "surface_validated"
+    },
+    {
       "id": "power-bank-holder-5v",
       "stl": "3DPrintMeshes/5v_specific/5v_power_bank_holder.stl",
       "source_state": "open_parametric",
