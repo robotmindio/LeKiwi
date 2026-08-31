@@ -2,7 +2,7 @@
 
 `assembly/LeKiwi_reference.FCStd` is the complete Fusion STEP export imported into FreeCAD. It is the dimensional reference; STEP cannot retain Fusion sketches or its feature timeline.
 
-`assembly/LeKiwi.FCStd` is the open CAD-to-ROS source. Its active `CadParts` cover all 47 URDF links:
+`assembly/LeKiwi.FCStd` is the open CAD-to-ROS source for the chassis and accessories. Its active `CadParts` retain the 47-link reference assembly:
 
 - 2 editable FreeCAD laser-cut extrusions;
 - 10 links driven by 6 native parametric FreeCAD printed-part sources;
@@ -10,15 +10,17 @@
 - 10 canonical URDF mesh references where the STEP and URDF exports differ by more than 2%; and
 - the RobotSkin LD06 base plus lidar body.
 
-The exact source and validation result for every upstream link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount is regenerated from the pinned [RobotSkin OpenSCAD source](upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad) before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
+The final 37-link Xacro replaces that reference assembly's legacy arm subtree with the pinned SO-101 model described below. The exact source and validation result for every retained CAD link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount is regenerated from the pinned [RobotSkin OpenSCAD source](upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad) before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
 
 ## Arm source
 
 The upstream [SO-ARM100](upstream/SO-ARM100/) repository is a pinned Git submodule at
-commit `7629d2ad9853d10fb903093a33ef6114099d97e5` under its Apache-2.0 license. Its
-`STEP/SO100/` directory is the editable BREP source for the SO-100 follower arm
-represented by the current LeKiwi CAD and URDF; it includes the follower assembly
-and individual arm parts. It is intentionally not re-exported as STL-only copies.
+commit `7629d2ad9853d10fb903093a33ef6114099d97e5` under its Apache-2.0 license. The
+final URDF and Xacro use its official `Simulation/SO101/so101_new_calib.urdf`
+follower model and meshes. `scripts/replace_arm_with_so101.py` performs the one
+deterministic integration step: it prefixes the arm links to avoid the ROS
+`base_link`, preserves the official inertias, axes, origins, and limits, and maps
+the six joints onto LeRobot's stable `arm_*` names.
 
 Initialize it after cloning, then check the expected source bundle:
 
@@ -27,9 +29,8 @@ git submodule update --init --recursive
 ./scripts/verify_arm_sources.sh
 ```
 
-The LeKiwi-specific `modified_base_arm` remains a separate print: it is not
-asserted to match an upstream SO-ARM100 component. The webcam gripper insert has
-an editable derivative in [accessories/](accessories/README.md).
+The LeKiwi-specific `modified_base_arm` and legacy webcam gripper insert remain
+separate prints; they are not part of the SO-101 robot description.
 
 ## Link identifiers
 
@@ -73,7 +74,7 @@ After changing a source or robot metadata, run:
 ./scripts/verify_robot.sh
 ```
 
-`export_robot.sh` exports all 47 link sources to `URDF/meshes/reauthored/` and writes the complete Xacro. There is no hand-edited Xacro step. `verify_cad_migration.sh` checks the baseline migration against the original URDF and is expected to fail after an intentional geometric redesign.
+`export_robot.sh` exports the FreeCAD link sources to `URDF/meshes/reauthored/`, replaces the legacy arm subtree with the pinned SO-101 follower, and writes the complete Xacro. There is no hand-edited Xacro step. `verify_cad_migration.sh` checks every retained CAD link against the baseline URDF; the SO-101 links remain verified directly against their pinned upstream source.
 
 `native_parts.json` is the source of truth for the six parametric printed-part documents, their assembly links, and their placement references.
 
@@ -100,7 +101,7 @@ Native source links deliberately keep `UseCadMass=False` until a real material d
 
 Here `1240` is only an example density in kg/m³. Use a measured printed mass instead of `0` for FDM or assembled parts; it accounts for infill, walls, and hardware. The exporter combines all solid CAD parts in a link with the parallel-axis theorem. Purchased components should use measured or vendor mass overrides.
 
-The joint names, parents, children, axes, origins, and limits are editable properties in the `LeKiwiJoints` group. Together with the link source geometry, this is the deterministic Xacro contract.
+Chassis joint metadata remains editable in the `LeKiwiJoints` group. SO-101 joint names, parents, children, axes, origins, and limits come from the pinned upstream URDF; together they form the deterministic composite Xacro contract.
 
 ## Rebuild after replacing the Fusion STEP export
 
