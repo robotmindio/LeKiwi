@@ -14,7 +14,9 @@ ET.register_namespace("xacro", XACRO_NS)
 
 
 def add(parent, tag, **attrs):
-    return ET.SubElement(parent, tag, {key: value for key, value in attrs.items() if value != ""})
+    return ET.SubElement(
+        parent, tag, {key: value for key, value in attrs.items() if value != ""}
+    )
 
 
 def property_value(obj, name):
@@ -23,11 +25,15 @@ def property_value(obj, name):
 
 def mesh_path(path):
     prefix = "meshes/"
-    return "${mesh_dir}/" + (path[len(prefix):] if path.startswith(prefix) else path)
+    return "${mesh_dir}/" + (path[len(prefix) :] if path.startswith(prefix) else path)
 
 
 def geometry_mesh(link, kind):
-    return "meshes/reauthored/" + mesh_filename(link.UrdfName) if link.CadParts else property_value(link, kind + "Mesh")
+    return (
+        "meshes/reauthored/" + mesh_filename(link.UrdfName)
+        if link.CadParts
+        else property_value(link, kind + "Mesh")
+    )
 
 
 def matrix_values(matrix):
@@ -62,7 +68,10 @@ def cad_inertial(link):
             mass = total_mass * shape.Volume / volume
             scale = mass / shape.Volume  # scales volume inertia from mm^5 to kg*mm^2
             center = shape.CenterOfMass * 0.001  # m
-            inertia = tuple(tuple(value * scale * 1e-6 for value in row) for row in matrix_values(shape.MatrixOfInertia))
+            inertia = tuple(
+                tuple(value * scale * 1e-6 for value in row)
+                for row in matrix_values(shape.MatrixOfInertia)
+            )
             entries.append((mass, center, inertia))
 
     mass = sum(entry[0] for entry in entries)
@@ -75,7 +84,8 @@ def cad_inertial(link):
         for row in range(3):
             for column in range(3):
                 inertia[row][column] += part_inertia[row][column] + part_mass * (
-                    (distance_squared if row == column else 0.0) - vector[row] * vector[column]
+                    (distance_squared if row == column else 0.0)
+                    - vector[row] * vector[column]
                 )
     return {
         "xyz": f"{center.x:.17g} {center.y:.17g} {center.z:.17g}",
@@ -112,35 +122,75 @@ document = App.openDocument(str(source))
 links_group = document.getObject("LeKiwiLinks")
 joints_group = document.getObject("LeKiwiJoints")
 if not links_group or not joints_group:
-    raise RuntimeError("missing LeKiwi robot metadata; run seed_robot_metadata.sh first")
+    raise RuntimeError(
+        "missing LeKiwi robot metadata; run seed_robot_metadata.sh first"
+    )
 
 root = ET.Element("robot", {"name": "LeKiwi"})
 ET.SubElement(root, f"{{{XACRO_NS}}}property", {"name": "mesh_dir", "value": "meshes"})
 for link in links_group.Group:
     node = add(root, "link", name=property_value(link, "UrdfName"))
     inertial = cad_inertial(link) if link.UseCadMass else fallback_inertial(link)
-    inertial_node = add(node, "inertial")
-    add(inertial_node, "origin", xyz=inertial["xyz"], rpy=inertial["rpy"])
-    add(inertial_node, "mass", value=inertial["mass"])
-    add(inertial_node, "inertia", **{key: inertial[key] for key in ("ixx", "iyy", "izz", "ixy", "ixz", "iyz")})
+    if float(inertial["mass"]) > 0:
+        inertial_node = add(node, "inertial")
+        add(inertial_node, "origin", xyz=inertial["xyz"], rpy=inertial["rpy"])
+        add(inertial_node, "mass", value=inertial["mass"])
+        add(
+            inertial_node,
+            "inertia",
+            **{
+                key: inertial[key] for key in ("ixx", "iyy", "izz", "ixy", "ixz", "iyz")
+            },
+        )
     for kind in ("Visual", "Collision"):
         element = add(node, kind.lower(), name=property_value(link, kind + "Name"))
-        origin = ("0 0 0", "0 0 0") if link.CadParts else (property_value(link, kind + "XYZ"), property_value(link, kind + "RPY"))
+        origin = (
+            ("0 0 0", "0 0 0")
+            if link.CadParts
+            else (
+                property_value(link, kind + "XYZ"),
+                property_value(link, kind + "RPY"),
+            )
+        )
         add(element, "origin", xyz=origin[0], rpy=origin[1])
         geometry = add(element, "geometry")
-        add(geometry, "mesh", filename=mesh_path(geometry_mesh(link, kind)), scale=property_value(link, kind + "Scale"))
+        add(
+            geometry,
+            "mesh",
+            filename=mesh_path(geometry_mesh(link, kind)),
+            scale=property_value(link, kind + "Scale"),
+        )
 
 for joint in joints_group.Group:
-    node = add(root, "joint", name=property_value(joint, "UrdfName"), type=property_value(joint, "JointType"))
-    add(node, "origin", xyz=property_value(joint, "OriginXYZ"), rpy=property_value(joint, "OriginRPY"))
+    node = add(
+        root,
+        "joint",
+        name=property_value(joint, "UrdfName"),
+        type=property_value(joint, "JointType"),
+    )
+    add(
+        node,
+        "origin",
+        xyz=property_value(joint, "OriginXYZ"),
+        rpy=property_value(joint, "OriginRPY"),
+    )
     add(node, "parent", link=property_value(joint, "Parent"))
     add(node, "child", link=property_value(joint, "Child"))
     if joint.HasAxis:
         add(node, "axis", xyz=property_value(joint, "Axis"))
     if joint.HasLimit:
-        add(node, "limit", lower=property_value(joint, "Lower"), upper=property_value(joint, "Upper"), effort=property_value(joint, "Effort"), velocity=property_value(joint, "Velocity"))
+        add(
+            node,
+            "limit",
+            lower=property_value(joint, "Lower"),
+            upper=property_value(joint, "Upper"),
+            effort=property_value(joint, "Effort"),
+            velocity=property_value(joint, "Velocity"),
+        )
 
 ET.indent(root, space="    ")
 output.parent.mkdir(parents=True, exist_ok=True)
 ET.ElementTree(root).write(output, encoding="utf-8", xml_declaration=True)
-print(f"saved {output} with {len(links_group.Group)} links and {len(joints_group.Group)} joints")
+print(
+    f"saved {output} with {len(links_group.Group)} links and {len(joints_group.Group)} joints"
+)

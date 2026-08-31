@@ -515,11 +515,6 @@
         </collision>
     </link>
     <link name="robotskin_lidar_mount">
-        <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="0" />
-            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0" />
-        </inertial>
         <visual name="robotskin_lidar_mount_visual">
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
@@ -534,11 +529,6 @@
         </collision>
     </link>
     <link name="ld06_body">
-        <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="0" />
-            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0" />
-        </inertial>
         <visual name="ld06_body_visual">
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
