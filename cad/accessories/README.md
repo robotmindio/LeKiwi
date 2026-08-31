@@ -11,28 +11,6 @@ the Arducam configuration represented in `LeKiwi.FCStd`.
 | Webcam wrist mount | `3DPrintMeshes/webcam_mount/webcam_mount_wrist.step` | `webcam_wrist_mount.FCStd` | Imported STEP BREP |
 | SO-100 webcam gripper insert | `cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step` + editable M3 clearance and hex-nut pocket | `so100_gripper_cam_mount_insert.FCStd` | SO-ARM100 STEP derivative |
 
-## Base-removed Astra Pro between-wheel mount
-
-[`astra_pro_between_wheels_mount.scad`](astra_pro_between_wheels_mount.scad)
-keeps the Astra upright and facing forward. Its base uses the physical
-between-wheel M3 pair at 44 mm centres. The top saddle has two M2 holes at
-18.0 mm centres and a 26.6 x 8.5 x 4.8 mm pocket for the camera's raised
-26.0 x 7.9 x 4.5 mm underside boss.
-
-The defaults put the optical centre 300 mm above the floor at 8 degrees
-downward pitch, assuming the mounting deck is 90 mm above the floor. Adjust
-`deck_height_above_floor`, `target_optical_height`, or `pitch` to match the
-physical robot. Reuse the camera's M2x8 screws; use two M3 screws with washers
-and locknuts at the base. Print upright on the flat base:
-
-```sh
-openscad -D 'part="fit_test"' -o /tmp/astra_pro_fit_test.stl cad/accessories/astra_pro_between_wheels_mount.scad
-openscad --export-format binstl -o 3DPrintMeshes/astra_pro_between_wheels_mount.stl cad/accessories/astra_pro_between_wheels_mount.scad
-```
-
-Print the small fit test first and verify that the boss seats without force and
-both M2 screws start freely before printing the full-height mount.
-
 Build or reset those documents, then verify that they still match their
 corresponding print STLs:
 
