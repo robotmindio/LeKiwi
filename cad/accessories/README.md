@@ -11,6 +11,22 @@ the Arducam configuration represented in `LeKiwi.FCStd`.
 | Webcam wrist mount | `3DPrintMeshes/webcam_mount/webcam_mount_wrist.step` | `webcam_wrist_mount.FCStd` | Imported STEP BREP |
 | SO-100 webcam gripper insert | `cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step` + editable M3 clearance and hex-nut pocket | `so100_gripper_cam_mount_insert.FCStd` | SO-ARM100 STEP derivative |
 
+## Compact base-removed Astra Pro mount
+
+[`astra_pro_compact_mount.scad`](astra_pro_compact_mount.scad) is a direct,
+low-profile adapter for the clear space between two wheels. It keeps the camera
+upright at 8 degrees downward pitch. The base has two M3 holes at 44 mm centres;
+the camera saddle has two M2 holes at 18.0 mm centres and a
+26.6 x 8.5 x 4.8 mm pocket for the raised underside boss.
+
+The camera contact plane is only 14 mm above the LeKiwi plate. Insert the two
+M3 screws into the adapter first, attach the camera from below using its M2x8
+screws, then fit the assembly to LeKiwi with locknuts. Print flat on its base:
+
+```sh
+openscad --export-format binstl -o 3DPrintMeshes/astra_pro_compact_mount.stl cad/accessories/astra_pro_compact_mount.scad
+```
+
 Build or reset those documents, then verify that they still match their
 corresponding print STLs:
 
