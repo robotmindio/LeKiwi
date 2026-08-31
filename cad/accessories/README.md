@@ -11,6 +11,24 @@ the Arducam configuration represented in `LeKiwi.FCStd`.
 | Webcam wrist mount | `3DPrintMeshes/webcam_mount/webcam_mount_wrist.step` | `webcam_wrist_mount.FCStd` | Imported STEP BREP |
 | SO-100 webcam gripper insert | `cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step` + editable M3 clearance and hex-nut pocket | `so100_gripper_cam_mount_insert.FCStd` | SO-ARM100 STEP derivative |
 
+## Base-removed Astra Pro mount
+
+[`astra_pro_base_camera_mount.scad`](astra_pro_base_camera_mount.scad) replaces
+LeKiwi's front `Camera-Mount-v8` using the same 40 mm-spaced M3 deck holes. It
+holds the Astra below the upper plate, clear of the arm's stowed envelope. The
+camera interface is measured from the physical base-removed unit: a
+26.0 x 7.9 x 4.5 mm raised boss and two M2 holes on 18.0 mm centres. The model
+adds 0.3 mm clearance around the boss so the surrounding pad seats against the
+camera housing instead of loading the protrusion.
+
+Reuse the camera's M2x8 screws and use two M3 screws with locknuts for the deck.
+Print upright on the flat base; no support is required. If the boss fit is
+tight, increase `boss_clearance` before re-exporting:
+
+```sh
+openscad --export-format binstl -o 3DPrintMeshes/astra_pro_base_camera_mount.stl cad/accessories/astra_pro_base_camera_mount.scad
+```
+
 Build or reset those documents, then verify that they still match their
 corresponding print STLs:
 
