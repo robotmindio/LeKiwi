@@ -1,14 +1,13 @@
 """Surface-check the generated reverse-engineered print sources."""
 
 import json
-import runpy
 from pathlib import Path
 
 import Mesh
 
+from scripts.compare_reauthored_assets import aligned_comparison
 
 MANIFESTS = tuple(sorted(Path("cad/reverse_engineered").glob("*/parts.json")))
-compare = runpy.run_path("scripts/compare_reauthored_assets.py")
 
 
 def parts(path):
@@ -41,7 +40,7 @@ for manifest in MANIFESTS:
             original, generated = reference_component(entry), Path(output)
             if not original.is_file() or not generated.is_file():
                 raise RuntimeError(f"{entry['id']}: missing original or generated mesh")
-            result = compare["aligned_comparison"](Mesh.Mesh(str(original)), Mesh.Mesh(str(generated)))
+            result = aligned_comparison(Mesh.Mesh(str(original)), Mesh.Mesh(str(generated)))
             if result["status"] == "fail":
                 raise RuntimeError(
                     f"{entry['id']}: surface mismatch (max={result['max_surface_error_mm']:.3f} mm, "

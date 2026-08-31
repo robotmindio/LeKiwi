@@ -5,7 +5,8 @@ from pathlib import Path
 import FreeCAD as App
 import Import
 import Mesh
-import Part
+
+from scripts.cad_utils import bounds, bounds_error
 
 
 ACCESSORIES = (
@@ -25,16 +26,6 @@ ACCESSORIES = (
 OUTPUT_DIRECTORY = Path("cad/accessories")
 MAX_ERROR = 0.02
 DERIVATIVE_MAX_BBOX_ERROR = 0.025
-
-
-def bounds(shape_or_mesh):
-    box = shape_or_mesh.BoundBox
-    return box.XMin, box.YMin, box.ZMin, box.XMax, box.YMax, box.ZMax
-
-
-def bounds_error(left, right):
-    scale = max(right[3] - right[0], right[4] - right[1], right[5] - right[2], 1.0)
-    return sum(abs(a - b) for a, b in zip(left, right)) / scale
 
 
 for name, title, step_path, mesh_path in ACCESSORIES:

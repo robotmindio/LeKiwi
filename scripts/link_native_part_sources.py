@@ -8,20 +8,12 @@ from pathlib import Path
 
 import FreeCAD as App
 
+from scripts.cad_utils import bounds, bounds_error
+
 
 ASSEMBLY = Path("cad/assembly/LeKiwi.FCStd")
 NATIVE_PARTS = Path("cad/native_parts.json")
 MAX_ERROR = 0.02
-
-
-def bounds(shape):
-    box = shape.BoundBox
-    return box.XMin, box.YMin, box.ZMin, box.XMax, box.YMax, box.ZMax
-
-
-def bounds_error(left, right):
-    scale = max(right[3] - right[0], right[4] - right[1], right[5] - right[2], 1.0)
-    return sum(abs(a - b) for a, b in zip(left, right)) / scale
 
 
 def reference_name(link_name):

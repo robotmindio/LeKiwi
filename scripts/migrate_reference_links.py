@@ -10,6 +10,8 @@ from pathlib import Path
 import FreeCAD as App
 import Mesh
 
+from scripts.cad_utils import bounds, bounds_error
+
 
 ASSEMBLY = Path("cad/assembly/LeKiwi.FCStd")
 URDF = Path("URDF/LeKiwi.urdf")
@@ -106,16 +108,6 @@ def app_matrix(matrix):
         for column in range(4):
             setattr(result, f"A{row + 1}{column + 1}", matrix[row][column])
     return result
-
-
-def bounds(shape_or_mesh):
-    box = shape_or_mesh.BoundBox
-    return box.XMin, box.YMin, box.ZMin, box.XMax, box.YMax, box.ZMax
-
-
-def bounds_error(left, right):
-    scale = max(right[3] - right[0], right[4] - right[1], right[5] - right[2], 1.0)
-    return sum(abs(a - b) for a, b in zip(left, right)) / scale
 
 
 def bounds_center(values):

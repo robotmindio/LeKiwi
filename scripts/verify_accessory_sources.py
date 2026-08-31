@@ -1,12 +1,13 @@
 """Verify the locally imported FreeCAD accessory sources against their original STLs."""
 
-import runpy
 from pathlib import Path
 
 import FreeCAD as App
 import Mesh
 import MeshPart
 
+from scripts.cad_utils import bounds, bounds_error
+from scripts.compare_reauthored_assets import aligned_comparison
 
 ACCESSORIES = (
     ("webcam_base_mount", Path("3DPrintMeshes/webcam_mount/webcam_mount.stl"), "Published LeKiwi STEP BREP source", 0.02),
@@ -19,17 +20,6 @@ ACCESSORIES = (
     ),
 )
 MAX_ERROR = 0.02
-compare = runpy.run_path("scripts/compare_reauthored_assets.py")
-
-
-def bounds(shape_or_mesh):
-    box = shape_or_mesh.BoundBox
-    return box.XMin, box.YMin, box.ZMin, box.XMax, box.YMax, box.ZMax
-
-
-def bounds_error(left, right):
-    scale = max(right[3] - right[0], right[4] - right[1], right[5] - right[2], 1.0)
-    return sum(abs(a - b) for a, b in zip(left, right)) / scale
 
 
 for name, mesh_path, source_kind, max_bbox_error in ACCESSORIES:
@@ -52,7 +42,7 @@ for name, mesh_path, source_kind, max_bbox_error in ACCESSORIES:
     expected = Mesh.Mesh(str(mesh_path))
     box_error = bounds_error(bounds(final.Shape), bounds(expected))
     volume_error = abs(final.Shape.Volume / abs(expected.Volume) - 1.0)
-    surface = compare["aligned_comparison"](
+    surface = aligned_comparison(
         expected,
         MeshPart.meshFromShape(Shape=final.Shape, LinearDeflection=0.05, AngularDeflection=0.2),
     )

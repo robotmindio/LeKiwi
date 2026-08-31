@@ -1,19 +1,16 @@
 """Verify FreeCAD laser-plate sources against the imported reference assembly."""
 
-import runpy
-
 import FreeCAD as App
 import Mesh
 import MeshPart
 
+from scripts.compare_reauthored_assets import aligned_comparison
 
 reference = App.openDocument("cad/assembly/LeKiwi_reference.FCStd")
 checks = (
     ("base_plate_layer1 v5", "cad/parts/base_plate_lower.FCStd", -7.0, 0.0, "3DPrintMeshes/base_plate_layer1.stl"),
     ("base_plate_layer2 v3", "cad/parts/base_plate_upper.FCStd", 0.0, 7.0, None),
 )
-compare = runpy.run_path("scripts/compare_reauthored_assets.py")
-
 for label, source_name, z_min, z_max, legacy_print in checks:
     reference_shape = next(item.Shape for item in reference.Objects if item.Label == label)
     source = App.openDocument(source_name).getObject("Extrusion").Shape
@@ -26,7 +23,7 @@ for label, source_name, z_min, z_max, legacy_print in checks:
         raise RuntimeError(f"{label}: source is not in the expected URDF link frame")
     print(f"{label}: volume error {volume_error:.6%}")
     if legacy_print:
-        result = compare["aligned_comparison"](
+        result = aligned_comparison(
             Mesh.Mesh(legacy_print),
             MeshPart.meshFromShape(Shape=source, LinearDeflection=0.05, AngularDeflection=0.2),
         )

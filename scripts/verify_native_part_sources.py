@@ -1,16 +1,15 @@
 """Verify the native FreeCAD feature trees and their assembly links."""
 
 import json
-import runpy
 from pathlib import Path
 
 import FreeCAD as App
 import Mesh
 import MeshPart
 
+from scripts.compare_reauthored_assets import aligned_comparison
 
 PARTS = json.loads(Path("cad/native_parts.json").read_text())
-compare = runpy.run_path("scripts/compare_reauthored_assets.py")
 
 
 for part in PARTS:
@@ -38,7 +37,7 @@ for part in PARTS:
         generated = MeshPart.meshFromShape(
             Shape=final.Shape, LinearDeflection=0.05, AngularDeflection=0.2
         )
-        result = compare["aligned_comparison"](original, generated)
+        result = aligned_comparison(original, generated)
         if result["status"] == "fail":
             raise RuntimeError(
                 f"{name}: legacy-print mismatch (max={result['max_surface_error_mm']:.3f} mm, "

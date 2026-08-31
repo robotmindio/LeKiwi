@@ -16,6 +16,7 @@ from pathlib import Path
 import FreeCAD as App
 import Mesh
 
+from scripts.cad_utils import urdf_matrix
 
 URDF = Path("URDF/LeKiwi.urdf")
 MAPPING = Path("cad/reference_mapping.json")
@@ -26,27 +27,6 @@ SAMPLES_PER_DIRECTION = 256
 MAX_SURFACE_ERROR_MM = 0.25
 MAX_P95_ERROR_MM = 0.10
 LEAF_SIZE = 16
-
-
-def numbers(value, scale=1.0):
-    return [float(item) * scale for item in value.split()]
-
-
-def matrix(origin):
-    x, y, z = numbers(origin.get("xyz", "0 0 0"), 1000.0)
-    roll, pitch, yaw = numbers(origin.get("rpy", "0 0 0"))
-    cosine, sine = math.cos, math.sin
-    values = (
-        (cosine(yaw) * cosine(pitch), cosine(yaw) * sine(pitch) * sine(roll) - sine(yaw) * cosine(roll), cosine(yaw) * sine(pitch) * cosine(roll) + sine(yaw) * sine(roll), x),
-        (sine(yaw) * cosine(pitch), sine(yaw) * sine(pitch) * sine(roll) + cosine(yaw) * cosine(roll), sine(yaw) * sine(pitch) * cosine(roll) - cosine(yaw) * sine(roll), y),
-        (-sine(pitch), cosine(pitch) * sine(roll), cosine(pitch) * cosine(roll), z),
-        (0.0, 0.0, 0.0, 1.0),
-    )
-    result = App.Matrix()
-    for row in range(4):
-        for column in range(4):
-            setattr(result, f"A{row + 1}{column + 1}", values[row][column])
-    return result
 
 
 def sampled_points(mesh, count):
@@ -306,7 +286,7 @@ def main(arguments):
             raise RuntimeError(f"{name}: missing original URDF visual mesh")
         original = Mesh.Mesh(str(URDF.parent / mesh_xml.get("filename")))
         origin = visual.find("origin")
-        original.transform(matrix(origin if origin is not None else ET.Element("origin")))
+        original.transform(urdf_matrix(origin if origin is not None else ET.Element("origin")))
         generated_path = URDF.parent / "meshes/reauthored" / filename(name)
         if not generated_path.is_file():
             raise RuntimeError(f"{name}: missing generated mesh {generated_path}")
