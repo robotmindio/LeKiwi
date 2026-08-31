@@ -41,7 +41,7 @@ then measure the finished pose before replacing the placeholder ROS transform.
 Build the print flat, without supports:
 
 ```sh
-openscad -o 3DPrintMeshes/astra_pro_mount_plate.stl cad/accessories/astra_pro_mount_plate.scad
+openscad --export-format binstl -o 3DPrintMeshes/astra_pro_mount_plate.stl cad/accessories/astra_pro_mount_plate.scad
 ```
 
 Build or reset those documents, then verify that they still match their
