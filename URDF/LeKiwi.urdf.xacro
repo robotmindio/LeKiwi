@@ -675,12 +675,12 @@
         <parent link="base_plate_layer1-v5" />
         <child link="94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-1" />
     </joint>
-    <joint name="robotskin_lidar_mount" type="fixed">
+    <joint name="robotskin_lidar_mount_joint" type="fixed">
         <origin xyz="0.05 0.095 0" rpy="0 0 0" />
         <parent link="base_plate_layer1-v5" />
         <child link="robotskin_lidar_mount" />
     </joint>
-    <joint name="ld06_body" type="fixed">
+    <joint name="ld06_body_mount" type="fixed">
         <origin xyz="0.02 -0.005 0.012" rpy="0 0 0" />
         <parent link="robotskin_lidar_mount" />
         <child link="ld06_body" />
