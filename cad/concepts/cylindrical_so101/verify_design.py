@@ -19,16 +19,26 @@ HERE = Path(__file__).resolve().parent
 PARTS = (
     "base_lower",
     "base_upper",
+    "base_column",
     "shoulder",
     "upper_arm",
     "lower_arm",
     "wrist",
     "gripper",
     "moving_jaw",
-    "joint_cover_a",
-    "joint_cover_b",
+    "servo_lid",
     "clearance_coupon",
     "horn_coupon",
+)
+ORIGINAL_MOVING_PARTS = (
+    "motor_holder_so101_base_v1.stl",
+    "rotation_pitch_so101_v1.stl",
+    "upper_arm_so101_v1.stl",
+    "under_arm_so101_v1.stl",
+    "motor_holder_so101_wrist_v1.stl",
+    "wrist_roll_pitch_so101_v2.stl",
+    "wrist_roll_follower_so101_v1.stl",
+    "moving_jaw_so101_v1.stl",
 )
 
 
@@ -61,15 +71,20 @@ def main() -> int:
                 "-D",
                 f'part="{part}"',
                 "-D",
-                "quality=24",
+                "quality=16",
                 "-D",
                 "show_motors=false",
+                "-D",
+                "show_lids=false",
                 "design.scad",
             )
             if target.stat().st_size < 500:
                 raise RuntimeError(f"empty OpenSCAD output: {part}")
             mesh = trimesh.load_mesh(target)
-            if not mesh.is_watertight or mesh.body_count != 1 or mesh.volume <= 0:
+            positive_bodies = sum(
+                body.volume > 0 for body in mesh.split(only_watertight=False)
+            )
+            if not mesh.is_watertight or positive_bodies != 1 or mesh.volume <= 0:
                 raise RuntimeError(f"invalid printable solid: {part}")
             meshes[part] = mesh
 
@@ -104,6 +119,27 @@ def main() -> int:
             raise RuntimeError(
                 f"unexpected base material reduction: {material_reduction:.1%}"
             )
+        new_moving_volume = sum(
+            abs(meshes[name].volume)
+            for name in (
+                "shoulder",
+                "upper_arm",
+                "lower_arm",
+                "wrist",
+                "gripper",
+                "moving_jaw",
+            )
+        ) + 5 * abs(meshes["servo_lid"].volume)
+        asset_dir = HERE.parents[2] / "cad/upstream/SO-ARM100/Simulation/SO101/assets"
+        original_moving_volume = sum(
+            abs(trimesh.load_mesh(asset_dir / name).volume) * 1e9
+            for name in ORIGINAL_MOVING_PARTS
+        )
+        arm_material_reduction = 1 - new_moving_volume / original_moving_volume
+        if not 0.35 <= arm_material_reduction <= 0.45:
+            raise RuntimeError(
+                f"unexpected moving-arm material reduction: {arm_material_reduction:.1%}"
+            )
 
         model = ET.parse(LEKIWI).getroot()
         for layer, parent in (
@@ -127,7 +163,7 @@ def main() -> int:
                         f"expected at least {required_margin:.2f} mm"
                     )
         for pose in ("home", "working", "lower_limits", "upper_limits"):
-            target = output / f"arm-{pose}.stl"
+            target = output / f"arm-{pose}.csg"
             run(
                 "openscad",
                 "--hardwarnings",
@@ -138,19 +174,19 @@ def main() -> int:
                 "-D",
                 f'pose="{pose}"',
                 "-D",
-                "quality=24",
+                "quality=16",
                 "-D",
                 "show_motors=false",
+                "-D",
+                "show_lids=false",
                 "design.scad",
             )
             if target.stat().st_size < 500:
                 raise RuntimeError(f"empty pose output: {pose}")
-            pose_mesh = trimesh.load_mesh(target)
-            if not pose_mesh.is_watertight or pose_mesh.volume <= 0:
-                raise RuntimeError(f"invalid full-arm solid at {pose} pose")
     print(
-        f"verified {len(PARTS)} printable parts, four full-range arm poses, "
-        f"{footprint_reduction:.1%} footprint and {material_reduction:.1%} base-material reductions"
+        f"verified {len(PARTS)} printable parts, four reference arm poses, "
+        f"{footprint_reduction:.1%} footprint, {material_reduction:.1%} base-material, "
+        f"and {arm_material_reduction:.1%} moving-arm material reductions"
     )
     return 0
 

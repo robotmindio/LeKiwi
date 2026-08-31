@@ -1,46 +1,53 @@
-// Clean cylindrical SO-101 concept. This folder is intentionally disconnected
-// from the production export pipeline while interfaces are tested.
+// Bottom-up SO-101 study. The arm is built from one repeated vocabulary:
+// drive flange -> hollow round link -> serviceable servo pod.
 include <generated/kinematics.scad>
 
-part = "assembly"; // [assembly,arm,base_lower,base_upper,base_profile_lower,base_profile_upper,base_ribs_lower,base_ribs_upper,base_only,shoulder,upper_arm,lower_arm,wrist,gripper,moving_jaw,joint_cover_a,joint_cover_b,clearance_coupon,horn_coupon]
+part = "assembly"; // [assembly,arm,base_lower,base_upper,base_profile_lower,base_profile_upper,base_ribs_lower,base_ribs_upper,base_only,base_column,shoulder,upper_arm,lower_arm,wrist,gripper,moving_jaw,servo_lid,clearance_coupon,horn_coupon]
 pose = "working"; // [home,working,lower_limits,upper_limits]
 show_motors = true;
-quality = 64;
+show_lids = true;
+quality = 48;
 $fn = quality;
 
-// Printing and fit parameters. Tune clearance with clearance_coupon before
-// committing to a complete print.
-wall = 2.4;
+// Shared mechanical geometry. The motor envelope and shaft location come from
+// the canonical SO-101 STS3215 mesh; generate_kinematics.py verifies every
+// servo shaft against its joint frame.
+wall = 2.6;
 fit_clearance = 0.6;
-tube_od = 32;
-hub_od = 42;
-hub_width = 12;
+link_od = 30;
+base_link_od = 36;
+drive_od = 32;
+drive_width = 7;
+drive_offset = -8.5;
+bezel_od = 30;
+bezel_width = 5;
+servo_body = [45.4, 24.8, 39.6];
+servo_shaft = [12.5, 0, 18.7];
+pod_outer = servo_body + [2 * wall + fit_clearance, 2 * wall + fit_clearance, 2 * wall + fit_clearance];
+pod_radius = 5;
+lid_depth = 4;
+lid_boss_od = 8;
+lid_insert_od = 4.6;
+m3_clearance = 3.3;
 horn_od = 24;
-horn_pitch = 9.9;
+horn_radius = 7;
 horn_recess = 1.6;
 horn_center = 6.4;
-joint_od = 70;
-joint_width = 31;
-joint_gap = 1.2;
-motor_size = [47, 42, 26];
-cable_slot = [18, 18, 40];
-m3_clearance = 3.3;
-insert_od = 4.6;
-boss_od = 8;
 
-// The 7 mm maximum section matches the current plates. A 3 mm skin plus ribs
-// carries bending load with less material than a solid plate.
+// Base plates keep the current functional placements while their load paths
+// are reduced to a perimeter, radial ribs and local pads.
 base_skin = 3;
 base_height = 7;
 base_mount_pad = 8;
 base_rim = 6;
 base_rib = 8;
 
-link_color = [0.82, 0.86, 0.88];
-cover_color = [0.12, 0.15, 0.18];
-accent_color = [0.18, 0.55, 0.68];
-motor_color = [0.08, 0.08, 0.09];
-base_color = [0.18, 0.20, 0.22];
+link_color = [0.78, 0.82, 0.84];
+pod_color = [0.17, 0.19, 0.22];
+lid_color = [0.10, 0.12, 0.14];
+motor_color = [0.04, 0.05, 0.06];
+accent_color = [0.12, 0.48, 0.62];
+base_color = [0.15, 0.17, 0.19];
 
 q_home = [0, 0, 0, 0, 0, 0];
 q_working = [0, -35, 65, -30, 0, 35];
@@ -48,9 +55,8 @@ q = pose == "lower_limits" ? [for (range = joint_limits) range[0]] :
     pose == "upper_limits" ? [for (range = joint_limits) range[1]] :
     pose == "home" ? q_home : q_working;
 
-assert(tube_od > 2 * wall, "tube wall consumes the cable cavity");
-assert(joint_od - 2 * wall >= norm([motor_size[0] + fit_clearance, motor_size[1] + fit_clearance]),
-    "joint cover does not clear the motor cross-section");
+assert(link_od > 2 * wall, "link wall consumes the cable conduit");
+assert(pod_outer[1] > servo_body[1] + fit_clearance, "servo pod has no wall");
 
 function mounts(layer) = layer == "lower" ? base_lower_mounts : base_upper_mounts;
 function dxf(layer) = layer == "lower" ?
@@ -65,6 +71,10 @@ module at_joint(name, angle = 0) {
     at_pose(joint_position(name), joint_rotation(name)) rotate([0, 0, angle]) children();
 }
 
+module at_servo(name) {
+    at_pose(servo_position(name), servo_rotation(name)) children();
+}
+
 module orient_z(vector) {
     length = norm(vector);
     axis = cross([0, 0, 1], vector);
@@ -75,162 +85,210 @@ module orient_z(vector) {
         rotate(a = angle, v = axis) children();
 }
 
-module hollow_tube(vector, od = tube_od) {
+module rounded_prism(size, radius) {
+    linear_extrude(height = size[2], center = true)
+        hull()
+            for (x = [-size[0] / 2 + radius, size[0] / 2 - radius],
+                 y = [-size[1] / 2 + radius, size[1] / 2 - radius])
+                translate([x, y]) circle(r = radius);
+}
+
+module hollow_link(vector, od = link_od) {
     length = norm(vector);
     orient_z(vector)
         difference() {
-            union() {
-                cylinder(d = od, h = length);
-                // A short flared socket transfers tube load into the motor cradle.
-                translate([0, 0, max(0, length - 8)])
-                    cylinder(d = hub_od + 2, h = min(8, length / 3));
-            }
+            cylinder(d = od, h = length);
             translate([0, 0, -0.1]) cylinder(d = od - 2 * wall, h = length + 0.2);
-            // Continuous underside route; a clip-on strip can close it after wiring.
-            translate([-5, -od / 2 - 0.1, -0.1]) cube([10, wall + 0.7, length + 0.2]);
         }
 }
 
-module solid_strut(start, end, od) {
+module hollow_link_between(start, end, od = link_od) {
+    translate(start) hollow_link(end - start, od);
+}
+
+module solid_link(start, end, od) {
     translate(start) orient_z(end - start) cylinder(d = od, h = norm(end - start));
 }
 
-module hub() {
+module horn_pattern(height = 30) {
+    cylinder(d = horn_center, h = height, center = true);
+    for (angle = [0 : 90 : 270])
+        rotate([0, 0, angle]) translate([horn_radius, 0, 0])
+            cylinder(d = m3_clearance, h = height, center = true);
+    translate([0, 0, drive_width / 2 - horn_recess / 2 + 0.05])
+        cylinder(d = horn_od + fit_clearance, h = horn_recess + 0.1, center = true);
+}
+
+module drive_flange_blank() {
+    cylinder(d = drive_od, h = drive_width, center = true);
+}
+
+module shaft_bezel() {
     difference() {
-        cylinder(d = hub_od, h = hub_width, center = true);
-        cylinder(d = horn_center, h = hub_width + 0.2, center = true);
-        for (x = [-horn_pitch / 2, horn_pitch / 2], y = [-horn_pitch / 2, horn_pitch / 2])
-            translate([x, y, 0]) cylinder(d = m3_clearance, h = hub_width + 0.2, center = true);
-        // The horn seats on +Z; the unrecessed rear face carries tube load.
-        translate([0, 0, hub_width / 2 - horn_recess / 2 + 0.05])
-            cylinder(d = horn_od + fit_clearance, h = horn_recess + 0.1, center = true);
+        cylinder(d = bezel_od, h = bezel_width, center = true);
+        cylinder(d = horn_od + fit_clearance, h = bezel_width + 0.2, center = true);
     }
 }
 
-module motor_cradle() {
-    outer = [motor_size[0] + 2 * wall, motor_size[1] + 2 * wall, joint_width - 2 * wall];
-    color(link_color)
-        difference() {
-            cube(outer, center = true);
-            cube(motor_size + [fit_clearance, fit_clearance, 1], center = true);
-            translate([0, -outer[1] / 2, 0]) cube(cable_slot, center = true);
+module pod_shell_local() {
+    difference() {
+        rounded_prism(pod_outer, pod_radius);
+        rounded_prism(servo_body + [fit_clearance, fit_clearance, fit_clearance], 2.5);
+        translate(servo_shaft)
+            cylinder(d = horn_od + fit_clearance, h = wall * 4, center = true);
+        // The cable exits through the removable rear cap.
+        translate([-pod_outer[0] / 2, 0, -pod_outer[2] / 4])
+            cube([wall * 3, 12, 10], center = true);
+    }
+}
+
+module lid_bosses(x0, length, hole) {
+    for (y = [-pod_outer[1] / 2, pod_outer[1] / 2])
+        translate([x0, y, 0]) rotate([0, 90, 0])
+            difference() {
+                cylinder(d = lid_boss_od, h = length, center = true);
+                cylinder(d = hole, h = length + 0.2, center = true);
+            }
+}
+
+module servo_cradle_local() {
+    split = -pod_outer[0] / 2 + lid_depth;
+    receiver = 7;
+    union() {
+        intersection() {
+            pod_shell_local();
+            translate([(split + pod_outer[0] / 2) / 2, 0, 0])
+                cube([pod_outer[0] / 2 - split, pod_outer[1] + 12, pod_outer[2] + 2], center = true);
         }
+        lid_bosses(split + receiver / 2, receiver, lid_insert_od);
+    }
 }
 
-module cover_fasteners() {
-    for (y = [-joint_od / 2 - 1, joint_od / 2 + 1])
-        translate([0, y, 0]) rotate([0, 90, 0]) cylinder(d = m3_clearance, h = boss_od + 2, center = true);
-}
-
-module joint_cover_core() {
+module servo_lid_local() {
     difference() {
         union() {
-            difference() {
-                cylinder(d = joint_od, h = joint_width, center = true);
-                cylinder(d = joint_od - 2 * wall, h = joint_width - 2 * wall, center = true);
-                cylinder(d = hub_od + 2 * joint_gap, h = joint_width + 0.2, center = true);
+            intersection() {
+                pod_shell_local();
+                translate([-pod_outer[0] / 2 + lid_depth / 2, 0, 0])
+                    cube([lid_depth, pod_outer[1] + 12, pod_outer[2] + 2], center = true);
             }
-            for (y = [-joint_od / 2 - 1, joint_od / 2 + 1])
-                translate([0, y, 0]) rotate([0, 90, 0]) cylinder(d = boss_od, h = boss_od, center = true);
+            lid_bosses(-pod_outer[0] / 2 + lid_depth / 2, lid_depth, m3_clearance);
         }
-        translate([0, -joint_od / 2, 0]) cube(cable_slot, center = true);
-        cover_fasteners();
-        // Four short ventilation slots remain inside the protected lower quadrant.
-        for (z = [-8, 0, 8])
-            translate([0, joint_od / 2, z]) cube([16, wall * 3, 3], center = true);
+        for (y = [-pod_outer[1] / 2, pod_outer[1] / 2])
+            translate([-pod_outer[0] / 2 + lid_depth / 2, y, 0])
+                rotate([0, 90, 0]) cylinder(d = m3_clearance, h = lid_depth + 0.2, center = true);
     }
 }
 
-module joint_cover_half(side = 1) {
-    intersection() {
-        joint_cover_core();
-        translate([side * (joint_od / 2 + 0.15), 0, 0])
-            cube([joint_od, joint_od + 2 * boss_od, joint_width + 2], center = true);
-    }
+module motor_local() {
+    rounded_prism(servo_body, 3);
+    translate(servo_shaft) cylinder(d = 20, h = 3.2, center = true);
 }
 
-module joint_cover() {
-    color(cover_color) {
-        joint_cover_half(-1);
-        joint_cover_half(1);
-    }
-    if (show_motors)
-        color(motor_color, 0.75) cube(motor_size, center = true);
-}
-
-module link_structure(child_joint, od = tube_od) {
+module printed_link(child_joint, od = link_od) {
     endpoint = joint_position(child_joint);
-    color(link_color) {
-        hub();
-        hollow_tube(endpoint, od);
-        at_pose(endpoint, joint_rotation(child_joint)) motor_cradle();
-    }
-}
-
-module link_body(child_joint, od = tube_od) {
-    endpoint = joint_position(child_joint);
-    link_structure(child_joint, od);
-    at_pose(endpoint, joint_rotation(child_joint)) joint_cover();
-}
-
-module jaw_finger(length = 72, od = 18) {
-    color(accent_color)
+    color(link_color)
         difference() {
             union() {
-                cylinder(d = hub_od, h = hub_width, center = true);
-                rotate([90, 0, 0]) translate([0, 0, 3]) cylinder(d = od, h = length);
+                translate([0, 0, drive_offset]) drive_flange_blank();
+                hollow_link_between([0, 0, drive_offset], endpoint, od);
+                at_joint(child_joint) shaft_bezel();
+                color(pod_color) at_servo(child_joint) servo_cradle_local();
             }
-            cylinder(d = hub_od - 2 * wall, h = hub_width + 0.2, center = true);
+            translate([0, 0, drive_offset]) horn_pattern();
         }
+}
+
+module fitted_link(child_joint, od = link_od) {
+    printed_link(child_joint, od);
+    if (show_lids)
+        color(lid_color) at_servo(child_joint) servo_lid_local();
+    if (show_motors)
+        color(motor_color) at_servo(child_joint) motor_local();
+}
+
+module jaw_finger(length = 72, od = 16) {
+    hull() {
+        sphere(d = od);
+        translate([0, -length, 0]) sphere(d = od * 0.72);
+    }
 }
 
 module moving_jaw() {
-    jaw_finger(72, 16);
+    color(accent_color)
+        difference() {
+            translate([0, 0, drive_offset])
+                union() {
+                    cylinder(d = drive_od, h = drive_width, center = true);
+                    jaw_finger();
+                }
+            translate([0, 0, drive_offset]) horn_pattern();
+        }
 }
 
-module fixed_gripper_structure() {
-    anchor = [-7.9, -0.218, -23.4];
-    link_structure("gripper", 28);
-    // The canonical gripper frame is 98.127 mm down -Z from this link. The
-    // fixed finger ends on that axis; the moving finger uses the real joint.
-    color(link_color) solid_strut(joint_position("gripper"), anchor, 18);
-    translate(anchor) rotate([90, 0, 0]) jaw_finger(76, 17);
+module base_column_printed() {
+    endpoint = joint_position("shoulder_pan");
+    color(link_color)
+        union() {
+            cylinder(d = 48, h = 6);
+            hollow_link(endpoint, base_link_od);
+            at_joint("shoulder_pan") shaft_bezel();
+            color(pod_color) at_servo("shoulder_pan") servo_cradle_local();
+        }
+}
+
+module base_column() {
+    base_column_printed();
+    if (show_lids)
+        color(lid_color) at_servo("shoulder_pan") servo_lid_local();
+    if (show_motors)
+        color(motor_color) at_servo("shoulder_pan") motor_local();
+}
+
+module gripper_printed() {
+    frame = [-7.9, -0.218, -98.1274];
+    union() {
+        printed_link("gripper", 26);
+        color(link_color) solid_link(joint_position("gripper"), frame, 15);
+        color(link_color) translate(frame) jaw_finger(62, 15);
+    }
 }
 
 module gripper_link() {
-    fixed_gripper_structure();
-    at_pose(joint_position("gripper"), joint_rotation("gripper")) joint_cover();
+    gripper_printed();
+    if (show_lids)
+        color(lid_color) at_servo("gripper") servo_lid_local();
+    if (show_motors)
+        color(motor_color) at_servo("gripper") motor_local();
     at_joint("gripper", q[5]) moving_jaw();
 }
 
 module wrist_chain() {
-    link_body("wrist_roll", 30);
+    fitted_link("wrist_roll", 27);
     at_joint("wrist_roll", q[4]) gripper_link();
 }
 
 module lower_arm_chain() {
-    link_body("wrist_flex");
+    fitted_link("wrist_flex");
     at_joint("wrist_flex", q[3]) wrist_chain();
 }
 
 module upper_arm_chain() {
-    link_body("elbow_flex");
+    fitted_link("elbow_flex");
     at_joint("elbow_flex", q[2]) lower_arm_chain();
 }
 
 module shoulder_chain() {
-    link_body("shoulder_lift");
+    fitted_link("shoulder_lift");
     at_joint("shoulder_lift", q[1]) upper_arm_chain();
 }
 
 module arm() {
-    link_body("shoulder_pan", 38);
+    base_column();
     at_joint("shoulder_pan", q[0]) shoulder_chain();
 }
 
 module compact_outline(layer) {
-    // Convex load path through every functional mount. Generic unused grid
-    // holes outside this envelope are intentionally omitted.
     hull()
         for (point = concat(base_lower_mounts, base_upper_mounts))
             translate(point) circle(r = base_mount_pad);
@@ -290,7 +348,6 @@ module assembly() {
 }
 
 module clearance_coupon() {
-    // Print once per material/profile. The three slots bracket fit_clearance.
     difference() {
         cube([72, 28, 6], center = true);
         for (index = [-1, 0, 1])
@@ -302,11 +359,7 @@ module clearance_coupon() {
 module horn_coupon() {
     difference() {
         cylinder(d = 32, h = 4);
-        translate([0, 0, 4 - horn_recess])
-            cylinder(d = horn_od + fit_clearance, h = horn_recess + 0.1);
-        cylinder(d = horn_center, h = 4.2);
-        for (x = [-horn_pitch / 2, horn_pitch / 2], y = [-horn_pitch / 2, horn_pitch / 2])
-            translate([x, y, -0.1]) cylinder(d = m3_clearance, h = 4.2);
+        translate([0, 0, 2]) horn_pattern(4.2);
     }
 }
 
@@ -319,14 +372,14 @@ else if (part == "base_profile_lower") base_profile("lower");
 else if (part == "base_profile_upper") base_profile("upper");
 else if (part == "base_ribs_lower") base_ribs("lower");
 else if (part == "base_ribs_upper") base_ribs("upper");
-else if (part == "shoulder") link_structure("shoulder_lift");
-else if (part == "upper_arm") link_structure("elbow_flex");
-else if (part == "lower_arm") link_structure("wrist_flex");
-else if (part == "wrist") link_structure("wrist_roll", 30);
-else if (part == "gripper") fixed_gripper_structure();
+else if (part == "base_column") base_column_printed();
+else if (part == "shoulder") printed_link("shoulder_lift");
+else if (part == "upper_arm") printed_link("elbow_flex");
+else if (part == "lower_arm") printed_link("wrist_flex");
+else if (part == "wrist") printed_link("wrist_roll", 27);
+else if (part == "gripper") gripper_printed();
 else if (part == "moving_jaw") moving_jaw();
-else if (part == "joint_cover_a") joint_cover_half(-1);
-else if (part == "joint_cover_b") joint_cover_half(1);
+else if (part == "servo_lid") servo_lid_local();
 else if (part == "clearance_coupon") clearance_coupon();
 else if (part == "horn_coupon") horn_coupon();
 else assert(false, str("unknown part: ", part));

@@ -22,6 +22,15 @@ JOINTS = (
     "wrist_roll",
     "gripper",
 )
+LINKS = (
+    "base_link",
+    "shoulder_link",
+    "upper_arm_link",
+    "lower_arm_link",
+    "wrist_link",
+    "gripper_link",
+)
+SERVO_SHAFT = [12.5, 0.0, 18.7]
 
 
 def vector(element: ET.Element, attribute: str, scale: float = 1.0) -> list[float]:
@@ -38,6 +47,22 @@ def number(value: float) -> str:
 
 def scad_vector(values: list[float]) -> str:
     return "[" + ", ".join(number(value) for value in values) + "]"
+
+
+def rotation(rpy: list[float]) -> list[list[float]]:
+    roll, pitch, yaw = rpy
+    cr, sr = math.cos(roll), math.sin(roll)
+    cp, sp = math.cos(pitch), math.sin(pitch)
+    cy, sy = math.cos(yaw), math.sin(yaw)
+    return [
+        [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
+        [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
+        [-sp, cp * sr, cp * cr],
+    ]
+
+
+def transform(matrix: list[list[float]], vector_: list[float]) -> list[float]:
+    return [sum(row[index] * vector_[index] for index in range(3)) for row in matrix]
 
 
 def fixed_mounts(model: ET.Element, parent: str) -> list[list[float]]:
@@ -72,6 +97,35 @@ def render() -> str:
             [math.degrees(float(limit.get(key))) for key in ("lower", "upper")]
         )
 
+    servo_xyz = []
+    servo_rpy = []
+    for link_name, joint_name in zip(LINKS, JOINTS, strict=True):
+        link = arm.find(f"link[@name='{link_name}']")
+        visual = next(
+            visual
+            for visual in link.findall("visual")
+            if "sts3215" in visual.find("geometry/mesh").get("filename").lower()
+        )
+        servo_origin = visual.find("origin")
+        servo_position = vector(servo_origin, "xyz", 1000.0)
+        servo_angles = vector(servo_origin, "rpy")
+        joint = joints[joint_name]
+        joint_position = vector(joint.find("origin"), "xyz", 1000.0)
+        joint_angles = vector(joint.find("origin"), "rpy")
+        shaft_position = [
+            servo_position[index]
+            + transform(rotation(servo_angles), SERVO_SHAFT)[index]
+            for index in range(3)
+        ]
+        if math.dist(shaft_position, joint_position) > 0.05:
+            raise ValueError(f"{link_name} servo shaft no longer matches {joint_name}")
+        servo_axis = transform(rotation(servo_angles), [0.0, 0.0, 1.0])
+        joint_axis = transform(rotation(joint_angles), [0.0, 0.0, 1.0])
+        if abs(sum(a * b for a, b in zip(servo_axis, joint_axis, strict=True))) < 0.999:
+            raise ValueError(f"{link_name} servo axis no longer matches {joint_name}")
+        servo_xyz.append(servo_position)
+        servo_rpy.append([math.degrees(value) for value in servo_angles])
+
     lekiwi = ET.parse(LEKIWI).getroot()
     mount = lekiwi.find("joint[@name='so101_mount']")
     if mount is None:
@@ -86,6 +140,8 @@ def render() -> str:
         "joint_xyz = [" + ", ".join(scad_vector(values) for values in xyz) + "];",
         "joint_rpy = [" + ", ".join(scad_vector(values) for values in rpy) + "];",
         "joint_limits = [" + ", ".join(scad_vector(values) for values in limits) + "];",
+        "servo_xyz = [" + ", ".join(scad_vector(values) for values in servo_xyz) + "];",
+        "servo_rpy = [" + ", ".join(scad_vector(values) for values in servo_rpy) + "];",
         f"arm_mount_xyz = {scad_vector(vector(mount_origin, 'xyz', 1000.0))};",
         f"arm_mount_rpy = {scad_vector([math.degrees(value) for value in vector(mount_origin, 'rpy')])};",
         "base_lower_mounts = ["
@@ -98,6 +154,8 @@ def render() -> str:
         "function joint_position(name) = joint_xyz[joint_index(name)];",
         "function joint_rotation(name) = joint_rpy[joint_index(name)];",
         "function joint_range(name) = joint_limits[joint_index(name)];",
+        "function servo_position(name) = servo_xyz[joint_index(name)];",
+        "function servo_rotation(name) = servo_rpy[joint_index(name)];",
         "",
     ]
     return "\n".join(lines)
