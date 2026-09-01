@@ -29,7 +29,7 @@ M3_CLEARANCE = 3.2
 COUNTERBORE_DIAMETER = 5.4
 AXIS_RECESS_DIAMETER = 8.4
 CAGE_INNER_Y = 12.4
-CAGE_OUTER_Y = 15.0
+CAGE_OUTER_Y = 15.34
 
 
 def roll_mount_hole_centers(
@@ -61,6 +61,15 @@ def _mount_plate(
         .extrude(PLATE_THICKNESS)
         .translate((x_start, 0, 0))
     )
+    left_plate = x_start < 0
+    outer_x = x_start if left_plate else x_start + PLATE_THICKNESS
+    plate_solid = plate.val()
+    outer_rim = [
+        edge
+        for edge in plate_solid.Edges()
+        if edge.geomType() == "CIRCLE" and abs(edge.Center().x - outer_x) < 0.01
+    ]
+    plate = cq.Workplane(obj=plate_solid.fillet(5.0, outer_rim))
     offset = M3_HOLE_SPACING / 2
     points = [
         (y, ROLL_AXIS_Z + z) for y in (-offset, offset) for z in (-offset, offset)
@@ -72,7 +81,6 @@ def _mount_plate(
         .extrude(PLATE_THICKNESS + 0.2)
         .translate((x_start - 0.1, 0, 0))
     )
-    left_plate = x_start < 0
     counterbore_x = x_start if left_plate else x_start + 3.0
     counterbores = (
         cq.Workplane("YZ")
@@ -185,7 +193,15 @@ def _right_transition() -> cq.Workplane:
         .close()
         .extrude(12.01, both=True)
     )
-    return transition.cut(_roof_opening())
+    transitioned = transition.cut(_roof_opening()).val()
+    outer_arcs = [
+        edge
+        for edge in transitioned.Edges()
+        if edge.geomType() == "CIRCLE"
+        and abs(abs(edge.Center().y) - 12.01) < 0.02
+        and edge.BoundingBox().zmax > 20.0
+    ]
+    return cq.Workplane(obj=transitioned.fillet(5.0, outer_arcs))
 
 
 def _roof_opening() -> cq.Workplane:

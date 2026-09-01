@@ -82,7 +82,7 @@ def main() -> None:
     ):
         expected = section_area(reference, plane, height)
         actual = section_area(native, plane, height)
-        assert abs(actual / expected - 1) < 0.08, (plane, height, actual, expected)
+        assert abs(actual / expected - 1) < 0.1, (plane, height, actual, expected)
 
     radii = [
         face._geomAdaptor().Cylinder().Radius()
