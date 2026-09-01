@@ -22,6 +22,11 @@ deterministic integration step: it prefixes the arm links to avoid the ROS
 `base_link`, preserves the official inertias, axes, origins, and limits, and maps
 the six joints onto LeRobot's stable `arm_*` names.
 
+`cadquery/so101_wrist.py` loads the official STEP geometry for the follower wrist
+motor holder, flex body, and roll carrier as CadQuery solids in their shared source
+placement. Run `python cad/cadquery/test_so101_wrist.py` with CadQuery installed to
+check that those source solids remain unchanged.
+
 Initialize it after cloning, then check the expected source bundle:
 
 ```sh
