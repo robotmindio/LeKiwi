@@ -6,6 +6,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from so101_wrist import load_part, wrist_joint
+from so101_wrist_flex import WristFlexParameters, roll_mount_hole_centers, wrist_flex
 
 
 EXPECTED_BOUNDS = {
@@ -32,6 +33,24 @@ def main() -> None:
         assert all(abs(value - target) < 0.001 for value, target in zip(actual, expected)), (name, actual)
         assert abs(part.Solids()[0].Volume() - volume) < 0.001, name
 
+    native = wrist_flex().val()
+    native_box = native.BoundingBox()
+    assert native.isValid()
+    assert native_box.zmax == 40.0
+    default_holes = roll_mount_hole_centers(WristFlexParameters())
+    assert default_holes == (
+        (-19.6, -4.95, 23.05),
+        (-19.6, -4.95, 32.95),
+        (-19.6, 4.95, 23.05),
+        (-19.6, 4.95, 32.95),
+        (19.6, -4.95, 23.05),
+        (19.6, -4.95, 32.95),
+        (19.6, 4.95, 23.05),
+        (19.6, 4.95, 32.95),
+    )
+    taller = WristFlexParameters(roll_axis_height=38.0)
+    assert wrist_flex(taller).val().BoundingBox().zmax == 50.0
+    assert roll_mount_hole_centers(taller)[0] == (-19.6, -4.95, 33.05)
     assert len(wrist_joint().toCompound().Solids()) == 3
 
 

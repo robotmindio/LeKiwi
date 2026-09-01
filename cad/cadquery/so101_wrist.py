@@ -1,13 +1,14 @@
-"""Exact SO-101 follower-wrist geometry for CadQuery.
+"""CadQuery access to the SO-101 follower wrist.
 
-The three source STEP files retain the upstream geometry and their shared
-coordinate system.  Use :func:`load_part` as the starting solid for a new
-CadQuery version rather than modifying the pinned upstream submodule.
+The motor holder and roll carrier load exact upstream STEP solids. Part #8 is
+a native CadQuery reauthoring, with the upstream STEP kept as its fit reference.
 """
 
 from pathlib import Path
 
 import cadquery as cq
+
+from so101_wrist_flex import wrist_flex
 
 
 SOURCE_ROOT = (
@@ -35,9 +36,10 @@ def load_part(name: str) -> cq.Shape:
     return cq.importers.importStep(str(source)).val()
 
 
-def wrist_joint() -> cq.Assembly:
-    """Return the unmodified follower wrist in its upstream STEP placement."""
+def wrist_joint(*, native_flex: bool = True) -> cq.Assembly:
+    """Return the follower wrist, using the native part #8 reauthoring by default."""
     assembly = cq.Assembly(name="so101_follower_wrist")
     for name in PARTS:
-        assembly.add(load_part(name), name=name)
+        part = wrist_flex() if native_flex and name == "flex_body" else load_part(name)
+        assembly.add(part, name=name)
     return assembly
