@@ -17,9 +17,11 @@ the Arducam configuration represented in `LeKiwi.FCStd`.
 low-profile adapter for the clear space between two wheels. It keeps the camera
 upright at 8 degrees downward pitch. The base has two M3 holes at 44 mm centres;
 the camera saddle has two M2 holes at 18.0 mm centres and a
-26.6 x 8.5 x 4.8 mm pocket for the raised underside boss.
+26.6 x 8.5 x 6.3 mm pocket for the measured 26.0 x 7.9 x 6.0 mm raised
+underside boss. The M2 head-access bores are 4.7 mm for the measured 4.5 mm
+screw heads.
 
-The camera contact plane is only 14 mm above the LeKiwi plate. Insert the two
+The camera contact plane is only 15.5 mm above the LeKiwi plate. Insert the two
 M3 screws into the adapter first, attach the camera from below using its M2x8
 screws, then fit the assembly to LeKiwi with locknuts. Print flat on its base:
 

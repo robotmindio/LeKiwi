@@ -2,16 +2,17 @@ $fn = 48;
 
 // Camera faces +Y; positive pitch tilts its view downward toward +Y.
 pitch = 8.0;
-camera_contact_height = 14.0;
+camera_contact_height = 15.5;
 
 // Base-removed Astra Pro interface measured from the physical camera.
 boss_length = 26.0;
 boss_depth = 7.9;
-boss_projection = 4.5;
+boss_projection = 6.0;
 boss_clearance = 0.3; // ponytail: increase only if the printed pocket is tight.
 m2_spacing = 18.0;
 m2_clearance = 2.4;
-m2_head_access = 5.0;
+m2_head_diameter = 4.5;
+m2_head_access = m2_head_diameter + 0.2;
 interface_skin = 2.4;
 
 // Physical mounting pair in the clear space between two wheels.
@@ -29,6 +30,7 @@ saddle_half_y = saddle_depth / 2 * cos(pitch);
 saddle_height_delta = saddle_depth / 2 * sin(pitch);
 
 assert(m3_spacing == 44.0);
+assert(m2_head_access > m2_head_diameter);
 assert(saddle_thickness - boss_projection - boss_clearance >= 2.0);
 assert(camera_contact_height - saddle_height_delta - base_thickness >= saddle_thickness);
 
