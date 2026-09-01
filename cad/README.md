@@ -25,9 +25,8 @@ the six joints onto LeRobot's stable `arm_*` names.
 `cadquery/so101_wrist.py` loads the official STEP geometry for the follower wrist
 motor holder and roll carrier; its part #8 flex body is rebuilt natively in
 `cadquery/so101_wrist_flex.py`. The upstream flex-body STEP remains the fit
-reference: the native model reserves the measured STS3215 motor envelope and
-matches the source material volume within 0.001 mm³. Proof-fit it before using
-it under load. Run `python cad/cadquery/test_so101_wrist.py` with CadQuery
+reference: the native model is a new structural design, so proof-fit it before
+using it under load. Run `python cad/cadquery/test_so101_wrist.py` with CadQuery
 installed to check its mounting datums and the unchanged reference solids.
 
 Initialize it after cloning, then check the expected source bundle:
