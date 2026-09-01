@@ -6,7 +6,12 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from so101_wrist import load_part, wrist_joint
-from so101_wrist_flex import WristFlexParameters, roll_mount_hole_centers, wrist_flex
+from so101_wrist_flex import (
+    WristFlexParameters,
+    roll_mount_hole_centers,
+    sts3215_envelope,
+    wrist_flex,
+)
 
 
 EXPECTED_BOUNDS = {
@@ -36,7 +41,13 @@ def main() -> None:
     native = wrist_flex().val()
     native_box = native.BoundingBox()
     assert native.isValid()
-    assert native_box.zmax == 40.0
+    assert len(native.Solids()) == 1
+    assert abs(native_box.ymin + 20.0) < 0.001
+    assert abs(native_box.ymax - 15.660093) < 0.001
+    assert abs(native_box.zmin + 37.828386) < 0.001
+    assert abs(native_box.zmax - 40.0) < 0.001
+    assert abs(native.Volume() - EXPECTED_BOUNDS["flex_body"][1]) < 0.001
+    assert native.intersect(sts3215_envelope().val()).Volume() < 0.001
     default_holes = roll_mount_hole_centers(WristFlexParameters())
     assert default_holes == (
         (-19.6, -4.95, 23.05),
