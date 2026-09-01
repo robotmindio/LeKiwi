@@ -27,6 +27,22 @@ EXPECTED_BOUNDS = {
 }
 
 
+def section_area(shape: cq.Shape, plane: str, height: float) -> float:
+    return cq.Workplane(plane).add(shape).section(height).val().Area()
+
+
+def sampled_surface_distances(
+    source: cq.Shape, target: cq.Shape, count: int = 256
+) -> list[float]:
+    vertices, triangles = source.tessellate(0.2, 0.3)
+    distances = []
+    for index in range(count):
+        a, b, c = triangles[index * len(triangles) // count]
+        centroid = (vertices[a] + vertices[b] + vertices[c]) / 3
+        distances.append(target.distance(cq.Vertex.makeVertex(*centroid.toTuple())))
+    return sorted(distances)
+
+
 def main() -> None:
     references = {}
     for name, (expected, volume) in EXPECTED_BOUNDS.items():
@@ -49,34 +65,53 @@ def main() -> None:
             EXPECTED_BOUNDS["flex_body"][0],
         )
     )
-    assert abs(native.Volume() / EXPECTED_BOUNDS["flex_body"][1] - 1) < 0.02
-    vertices, triangles = references["flex_body"].tessellate(0.2, 0.3)
-    sampled_triangles = (
-        triangles[index * len(triangles) // 128] for index in range(128)
-    )
-    assert (
-        max(
-            native.distance(
-                cq.Vertex.makeVertex(
-                    *((vertices[a] + vertices[b] + vertices[c]) / 3).toTuple()
-                )
-            )
-            for a, b, c in sampled_triangles
-        )
-        < 3.5
-    )
+    reference = references["flex_body"]
+    assert abs(native.Volume() / EXPECTED_BOUNDS["flex_body"][1] - 1) < 0.005
+    for source, target in ((reference, native), (native, reference)):
+        distances = sampled_surface_distances(source, target)
+        assert distances[int(len(distances) * 0.95)] < 1.5
+
+    for plane, height in (
+        ("XZ", 0.0),
+        ("XZ", 10.0),
+        ("XY", -33.0),
+        ("XY", -32.0),
+        ("XY", -31.0),
+        ("XY", 2.0),
+        ("XY", 3.0),
+    ):
+        expected = section_area(reference, plane, height)
+        actual = section_area(native, plane, height)
+        assert abs(actual / expected - 1) < 0.08, (plane, height, actual, expected)
+
+    radii = [
+        face._geomAdaptor().Cylinder().Radius()
+        for face in native.Faces()
+        if face.geomType() == "CYLINDER"
+    ]
+    for expected in (0.8, 1.0, 2.0, 10.0, 23.0):
+        assert any(abs(radius - expected) < 0.02 for radius in radii), expected
+    assert sum(face.geomType() == "TORUS" for face in native.Faces()) >= 2
+    assert len(cq.Workplane("XY").add(native).section(-33.0).val().Wires()) == 3
+    assert len(cq.Workplane("XY").add(native).section(-32.0).val().Wires()) == 4
     assert roll_mount_hole_centers() == (
-        (-19.6, -4.95, 23.05),
-        (-19.6, -4.95, 32.95),
-        (-19.6, 4.95, 23.05),
-        (-19.6, 4.95, 32.95),
-        (19.6, -4.95, 23.05),
-        (19.6, -4.95, 32.95),
-        (19.6, 4.95, 23.05),
-        (19.6, 4.95, 32.95),
+        (-22.6, -4.95, 23.05),
+        (-22.6, -4.95, 32.95),
+        (-22.6, 4.95, 23.05),
+        (-22.6, 4.95, 32.95),
+        (22.6, -4.95, 23.05),
+        (22.6, -4.95, 32.95),
+        (22.6, 4.95, 23.05),
+        (22.6, 4.95, 32.95),
     )
     larger_bores = part8(Part8Parameters(hole_clearance=0.2)).val()
-    assert larger_bores.Volume() < native.Volume()
+    assert larger_bores.Volume() < native.Volume() and len(larger_bores.Solids()) == 1
+    try:
+        part8(Part8Parameters(hole_clearance=-3.2))
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("non-positive M3 bores must be rejected")
     assert len(wrist_joint().toCompound().Solids()) == 3
 
 

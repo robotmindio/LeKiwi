@@ -11,50 +11,37 @@ import cadquery as cq
 
 @dataclass(frozen=True)
 class Part8Parameters:
-    """Millimetre dimensions that control the printed interfaces."""
+    """User calibration for the printed mounting holes, in millimetres."""
 
-    roll_axis_z: float = 28.0
-    plate_inner_x: float = 18.1
-    plate_thickness: float = 9.0
-    plate_half_width: float = 12.0
-    m3_hole_spacing: float = 9.9
-    m3_clearance: float = 3.2
-    counterbore_diameter: float = 5.4
-    axis_recess_diameter: float = 8.4
     hole_clearance: float = 0.0
-    cage_inner_y: float = 12.4
-    cage_outer_y: float = 15.0
 
     def validate(self) -> None:
-        positive = (
-            self.plate_thickness,
-            self.plate_half_width,
-            self.m3_hole_spacing,
-            self.m3_clearance,
-            self.counterbore_diameter,
-            self.axis_recess_diameter,
-            self.cage_inner_y,
-            self.cage_outer_y,
-        )
-        if any(value <= 0 for value in positive):
-            raise ValueError("part 8 dimensions must be positive")
-        if self.cage_outer_y <= self.cage_inner_y:
-            raise ValueError("cage outer width must exceed its inner width")
-        if self.counterbore_diameter <= self.m3_clearance:
-            raise ValueError("M3 counterbores must be wider than their through holes")
-        if self.m3_clearance + self.hole_clearance <= 0:
+        if M3_CLEARANCE + self.hole_clearance <= 0:
             raise ValueError("hole clearance produces a non-positive M3 bore")
+
+
+ROLL_AXIS_Z = 28.0
+PLATE_INNER_X = 18.1
+PLATE_THICKNESS = 9.0
+PLATE_HALF_WIDTH = 12.0
+M3_HOLE_SPACING = 9.9
+M3_CLEARANCE = 3.2
+COUNTERBORE_DIAMETER = 5.4
+AXIS_RECESS_DIAMETER = 8.4
+CAGE_INNER_Y = 12.4
+CAGE_OUTER_Y = 15.0
 
 
 def roll_mount_hole_centers(
     parameters: Part8Parameters = Part8Parameters(),
 ) -> tuple[tuple[float, float, float], ...]:
     """Return the eight M3 through-bore centres as ``(x, y, z)``."""
-    offset = parameters.m3_hole_spacing / 2
-    inner_center = parameters.plate_inner_x + 1.5
+    parameters.validate()
+    offset = M3_HOLE_SPACING / 2
+    plate_center = PLATE_INNER_X + PLATE_THICKNESS / 2
     return tuple(
-        (x, y, parameters.roll_axis_z + z)
-        for x in (-inner_center, inner_center)
+        (x, y, ROLL_AXIS_Z + z)
+        for x in (-plate_center, plate_center)
         for y in (-offset, offset)
         for z in (-offset, offset)
     )
@@ -63,30 +50,26 @@ def roll_mount_hole_centers(
 def _mount_plate(
     parameters: Part8Parameters, x_start: float, base_z: float
 ) -> cq.Workplane:
-    radius = parameters.plate_half_width
+    radius = PLATE_HALF_WIDTH
     plate = (
         cq.Workplane("YZ")
         .moveTo(-radius, base_z)
-        .lineTo(-radius, parameters.roll_axis_z)
-        .threePointArc(
-            (0, parameters.roll_axis_z + radius), (radius, parameters.roll_axis_z)
-        )
+        .lineTo(-radius, ROLL_AXIS_Z)
+        .threePointArc((0, ROLL_AXIS_Z + radius), (radius, ROLL_AXIS_Z))
         .lineTo(radius, base_z)
         .close()
-        .extrude(parameters.plate_thickness)
+        .extrude(PLATE_THICKNESS)
         .translate((x_start, 0, 0))
     )
-    offset = parameters.m3_hole_spacing / 2
+    offset = M3_HOLE_SPACING / 2
     points = [
-        (y, parameters.roll_axis_z + z)
-        for y in (-offset, offset)
-        for z in (-offset, offset)
+        (y, ROLL_AXIS_Z + z) for y in (-offset, offset) for z in (-offset, offset)
     ]
     through = (
         cq.Workplane("YZ")
         .pushPoints(points)
-        .circle((parameters.m3_clearance + parameters.hole_clearance) / 2)
-        .extrude(parameters.plate_thickness + 0.2)
+        .circle((M3_CLEARANCE + parameters.hole_clearance) / 2)
+        .extrude(PLATE_THICKNESS + 0.2)
         .translate((x_start - 0.1, 0, 0))
     )
     left_plate = x_start < 0
@@ -94,22 +77,22 @@ def _mount_plate(
     counterbores = (
         cq.Workplane("YZ")
         .pushPoints(points)
-        .circle((parameters.counterbore_diameter + parameters.hole_clearance) / 2)
+        .circle((COUNTERBORE_DIAMETER + parameters.hole_clearance) / 2)
         .extrude(6.1)
         .translate((counterbore_x - (0.1 if left_plate else 0), 0, 0))
     )
     recess_x = x_start + 7.0 if left_plate else x_start
     recess = (
         cq.Workplane("YZ")
-        .center(0, parameters.roll_axis_z)
-        .circle((parameters.axis_recess_diameter + parameters.hole_clearance) / 2)
+        .center(0, ROLL_AXIS_Z)
+        .circle((AXIS_RECESS_DIAMETER + parameters.hole_clearance) / 2)
         .extrude(2.1)
         .translate((recess_x, 0, 0))
     )
     return plate.cut(through.union(counterbores).union(recess))
 
 
-def _side_skin(parameters: Part8Parameters, y: float) -> cq.Workplane:
+def _side_skin(y: float) -> cq.Workplane:
     outer = (
         cq.Workplane("XZ")
         .moveTo(35.2, 3.4)
@@ -128,10 +111,10 @@ def _side_skin(parameters: Part8Parameters, y: float) -> cq.Workplane:
             includeCurrent=True,
         )
         .lineTo(34.4, -34.4)
-        .threePointArc((35.2, -34.0), (35.2, -33.6))
+        .threePointArc((34.965685, -34.165685), (35.2, -33.6))
         .close()
     )
-    thickness = parameters.cage_outer_y - parameters.cage_inner_y
+    thickness = CAGE_OUTER_Y - CAGE_INNER_Y
     skin = outer.extrude(thickness / 2, both=True).translate((0, y, 0))
     windows = (
         cq.Workplane("XZ")
@@ -157,7 +140,126 @@ def _side_skin(parameters: Part8Parameters, y: float) -> cq.Workplane:
             .translate((0, y, 0))
         )
     )
-    return skin.cut(windows)
+    skinned = skin.cut(windows).val()
+    outer_y = CAGE_OUTER_Y if y > 0 else -CAGE_OUTER_Y
+    outer_corner = [
+        edge
+        for edge in skinned.Edges()
+        if abs(edge.Center().x - 35.2) < 0.01
+        and abs(edge.Center().y - outer_y) < 0.01
+        and edge.Length() > 30
+    ]
+    # ponytail: 0.79 avoids degenerate facets where equal R0.8 blends meet.
+    return cq.Workplane(obj=skinned.fillet(0.79, outer_corner))
+
+
+def _left_bridge() -> cq.Workplane:
+    bridge = (
+        cq.Workplane("XZ")
+        .moveTo(-18.12, 1.5)
+        .lineTo(-4.133, 1.5)
+        .lineTo(-4.133, 4.3)
+        .lineTo(3.397, 4.3)
+        .lineTo(3.397, 6.972)
+        .spline(
+            [(-8.0, 5.9), (-12.746, 6.007), (-16.6, 12.261)],
+            includeCurrent=True,
+        )
+        .lineTo(-16.6, 18.0)
+        .lineTo(-18.12, 18.0)
+        .close()
+        .extrude(10.01, both=True)
+    )
+    return bridge.cut(_roof_opening())
+
+
+def _right_transition() -> cq.Workplane:
+    """Two-radius roll-ear transition measured from the source surfaces."""
+    transition = (
+        cq.Workplane("XZ")
+        .moveTo(27.08, 3.4)
+        .lineTo(35.2, 3.4)
+        .lineTo(35.2, 3.896)
+        .threePointArc((34.566163, 7.39957), (32.744913, 10.458924))
+        .threePointArc((28.557403, 17.494923), (27.1, 25.552))
+        .close()
+        .extrude(12.01, both=True)
+    )
+    return transition.cut(_roof_opening())
+
+
+def _roof_opening() -> cq.Workplane:
+    """Tapered servo-clearance opening through the cage roof."""
+    return (
+        cq.Workplane("XY")
+        .polyline(
+            [
+                (-4.133, 0.0),
+                (-0.048, 4.0),
+                (3.952, 4.0),
+                (11.1, 11.0),
+                (18.1, 11.0),
+                (18.1, 9.0),
+                (35.4, 9.0),
+                (35.4, -9.0),
+                (18.1, -9.0),
+                (18.1, -11.0),
+                (11.1, -11.0),
+                (3.952, -4.0),
+                (-0.048, -4.0),
+            ]
+        )
+        .close()
+        .extrude(1.1, both=True)
+        .translate((0, 0, 2.45))
+    )
+
+
+def _teardrop_cut(radius: float, z_start: float, depth: float) -> cq.Workplane:
+    cuts = None
+    tangent_x = 29.0 - 0.7 * radius
+    tangent_y = (1.0 - 0.7**2) ** 0.5 * radius
+    apex_x = 29.0 - 1.4295 * radius
+    for y in (-10.25, 10.25):
+        cut = (
+            cq.Workplane("XY")
+            .moveTo(apex_x, y)
+            .lineTo(tangent_x, y - tangent_y)
+            .threePointArc((29.0 + radius, y), (tangent_x, y + tangent_y))
+            .close()
+            .extrude(depth)
+            .translate((0, 0, z_start))
+        )
+        cuts = cut if cuts is None else cuts.union(cut)
+    return cuts
+
+
+def _bottom_mount() -> cq.Workplane:
+    floor = cq.Workplane("XY").box(21.1, 24.82, 2.2).translate((24.65, 0, -33.3))
+    rails = None
+    for sign in (-1, 1):
+        rail = (
+            cq.Workplane("YZ")
+            .polyline(
+                [
+                    (sign * 2.6, -32.8),
+                    (sign * 12.41, -32.8),
+                    (sign * 12.41, -30.3),
+                    (sign * 7.0, -30.3),
+                    (sign * 7.0, -31.0),
+                    (sign * 3.5, -32.0),
+                ]
+            )
+            .close()
+            .extrude(25.4)
+            .translate((9.8, 0, 0))
+        )
+        rails = rail if rails is None else rails.union(rail)
+    return (
+        floor.union(rails)
+        .cut(_teardrop_cut(2.0, -34.5, 1.8))
+        .cut(_teardrop_cut(1.0, -32.9, 2.7))
+    )
 
 
 def part8(parameters: Part8Parameters = Part8Parameters()) -> cq.Workplane:
@@ -165,36 +267,15 @@ def part8(parameters: Part8Parameters = Part8Parameters()) -> cq.Workplane:
     parameters.validate()
     left_plate = _mount_plate(
         parameters,
-        -parameters.plate_inner_x - parameters.plate_thickness,
+        -PLATE_INNER_X - PLATE_THICKNESS,
         1.5,
     )
-    right_plate = _mount_plate(parameters, parameters.plate_inner_x, 4.9)
-    side_center = (parameters.cage_inner_y + parameters.cage_outer_y) / 2
-    body = left_plate.union(right_plate)
-    body = body.union(_side_skin(parameters, -side_center)).union(
-        _side_skin(parameters, side_center)
-    )
+    right_plate = _mount_plate(parameters, PLATE_INNER_X, 4.9)
+    side_center = (CAGE_INNER_Y + CAGE_OUTER_Y) / 2
+    left_skin = _side_skin(-side_center)
+    right_skin = _side_skin(side_center)
 
-    left_bridge = (
-        cq.Workplane("XZ")
-        .polyline(
-            [
-                (-18.1, 1.5),
-                (-4.13, 1.5),
-                (-4.13, 4.3),
-                (3.4, 4.3),
-                (3.4, 6.97),
-                (-5.65, 5.99),
-                (-12.0, 5.93),
-                (-15.56, 8.59),
-                (-16.6, 11.3),
-                (-16.6, 18.0),
-                (-18.1, 18.0),
-            ]
-        )
-        .close()
-        .extrude(parameters.cage_inner_y, both=True)
-    )
+    left_bridge = _left_bridge()
     heel_profiles = {
         0: [
             (-27.1, 1.5),
@@ -240,20 +321,21 @@ def part8(parameters: Part8Parameters = Part8Parameters()) -> cq.Workplane:
         )
         for y in (-12.4, -10, -5, 0, 5, 10, 12.4)
     ]
-    left_heel = cq.Workplane(obj=cq.Solid.makeLoft(heel_wires, ruled=True))
-    right_quadrant = (
-        cq.Workplane("XZ")
-        .center(25.2, 3.896)
-        .circle(10.0)
-        .extrude(12.0, both=True)
-        .intersect(cq.Workplane("XY").box(10.0, 24.0, 10.0).translate((30.2, 0, 8.896)))
+    left_heel = cq.Workplane(obj=cq.Solid.makeLoft(heel_wires, ruled=True)).cut(
+        _roof_opening()
     )
-    right_bridge = cq.Workplane("XY").box(17.1, 24.8, 1.6).translate((26.65, 0, 4.1))
+    right_transition = _right_transition()
+    right_bridge = (
+        cq.Workplane("XY")
+        .box(17.1, 24.82, 1.62)
+        .translate((26.65, 0, 4.1))
+        .cut(_roof_opening())
+    )
     cage_roof = (
         cq.Workplane("XY")
-        .box(58.06, 24.8, 1.9)
+        .box(58.06, 24.82, 1.92)
         .translate((6.17, 0, 2.45))
-        .cut(cq.Workplane("XY").box(39.33, 8.0, 2.1).translate((15.535, 0, 2.45)))
+        .cut(_roof_opening())
     )
     motor_rails = (
         cq.Workplane("XY")
@@ -263,20 +345,23 @@ def part8(parameters: Part8Parameters = Part8Parameters()) -> cq.Workplane:
             cq.Workplane("XY").box(2.7, 3.0, 25.5).translate((-11.95, -10.9, -11.25))
         )
     )
-    bottom_bridge = cq.Workplane("XY").box(21.1, 24.8, 2.2).translate((24.65, 0, -33.3))
+    bottom_mount = _bottom_mount()
     foot = (
         cq.Workplane("XY")
         .box(7.0, 7.37, 3.428386)
         .translate((15.6, -11.385, -36.114193))
     )
     body = (
-        body.union(left_bridge)
-        .union(left_heel)
-        .union(right_quadrant)
+        cage_roof.union(left_bridge)
         .union(right_bridge)
-        .union(cage_roof)
+        .union(right_transition)
+        .union(left_plate)
+        .union(right_plate)
+        .union(left_heel)
+        .union(left_skin)
+        .union(right_skin)
         .union(motor_rails)
-        .union(bottom_bridge)
+        .union(bottom_mount)
         .union(foot)
     )
 
