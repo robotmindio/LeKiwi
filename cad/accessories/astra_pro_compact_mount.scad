@@ -25,11 +25,12 @@ base_thickness = 5.0;
 saddle_width = 37.0;
 saddle_depth = 20.0;
 saddle_thickness = boss_projection + boss_clearance + interface_skin;
-support_height = 10.0;
+saddle_half_y = saddle_depth / 2 * cos(pitch);
+saddle_height_delta = saddle_depth / 2 * sin(pitch);
 
 assert(m3_spacing == 44.0);
-assert(camera_contact_height > support_height);
 assert(saddle_thickness - boss_projection - boss_clearance >= 2.0);
+assert(camera_contact_height - saddle_height_delta - base_thickness >= saddle_thickness);
 
 module saddle_frame() {
     translate([0, 0, camera_contact_height])
@@ -37,15 +38,34 @@ module saddle_frame() {
             children();
 }
 
+module support_wedge() {
+    polyhedron(
+        points=[
+            [-saddle_width / 2, -saddle_half_y, base_thickness],
+            [ saddle_width / 2, -saddle_half_y, base_thickness],
+            [ saddle_width / 2,  saddle_half_y, base_thickness],
+            [-saddle_width / 2,  saddle_half_y, base_thickness],
+            [-saddle_width / 2, -saddle_half_y, camera_contact_height + saddle_height_delta],
+            [ saddle_width / 2, -saddle_half_y, camera_contact_height + saddle_height_delta],
+            [ saddle_width / 2,  saddle_half_y, camera_contact_height - saddle_height_delta],
+            [-saddle_width / 2,  saddle_half_y, camera_contact_height - saddle_height_delta]
+        ],
+        faces=[
+            [0, 3, 2, 1],
+            [4, 5, 6, 7],
+            [0, 1, 5, 4],
+            [1, 2, 6, 5],
+            [2, 3, 7, 6],
+            [3, 0, 4, 7]
+        ]
+    );
+}
+
 difference() {
     union() {
         translate([-base_width / 2, -base_depth / 2, 0])
             cube([base_width, base_depth, base_thickness]);
-        translate([-saddle_width / 2, -saddle_depth / 2, base_thickness])
-            cube([saddle_width, saddle_depth, support_height - base_thickness]);
-        saddle_frame()
-            translate([-saddle_width / 2, -saddle_depth / 2, -saddle_thickness])
-                cube([saddle_width, saddle_depth, saddle_thickness]);
+        support_wedge();
     }
 
     // Camera boss relief, open at the tilted top face.
