@@ -1,26 +1,25 @@
-"""Exact SO-101 follower-wrist geometry for CadQuery.
+"""CadQuery access to the SO-101 follower wrist.
 
-The three source STEP files retain the upstream geometry and their shared
-coordinate system.  Use :func:`load_part` as the starting solid for a new
-CadQuery version rather than modifying the pinned upstream submodule.
+Part 8 is rebuilt from native CadQuery features; the other two components
+retain the upstream geometry and shared coordinate system.
 """
 
 from pathlib import Path
 
 import cadquery as cq
 
+from so101_part8 import part8
+
 
 SOURCE_ROOT = (
-    Path(__file__).resolve().parents[1]
-    / "upstream"
-    / "SO-ARM100"
-    / "STEP"
-    / "SO101"
+    Path(__file__).resolve().parents[1] / "upstream" / "SO-ARM100" / "STEP" / "SO101"
 )
 PARTS = {
     "motor_holder": SOURCE_ROOT / "Motor_holder_SO101_Wrist.step",
     "flex_body": SOURCE_ROOT / "Wrist_Roll_Pitch_SO101.step",
-    "roll_carrier": SOURCE_ROOT / "Follower_Specific" / "Wrist_Roll_Follower_SO101.step",
+    "roll_carrier": SOURCE_ROOT
+    / "Follower_Specific"
+    / "Wrist_Roll_Follower_SO101.step",
 }
 
 
@@ -35,9 +34,10 @@ def load_part(name: str) -> cq.Shape:
     return cq.importers.importStep(str(source)).val()
 
 
-def wrist_joint() -> cq.Assembly:
-    """Return the unmodified follower wrist in its upstream STEP placement."""
+def wrist_joint(*, native_part8: bool = True) -> cq.Assembly:
+    """Return the follower wrist, using native part 8 by default."""
     assembly = cq.Assembly(name="so101_follower_wrist")
     for name in PARTS:
-        assembly.add(load_part(name), name=name)
+        shape = part8() if native_part8 and name == "flex_body" else load_part(name)
+        assembly.add(shape, name=name)
     return assembly
