@@ -8,7 +8,9 @@ camera_contact_height = 15.5;
 boss_length = 26.0;
 boss_depth = 7.9;
 boss_projection = 6.0;
-boss_clearance = 0.3; // ponytail: increase only if the printed pocket is tight.
+boss_length_clearance = 0.15; // ponytail: tune these two per-side clearances to the print.
+boss_depth_clearance = 0.10;  // Tighter along the camera-to-USB direction.
+boss_projection_clearance = 0.30;
 m2_spacing = 18.0;
 m2_clearance = 2.4;
 m2_head_diameter = 4.5;
@@ -17,22 +19,30 @@ interface_skin = 2.4;
 
 // Physical mounting pair in the clear space between two wheels.
 m3_spacing = 44.0;
-m3_clearance = 3.6;
-m3_head_clearance = 6.5;
+m3_insert_length = 5.7;
+m3_insert_hole = 4.0; // ponytail: tune to the insert and printer; 4.2 mm if 4.0 prints too tight.
+m3_insert_depth = m3_insert_length + 1.0;
+m3_screw_relief = 3.4;
+m3_boss_diameter = 10.0;
+m3_boss_height = 8.0;
 base_width = 54.0;
 base_depth = 30.0;
 base_thickness = 5.0;
 
 saddle_width = 37.0;
 saddle_depth = 20.0;
-saddle_thickness = boss_projection + boss_clearance + interface_skin;
+saddle_thickness = boss_projection + boss_projection_clearance + interface_skin;
 saddle_half_y = saddle_depth / 2 * cos(pitch);
 saddle_height_delta = saddle_depth / 2 * sin(pitch);
 
 assert(m3_spacing == 44.0);
 assert(m2_head_access > m2_head_diameter);
-assert(saddle_thickness - boss_projection - boss_clearance >= 2.0);
+assert(boss_length_clearance > 0 && boss_depth_clearance > 0);
+assert(saddle_thickness - boss_projection - boss_projection_clearance >= 2.0);
 assert(camera_contact_height - saddle_height_delta - base_thickness >= saddle_thickness);
+assert(m3_insert_depth >= m3_insert_length);
+assert(m3_boss_height > m3_insert_depth);
+assert((m3_boss_diameter - m3_insert_hole) / 2 >= 2.5);
 
 module saddle_frame() {
     translate([0, 0, camera_contact_height])
@@ -68,19 +78,22 @@ difference() {
         translate([-base_width / 2, -base_depth / 2, 0])
             cube([base_width, base_depth, base_thickness]);
         support_wedge();
+        for (x = [-m3_spacing / 2, m3_spacing / 2])
+            translate([x, 0, 0])
+                cylinder(h=m3_boss_height, d=m3_boss_diameter);
     }
 
     // Camera boss relief, open at the tilted top face.
     saddle_frame()
         translate([
-            -(boss_length + 2 * boss_clearance) / 2,
-            -(boss_depth + 2 * boss_clearance) / 2,
-            -(boss_projection + boss_clearance)
+            -(boss_length + 2 * boss_length_clearance) / 2,
+            -(boss_depth + 2 * boss_depth_clearance) / 2,
+            -(boss_projection + boss_projection_clearance)
         ])
             cube([
-                boss_length + 2 * boss_clearance,
-                boss_depth + 2 * boss_clearance,
-                boss_projection + boss_clearance + 0.1
+                boss_length + 2 * boss_length_clearance,
+                boss_depth + 2 * boss_depth_clearance,
+                boss_projection + boss_projection_clearance + 0.1
             ]);
 
     // M2 screws enter from below; the larger bores stop at the saddle skin.
@@ -93,11 +106,11 @@ difference() {
                 cylinder(h=30 - saddle_thickness + 0.05, d=m2_head_access);
     }
 
-    // Insert these M3 screws before attaching the camera, then add locknuts below.
+    // Heat-set M3 inserts from the boss tops; screws enter upward from the plate.
     for (x = [-m3_spacing / 2, m3_spacing / 2]) {
         translate([x, 0, -0.1])
-            cylinder(h=30, d=m3_clearance);
-        translate([x, 0, base_thickness - 2.2])
-            cylinder(h=30, d=m3_head_clearance);
+            cylinder(h=m3_boss_height - m3_insert_depth + 0.2, d=m3_screw_relief);
+        translate([x, 0, m3_boss_height - m3_insert_depth])
+            cylinder(h=m3_insert_depth + 0.1, d=m3_insert_hole);
     }
 }

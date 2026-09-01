@@ -15,15 +15,17 @@ the Arducam configuration represented in `LeKiwi.FCStd`.
 
 [`astra_pro_compact_mount.scad`](astra_pro_compact_mount.scad) is a direct,
 low-profile adapter for the clear space between two wheels. It keeps the camera
-upright at 8 degrees downward pitch. The base has two M3 holes at 44 mm centres;
+upright at 8 degrees downward pitch. The base has two M3 insert bosses at 44 mm centres;
 the camera saddle has two M2 holes at 18.0 mm centres and a
-26.6 x 8.5 x 6.3 mm pocket for the measured 26.0 x 7.9 x 6.0 mm raised
+26.3 x 8.1 x 6.3 mm pocket for the measured 26.0 x 7.9 x 6.0 mm raised
 underside boss. The M2 head-access bores are 4.7 mm for the measured 4.5 mm
 screw heads.
 
-The camera contact plane is only 15.5 mm above the LeKiwi plate. Insert the two
-M3 screws into the adapter first, attach the camera from below using its M2x8
-screws, then fit the assembly to LeKiwi with locknuts. Print flat on its base:
+The camera contact plane is only 15.5 mm above the LeKiwi plate. Heat-set two
+M3x5.7 mm inserts into the boss tops, attach the camera from below using its
+M2x8 screws, then drive the M3 screws upward through the LeKiwi plate. The
+insert socket is 4.0 mm by default; tune `m3_insert_hole` if the actual insert
+or printer needs a different fit. Print flat on its base:
 
 ```sh
 openscad --export-format binstl -o 3DPrintMeshes/astra_pro_compact_mount.stl cad/accessories/astra_pro_compact_mount.scad
