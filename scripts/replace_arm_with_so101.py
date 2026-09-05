@@ -129,6 +129,9 @@ def replace_arm(model: ET.Element) -> None:
     for material in source.findall("material"):
         if material.get("name") not in existing_materials:
             model.append(copy.deepcopy(material))
+    arm_material = ET.Element("material", {"name": "so101_yellow"})
+    ET.SubElement(arm_material, "color", {"rgba": "1.0 0.82 0.12 1.0"})
+    model.append(arm_material)
 
     xacro_model = model.find("{http://www.ros.org/wiki/xacro}property") is not None
     mesh_prefix = "${mesh_dir}/so101/" if xacro_model else "meshes/so101/"
@@ -139,6 +142,11 @@ def replace_arm(model: ET.Element) -> None:
             link.remove(invalid_origin)
         if source_link.get("name") == "gripper_frame_link":
             link.remove(link.find("inertial"))
+        for visual in link.findall("visual"):
+            material = visual.find("material")
+            if material is None:
+                material = ET.SubElement(visual, "material")
+            material.set("name", "so101_yellow")
         for mesh in link.findall(".//mesh"):
             name = Path(mesh.get("filename")).name
             if name == "wrist_roll_pitch_so101_v2.stl":

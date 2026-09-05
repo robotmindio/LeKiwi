@@ -53,6 +53,11 @@ for shift in (0, 0.02):
     assert tool.A24 > actual.A24 + 100
 
 generated = ET.parse("URDF/LeKiwi.urdf.xacro").getroot()
+yellow = generated.find("material[@name='so101_yellow']/color")
+assert yellow is not None and yellow.get("rgba") == "1.0 0.82 0.12 1.0"
+assert all(visual.find("material").get("name") == "so101_yellow"
+           for link in generated.findall("link") if link.get("name").startswith("so101_")
+           for visual in link.findall("visual"))
 assert all(abs(getattr(shoulder_pose(generated), key) - getattr(shoulder_pose(model), key)) < 1e-6
            for key in ("A14", "A24", "A34"))
 assert all(abs(a - b) < 1e-6 for a, b in zip(

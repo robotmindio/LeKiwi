@@ -91,6 +91,20 @@ for joint in list(generated_root.findall("joint")):
     if joint.get("name") in ACCESSORY_JOINTS:
         generated_root.remove(joint)
 baseline_links = {link.get("name"): link for link in baseline_root.findall("link")}
+# The SO-101 visual override deliberately paints all its parts yellow. Restore
+# only this presentation override for the structural baseline comparison; the
+# arm-mount verifier asserts the emitted yellow material itself.
+for link in generated_root.findall("link"):
+    if not link.get("name", "").startswith("so101_"):
+        continue
+    baseline_visuals = baseline_links[link.get("name")].findall("visual")
+    visuals = link.findall("visual")
+    assert len(visuals) == len(baseline_visuals)
+    for visual, baseline_visual in zip(visuals, baseline_visuals):
+        visual.find("material").set("name", baseline_visual.find("material").get("name"))
+for material in list(generated_root.findall("material")):
+    if material.get("name") == "so101_yellow":
+        generated_root.remove(material)
 for link in generated_root.findall("link"):
     for kind in ("visual", "collision"):
         mesh = link.find(f"{kind}/geometry/mesh")
