@@ -10,7 +10,7 @@
 - 10 canonical URDF mesh references where the STEP and URDF exports differ by more than 2%; and
 - the RobotSkin LD06 base plus lidar body and compact Astra Pro mount.
 
-The final 38-link Xacro replaces that reference assembly's legacy arm subtree with the pinned SO-101 model described below. The exact source and validation result for every retained CAD link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount and the compact Astra mount are regenerated from their OpenSCAD sources before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
+The final 36-link Xacro replaces that reference assembly's legacy arm subtree with the pinned SO-101 model described below and omits the removed Pi case. The exact source and validation result for every retained CAD link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount and the compact Astra mount are regenerated from their OpenSCAD sources before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
 
 ## Arm source
 
@@ -40,11 +40,18 @@ since the last export; the ROS vendor script runs this check before copying.
 
 The SO-101 base placement is derived from the original assembly's shoulder-pan
 datum, not copied from the legacy base-part origin. The importer composes the
-CAD joint chain and aligns the shoulder centre and physical pan/lift axes.
+CAD joint chain and preserves the shoulder centre and bending plane, then
+turns the installed SO-101 outward toward CAD +Y (ROS +X), the arm/fixed-camera
+side confirmed by the operator. This half-turn is not a calibration offset.
 The pan-frame orientations themselves differ between SO-100 and SO-101;
 copying their orientations turns the arm's bending plane by a quarter turn.
 Moving that datum in the assembly therefore moves the exported arm correctly.
 Both sensor brackets attach to the upper plate's top surface at local z=7 mm.
+The lidar reuses the removed Pi case's screw pair at x=+/-20, y=-100 mm,
+plus the corresponding y=-80 mm row. Its bracket faces rearward; the lidar
+centre is x=-5, y=-135 mm. `verify_sensor_mounts.py` checks all four fasteners
+against the actual upper-plate contours. The historical Pi case mounting
+datum is retained in `URDF/LeKiwi.urdf`, not as installed case geometry.
 
 Initialize it after cloning, then check the expected source bundle:
 

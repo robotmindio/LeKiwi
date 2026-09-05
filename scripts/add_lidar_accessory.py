@@ -2,6 +2,8 @@
 
 import re
 import sys
+import math
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import FreeCAD as App
@@ -25,10 +27,14 @@ for source, mesh, name in (
     if not mesh.is_file():
         raise RuntimeError(f"missing generated {name} mesh: {mesh}")
 
-# CAD coordinates: +Y is forward. The RobotSkin fasteners at (-35, +/-20)
-# and (-15, +/-20) mm land on the installed LeKiwi 20 mm plate grid.
-MOUNT_ORIGIN = (0.055, 0.080, 0.007)
-MOUNT_RPY = (0, 0, 0)
+# CAD +Y is the arm/fixed-camera side. Reuse the removed Pi case's rear
+# screw pair from the historical assembly: x=+/-20, y=-100 mm. Turning the
+# RobotSkin bracket -90 degrees sends the sensor out past the rear edge.
+reference = ET.parse("URDF/LeKiwi.urdf").getroot()
+pi_mount = reference.find("joint[@name='base_plate_layer2-v3_Rigid-22']/origin")
+pi_x, pi_y, pi_z = map(float, pi_mount.get("xyz").split())
+MOUNT_ORIGIN = (pi_x + 0.020, round(pi_y - 0.015, 6), round(pi_z, 6))
+MOUNT_RPY = (0, 0, -math.pi / 2)
 LD06_CENTER = (0.020, -0.005, 0.012)
 LD06_RADIUS_MM = 24.5
 LD06_HEIGHT_MM = 39
@@ -129,6 +135,18 @@ links = document.getObject("LeKiwiLinks")
 joints = document.getObject("LeKiwiJoints")
 if not links or not joints:
     raise RuntimeError("missing LeKiwi robot metadata")
+
+# Keep the historical reference parts, but do not export the removed Pi case
+# as installed hardware. Their old mounting datum remains in the source URDF.
+removed = {"Bottom-V2-v3", "Top-V2-v2"}
+for joint in list(joints.Group):
+    if joint.Child in removed:
+        document.removeObject(joint.Name)
+for link in list(links.Group):
+    if link.UrdfName in removed:
+        for part in link.CadParts:
+            part.Visibility = False
+        document.removeObject(link.Name)
 
 for name in (
     "Link_robotskin_lidar_mount",

@@ -16,6 +16,7 @@ def hashes(root, paths):
 
 def snapshot(root):
     inputs = [root / path for path in (
+        "URDF/LeKiwi.urdf",
         "cad/assembly/LeKiwi.FCStd", "cad/accessories/astra_pro_compact_mount.scad",
         "cad/upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad",
         "cad/upstream/RobotSkin/scad/lib/robotskin.scad",

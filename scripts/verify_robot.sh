@@ -8,6 +8,7 @@ cd "$project_dir"
 "${CADQUERY_PYTHON:-python3}" cad/cadquery/test_so101_wrist.py
 ./scripts/export_robot.sh
 ./scripts/run_freecad_script.sh scripts/verify_arm_mount.py
+./scripts/run_freecad_script.sh scripts/verify_sensor_mounts.py
 python3 scripts/verify_xacro.py URDF/LeKiwi.urdf URDF/LeKiwi.urdf.xacro
 ./scripts/verify_cad_migration.sh
 ./scripts/verify_native_part_sources.sh

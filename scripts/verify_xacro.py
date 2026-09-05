@@ -53,7 +53,7 @@ expected_joints = {
         "base_plate_layer2-v3", "astra_pro_compact_mount", "0 0.08 0.007", "0 0 0"
     ),
     "robotskin_lidar_mount_joint": (
-        "base_plate_layer2-v3", "robotskin_lidar_mount", "0.055 0.08 0.007", "0 0 0"
+        "base_plate_layer2-v3", "robotskin_lidar_mount", "0.0 -0.115 0.007", "0 0 -1.5707963267948966"
     ),
     "ld06_body_mount": (
         "robotskin_lidar_mount", "ld06_body", "0.02 -0.005 0.012", "0 0 0"
@@ -77,6 +77,13 @@ baseline_joint = baseline_root.find("joint[@name='so101_mount']")
 baseline_joint.find("origin").attrib = dict(
     joints["so101_mount"].find("origin").attrib
 )
+removed = {"Bottom-V2-v3", "Top-V2-v2"}
+assert not removed & links.keys(), "removed Pi case must not return on export"
+for element in list(baseline_root):
+    if (element.tag == "link" and element.get("name") in removed) or (
+        element.tag == "joint" and element.find("child").get("link") in removed
+    ):
+        baseline_root.remove(element)
 for link in list(generated_root.findall("link")):
     if link.get("name") in ACCESSORY_LINKS:
         generated_root.remove(link)

@@ -92,17 +92,20 @@ def replace_arm(model: ET.Element) -> None:
     if mount is None or mount.find("child").get("link") != "Base_08q-v1":
         raise ValueError("input does not contain the expected SO-100 arm mount")
     # Base-part origins are not interchangeable. Preserve the assembly's
-    # shoulder centre AND pan/lift axes. The SO-100 and SO-101 pan frames
-    # differ by a quarter turn even when their physical axes are aligned.
+    # shoulder centre and bending plane. The installed SO-101 faces outward
+    # on the fixed-camera side (CAD +Y), opposite the legacy reference arm.
+    # This is mounting geometry, not a motor-zero calibration correction.
 
     source = ET.parse(SO101_URDF).getroot()
     target_parent = mount.find("parent").get("link")
     target_pan = joint_pose(model, "arm_shoulder_pan", target_parent)
     source_pan = joint_pose(source, "shoulder_pan", "base_link")
+    import FreeCAD as App
     placement = shoulder_basis(model, "arm_", target_parent).multiply(
+        App.Rotation(App.Vector(0, 0, 1), 180).toMatrix()
+    ).multiply(
         shoulder_basis(source, "", "base_link").inverse()
     )
-    import FreeCAD as App
     offset = placement.multVec(App.Vector(source_pan.A14, source_pan.A24, source_pan.A34))
     placement.A14, placement.A24, placement.A34 = (
         target_pan.A14 - offset.x, target_pan.A24 - offset.y, target_pan.A34 - offset.z
