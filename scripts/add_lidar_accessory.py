@@ -27,14 +27,14 @@ for source, mesh, name in (
 
 # CAD coordinates: +Y is forward. The RobotSkin fasteners at (-35, +/-20)
 # and (-15, +/-20) mm land on the installed LeKiwi 20 mm plate grid.
-MOUNT_ORIGIN = (0.055, 0.080, 0)
+MOUNT_ORIGIN = (0.055, 0.080, 0.007)
 MOUNT_RPY = (0, 0, 0)
 LD06_CENTER = (0.020, -0.005, 0.012)
 LD06_RADIUS_MM = 24.5
 LD06_HEIGHT_MM = 39
 
 # The compact mount is centred on the installed 44 mm M3 pair in the front bay.
-ASTRA_MOUNT_ORIGIN = (0, 0.080, 0)
+ASTRA_MOUNT_ORIGIN = (0, 0.080, 0.007)
 ASTRA_MOUNT_RPY = (0, 0, 0)
 
 
@@ -161,7 +161,7 @@ add_joint(
     document,
     joints,
     "robotskin_lidar_mount_joint",
-    "base_plate_layer1-v5",
+    "base_plate_layer2-v3",
     "robotskin_lidar_mount",
     MOUNT_ORIGIN,
     MOUNT_RPY,
@@ -198,7 +198,7 @@ add_joint(
     document,
     joints,
     "astra_pro_compact_mount_joint",
-    "base_plate_layer1-v5",
+    "base_plate_layer2-v3",
     "astra_pro_compact_mount",
     ASTRA_MOUNT_ORIGIN,
     ASTRA_MOUNT_RPY,

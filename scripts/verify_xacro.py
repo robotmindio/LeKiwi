@@ -25,6 +25,11 @@ def normalise(element):
         attributes["filename"] = attributes["filename"].replace(
             "meshes/reauthored/", "meshes/"
         )
+        # Native part 8 retains the official mesh frame and is checked against
+        # its STEP reference by test_so101_wrist.py.
+        attributes["filename"] = attributes["filename"].replace(
+            "so101/native_wrist_flex.stl", "so101/wrist_roll_pitch_so101_v2.stl"
+        )
     children = [normalise(child) for child in element]
     return (
         element.tag,
@@ -45,16 +50,13 @@ if not ACCESSORY_LINKS <= links.keys() or not ACCESSORY_JOINTS <= joints.keys():
     raise SystemExit("generated Xacro is missing a sensor accessory")
 expected_joints = {
     "astra_pro_compact_mount_joint": (
-        "base_plate_layer1-v5", "astra_pro_compact_mount", "0 0.08 0", "0 0 0"
+        "base_plate_layer2-v3", "astra_pro_compact_mount", "0 0.08 0.007", "0 0 0"
     ),
     "robotskin_lidar_mount_joint": (
-        "base_plate_layer1-v5", "robotskin_lidar_mount", "0.055 0.08 0", "0 0 0"
+        "base_plate_layer2-v3", "robotskin_lidar_mount", "0.055 0.08 0.007", "0 0 0"
     ),
     "ld06_body_mount": (
         "robotskin_lidar_mount", "ld06_body", "0.02 -0.005 0.012", "0 0 0"
-    ),
-    "so101_mount": (
-        "base_plate_layer2-v3", "so101_base_link", "0.04 0.08 0.007", "0 0 0"
     ),
 }
 for name, (parent, child, xyz, rpy) in expected_joints.items():

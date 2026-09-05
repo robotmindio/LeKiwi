@@ -28,6 +28,19 @@ CadQuery sketches and features in `cadquery/so101_part8.py`; the STEP remains on
 the dimensional reference. Run `python cad/cadquery/test_so101_wrist.py` with
 CadQuery installed to check the native solid and the unchanged reference parts.
 
+The export uses that native part 8 as `meshes/so101/native_wrist_flex.stl`, in
+the official wrist mesh frame and converted from millimetres to metres.
+All other arm meshes are refreshed from the pinned upstream source on every
+export. `export_robot.sh` requires CadQuery; set `CADQUERY_PYTHON` to the Python
+executable of an existing CadQuery environment if it is not installed in the
+default interpreter. `verify_robot.sh` runs its STEP-fidelity check first.
+
+The SO-101 base placement is derived from the original assembly's shoulder-pan
+datum, not copied from the legacy base-part origin. The importer composes the
+CAD joint chain and removes the official SO-101 base-to-shoulder transform.
+Moving that datum in the assembly therefore moves the exported arm correctly.
+Both sensor brackets attach to the upper plate's top surface at local z=7 mm.
+
 Initialize it after cloning, then check the expected source bundle:
 
 ```sh

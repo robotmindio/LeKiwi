@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 
 import cadquery as cq
+from OCP.BRepMesh import BRepMesh_IncrementalMesh
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -34,6 +35,9 @@ def section_area(shape: cq.Shape, plane: str, height: float) -> float:
 def sampled_surface_distances(
     source: cq.Shape, target: cq.Shape, count: int = 256
 ) -> list[float]:
+    # Relative meshing can leave the reference STEP's small blend faces
+    # untriangulated. Mesh in absolute millimetres before sampling the surface.
+    BRepMesh_IncrementalMesh(source.wrapped, 0.05, False, 0.3, True)
     vertices, triangles = source.tessellate(0.2, 0.3)
     distances = []
     for index in range(count):

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import copy
+import math
 import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
@@ -13,8 +14,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SO101_URDF = ROOT / "cad/upstream/SO-ARM100/Simulation/SO101/so101_new_calib.urdf"
 OLD_MOUNT_JOINT = "base_plate_layer2-v3_Rigid-42"
-SO101_MOUNT_XYZ = "0.04 0.08 0.007"
-SO101_MOUNT_RPY = "0 0 0"
 LINK_NAMES = {
     "base_link": "so101_base_link",
     "shoulder_link": "so101_shoulder_link",
@@ -56,6 +55,33 @@ def replace_arm(model: ET.Element) -> None:
     mount = model.find(f"joint[@name='{OLD_MOUNT_JOINT}']")
     if mount is None or mount.find("child").get("link") != "Base_08q-v1":
         raise ValueError("input does not contain the expected SO-100 arm mount")
+    # Base-part origins are not interchangeable. Preserve the assembly's
+    # shoulder axis by composing its complete fixed chain, then remove the
+    # official SO-101 base-to-shoulder transform to locate the new base.
+    import FreeCAD as App
+    from scripts.cad_utils import urdf_matrix
+
+    source = ET.parse(SO101_URDF).getroot()
+    parents = {joint.find("child").get("link"): joint for joint in model.findall("joint")}
+    shoulder = model.find("joint[@name='arm_shoulder_pan']")
+    frame = shoulder.find("child").get("link")
+    target_parent = mount.find("parent").get("link")
+    placement = App.Matrix()
+    visited = set()
+    while frame != target_parent:
+        if frame in visited or frame not in parents:
+            raise ValueError("shoulder is not connected to the arm mounting plate")
+        visited.add(frame)
+        joint = parents[frame]
+        placement = urdf_matrix(joint.find("origin")).multiply(placement)
+        frame = joint.find("parent").get("link")
+    official_pan = source.find("joint[@name='shoulder_pan']/origin")
+    placement = placement.multiply(urdf_matrix(official_pan).inverse())
+    yaw, pitch, roll = App.Rotation(placement).getYawPitchRoll()
+    mount_origin = {
+        "xyz": " ".join(f"{value / 1000:.12g}" for value in (placement.A14, placement.A24, placement.A34)),
+        "rpy": " ".join(f"{math.radians(value):.12g}" for value in (roll, pitch, yaw)),
+    }
     old_links = descendants(model, "Base_08q-v1")
     for link in list(model.findall("link")):
         if link.get("name") in old_links:
@@ -64,7 +90,6 @@ def replace_arm(model: ET.Element) -> None:
         if joint.find("child").get("link") in old_links:
             model.remove(joint)
 
-    source = ET.parse(SO101_URDF).getroot()
     existing_materials = {
         material.get("name") for material in model.findall("material")
     }
@@ -82,16 +107,19 @@ def replace_arm(model: ET.Element) -> None:
         if source_link.get("name") == "gripper_frame_link":
             link.remove(link.find("inertial"))
         for mesh in link.findall(".//mesh"):
-            mesh.set("filename", mesh_prefix + Path(mesh.get("filename")).name)
+            name = Path(mesh.get("filename")).name
+            if name == "wrist_roll_pitch_so101_v2.stl":
+                name = "native_wrist_flex.stl"
+            mesh.set("filename", mesh_prefix + name)
         model.append(link)
 
     mount = ET.Element("joint", {"name": "so101_mount", "type": "fixed"})
     ET.SubElement(
         mount,
         "origin",
-        {"xyz": SO101_MOUNT_XYZ, "rpy": SO101_MOUNT_RPY},
+        mount_origin,
     )
-    ET.SubElement(mount, "parent", {"link": "base_plate_layer2-v3"})
+    ET.SubElement(mount, "parent", {"link": target_parent})
     ET.SubElement(mount, "child", {"link": "so101_base_link"})
     model.append(mount)
 
@@ -109,6 +137,19 @@ def main() -> int:
     source, output = map(Path, sys.argv[1:])
     tree = ET.parse(source)
     replace_arm(tree.getroot())
+    # Refresh the official mesh bundle every export, including changed upstream
+    # assets. Previously only the XML was regenerated and old meshes survived.
+    assets = SO101_URDF.parent / "assets"
+    mesh_files = {Path(mesh.get("filename")).name for mesh in tree.findall(".//mesh")
+                  if "/so101/" in mesh.get("filename", "")}
+    contents = {name: (
+        ROOT / "cad/generated/so101" / name if name == "native_wrist_flex.stl"
+        else assets / name
+    ).read_bytes() for name in mesh_files}
+    for name, content in contents.items():
+        destination = output.parent / "meshes/so101" / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(content)
     ET.indent(tree, space="    ")
     output.parent.mkdir(parents=True, exist_ok=True)
     tree.write(output, encoding="utf-8", xml_declaration=True)

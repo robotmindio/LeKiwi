@@ -7,4 +7,4 @@ temporary=$(mktemp URDF/.LeKiwi.XXXXXX.urdf.xacro)
 trap 'rm -f "$temporary"' EXIT
 
 ./scripts/run_freecad_script.sh scripts/export_xacro.py cad/assembly/LeKiwi.FCStd "$temporary"
-python3 scripts/replace_arm_with_so101.py "$temporary" URDF/LeKiwi.urdf.xacro
+./scripts/run_freecad_script.sh scripts/replace_arm_with_so101.py "$temporary" URDF/LeKiwi.urdf.xacro
