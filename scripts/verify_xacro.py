@@ -50,7 +50,7 @@ if not ACCESSORY_LINKS <= links.keys() or not ACCESSORY_JOINTS <= joints.keys():
     raise SystemExit("generated Xacro is missing a sensor accessory")
 expected_joints = {
     "astra_pro_compact_mount_joint": (
-        "base_plate_layer2-v3", "astra_pro_compact_mount", "0 0.08 0.007", "0 0 0"
+        "base_plate_layer2-v3", "astra_pro_compact_mount", "-0.1 0 0.007", "0 0 1.5707963267948966"
     ),
     "robotskin_lidar_mount_joint": (
         "base_plate_layer2-v3", "robotskin_lidar_mount", "0.0 -0.115 0.007", "0 0 -1.5707963267948966"

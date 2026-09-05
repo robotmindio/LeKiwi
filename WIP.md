@@ -8,9 +8,10 @@ Operator correction: forward is the arm/fixed-camera side. SO-101 now faces
 outward (+Y CAD / +X ROS), preserving its shoulder centre with a fixed half-turn.
 Removed the still-exported Pi case and moved the lidar to its rear screw pair;
 all four RobotSkin fasteners match actual plate holes. The scan centre is
-135 mm rearward and 5 mm left in ROS. Astra belongs on the left side as pictured;
-its 44 mm bracket spacing does not match the nearby 40 mm plate pair. Asked
-whether it uses existing or newly drilled holes before assigning an exact pose.
+135 mm rearward and 5 mm left in ROS. The operator identified the Astra's
+existing left-edge screw pair in a second photo: CAD x=-100, y=+/-20 mm.
+Moved its bracket there, facing outward left, and corrected its screw spacing
+from 44 to 40 mm. The plate-hole verifier now checks both sensor brackets.
 
 Verified: native wrist STEP-fidelity checks, shoulder centre/pan/lift-axis preservation and
 propagation of a 20 mm assembly edit, Xacro semantics, chassis mesh fidelity,

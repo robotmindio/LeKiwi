@@ -39,9 +39,10 @@ LD06_CENTER = (0.020, -0.005, 0.012)
 LD06_RADIUS_MM = 24.5
 LD06_HEIGHT_MM = 39
 
-# The compact mount is centred on the installed 44 mm M3 pair in the front bay.
-ASTRA_MOUNT_ORIGIN = (0, 0.080, 0.007)
-ASTRA_MOUNT_RPY = (0, 0, 0)
+# Operator-selected existing left-edge pair: CAD x=-100, y=+/-20 mm.
+# Local +Y faces outward to CAD -X (ROS +Y); keep the saddle's 8-degree pitch.
+ASTRA_MOUNT_ORIGIN = (-0.100, 0, 0.007)
+ASTRA_MOUNT_RPY = (0, 0, math.pi / 2)
 
 
 def object_name(prefix, name):
