@@ -10,7 +10,7 @@
 - 10 canonical URDF mesh references where the STEP and URDF exports differ by more than 2%; and
 - the RobotSkin LD06 base plus lidar body and compact Astra Pro mount.
 
-The final 37-link Xacro replaces that reference assembly's legacy arm subtree with the pinned SO-101 model described below. The exact source and validation result for every retained CAD link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount and the compact Astra mount are regenerated from their OpenSCAD sources before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
+The final 38-link Xacro replaces that reference assembly's legacy arm subtree with the pinned SO-101 model described below. The exact source and validation result for every retained CAD link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount and the compact Astra mount are regenerated from their OpenSCAD sources before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
 
 ## Arm source
 
@@ -37,7 +37,9 @@ default interpreter. `verify_robot.sh` runs its STEP-fidelity check first.
 
 The SO-101 base placement is derived from the original assembly's shoulder-pan
 datum, not copied from the legacy base-part origin. The importer composes the
-CAD joint chain and removes the official SO-101 base-to-shoulder transform.
+CAD joint chain and aligns the shoulder centre and physical pan/lift axes.
+The pan-frame orientations themselves differ between SO-100 and SO-101;
+copying their orientations turns the arm's bending plane by a quarter turn.
 Moving that datum in the assembly therefore moves the exported arm correctly.
 Both sensor brackets attach to the upper plate's top surface at local z=7 mm.
 

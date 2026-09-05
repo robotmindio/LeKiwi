@@ -983,7 +983,7 @@
         </collision>
     </link>
     <joint name="so101_mount" type="fixed">
-        <origin xyz="0.0388352999998 0.0671480635545 0.00699999999992" rpy="-2.65358979322e-06 -7.04151787841e-12 3.14159" />
+        <origin xyz="8.90955446603e-08 0.10598331 0.00699999999992" rpy="-2.65358979335e-06 -7.04151787851e-12 -1.57080265359" />
         <parent link="base_plate_layer2-v3" />
         <child link="so101_base_link" />
     </joint>

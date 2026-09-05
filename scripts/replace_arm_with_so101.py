@@ -51,32 +51,62 @@ def descendants(root: ET.Element, start: str) -> set[str]:
     return found
 
 
+def joint_pose(model, name, parent):
+    import FreeCAD as App
+    from scripts.cad_utils import urdf_matrix
+
+    parents = {joint.find("child").get("link"): joint for joint in model.findall("joint")}
+    joint = model.find(f"joint[@name='{name}']")
+    if joint is None:
+        raise ValueError(f"missing mounting datum joint: {name}")
+    frame, placement, visited = joint.find("child").get("link"), App.Matrix(), set()
+    while frame != parent:
+        if frame in visited or frame not in parents:
+            raise ValueError(f"{name} is not connected to {parent}")
+        visited.add(frame)
+        joint = parents[frame]
+        placement = urdf_matrix(joint.find("origin")).multiply(placement)
+        frame = joint.find("parent").get("link")
+    return placement
+
+
+def shoulder_basis(model, prefix, parent):
+    import FreeCAD as App
+
+    axes = []
+    for name in (prefix + "shoulder_lift", prefix + "shoulder_pan"):
+        axis = App.Vector(*map(float, model.find(f"joint[@name='{name}']/axis").get("xyz").split()))
+        axes.append(App.Rotation(joint_pose(model, name, parent)).multVec(axis).normalize())
+    x, z = axes
+    y = z.cross(x).normalize()
+    x = y.cross(z).normalize()
+    result = App.Matrix()
+    for column, vector in enumerate((x, y, z), 1):
+        for row, value in enumerate((vector.x, vector.y, vector.z), 1):
+            setattr(result, f"A{row}{column}", value)
+    return result
+
+
 def replace_arm(model: ET.Element) -> None:
     mount = model.find(f"joint[@name='{OLD_MOUNT_JOINT}']")
     if mount is None or mount.find("child").get("link") != "Base_08q-v1":
         raise ValueError("input does not contain the expected SO-100 arm mount")
     # Base-part origins are not interchangeable. Preserve the assembly's
-    # shoulder axis by composing its complete fixed chain, then remove the
-    # official SO-101 base-to-shoulder transform to locate the new base.
-    import FreeCAD as App
-    from scripts.cad_utils import urdf_matrix
+    # shoulder centre AND pan/lift axes. The SO-100 and SO-101 pan frames
+    # differ by a quarter turn even when their physical axes are aligned.
 
     source = ET.parse(SO101_URDF).getroot()
-    parents = {joint.find("child").get("link"): joint for joint in model.findall("joint")}
-    shoulder = model.find("joint[@name='arm_shoulder_pan']")
-    frame = shoulder.find("child").get("link")
     target_parent = mount.find("parent").get("link")
-    placement = App.Matrix()
-    visited = set()
-    while frame != target_parent:
-        if frame in visited or frame not in parents:
-            raise ValueError("shoulder is not connected to the arm mounting plate")
-        visited.add(frame)
-        joint = parents[frame]
-        placement = urdf_matrix(joint.find("origin")).multiply(placement)
-        frame = joint.find("parent").get("link")
-    official_pan = source.find("joint[@name='shoulder_pan']/origin")
-    placement = placement.multiply(urdf_matrix(official_pan).inverse())
+    target_pan = joint_pose(model, "arm_shoulder_pan", target_parent)
+    source_pan = joint_pose(source, "shoulder_pan", "base_link")
+    placement = shoulder_basis(model, "arm_", target_parent).multiply(
+        shoulder_basis(source, "", "base_link").inverse()
+    )
+    import FreeCAD as App
+    offset = placement.multVec(App.Vector(source_pan.A14, source_pan.A24, source_pan.A34))
+    placement.A14, placement.A24, placement.A34 = (
+        target_pan.A14 - offset.x, target_pan.A24 - offset.y, target_pan.A34 - offset.z
+    )
     yaw, pitch, roll = App.Rotation(placement).getYawPitchRoll()
     mount_origin = {
         "xyz": " ".join(f"{value / 1000:.12g}" for value in (placement.A14, placement.A24, placement.A34)),
