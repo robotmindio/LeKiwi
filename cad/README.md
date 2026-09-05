@@ -34,6 +34,9 @@ All other arm meshes are refreshed from the pinned upstream source on every
 export. `export_robot.sh` requires CadQuery; set `CADQUERY_PYTHON` to the Python
 executable of an existing CadQuery environment if it is not installed in the
 default interpreter. `verify_robot.sh` runs its STEP-fidelity check first.
+The complete export also records `URDF/model-manifest.json`. Run
+`python3 scripts/model_manifest.py --check` to detect source or output changes
+since the last export; the ROS vendor script runs this check before copying.
 
 The SO-101 base placement is derived from the original assembly's shoulder-pan
 datum, not copied from the legacy base-part origin. The importer composes the

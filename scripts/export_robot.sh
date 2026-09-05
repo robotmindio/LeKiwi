@@ -8,3 +8,4 @@ cd "$project_dir"
 ./scripts/sync_robotskin_lidar.sh
 ./scripts/export_cad_meshes.sh
 ./scripts/export_xacro.sh
+python3 scripts/model_manifest.py
