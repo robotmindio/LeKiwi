@@ -18,7 +18,7 @@ m2_head_access = m2_head_diameter + 0.2;
 interface_skin = 2.4;
 
 // Physical mounting pair in the clear space between two wheels.
-m3_spacing = 40.0;
+m3_spacing = sqrt(20*20 + 40*40);
 m3_insert_length = 4.0;
 m3_insert_hole = 4.0; // ponytail: tune to the insert and printer.
 m3_insert_depth = m3_insert_length + 0.2;
@@ -32,7 +32,7 @@ saddle_thickness = boss_projection + boss_projection_clearance + interface_skin;
 saddle_half_y = saddle_depth / 2 * cos(pitch);
 saddle_height_delta = saddle_depth / 2 * sin(pitch);
 
-assert(m3_spacing == 40.0);
+assert(m3_spacing + m3_insert_hole < base_width);
 assert(m2_head_access > m2_head_diameter);
 assert(boss_length_clearance > 0 && boss_depth_clearance > 0);
 assert(saddle_thickness - boss_projection - boss_projection_clearance >= 2.0);

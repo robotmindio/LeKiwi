@@ -1,7 +1,7 @@
 """Verify the installed lidar bracket uses the removed Pi's real plate holes."""
 
 import xml.etree.ElementTree as ET
-import re
+import math
 from pathlib import Path
 import FreeCAD as App
 from scripts.cad_utils import urdf_matrix
@@ -30,10 +30,11 @@ astra = robot.find("joint[@name='astra_pro_compact_mount_joint']")
 assert astra.find("parent").get("link") == "base_plate_layer2-v3"
 pose = urdf_matrix(astra.find("origin"))
 source = Path("cad/accessories/astra_pro_compact_mount.scad").read_text()
-spacing = float(re.search(r"m3_spacing\s*=\s*([\d.]+)", source).group(1))
-assert spacing == 40
-for x in (-spacing / 2, spacing / 2):
+assert "m3_spacing = sqrt(20*20 + 40*40);" in source
+spacing = math.hypot(20, 40)
+for x, target in zip((-spacing / 2, spacing / 2), ((-80, -60, 7), (-100, -20, 7))):
     hole = pose.multVec(App.Vector(x, 0, 0))
+    assert (hole - App.Vector(*target)).Length < .001, hole
     assert min((hole - target).Length for target in plate_holes) < .001, hole
-assert (pose.multVec(App.Vector()) - App.Vector(-100, 0, 7)).Length < .001
+assert (pose.multVec(App.Vector()) - App.Vector(-90, -40, 7)).Length < .001
 print("Astra bracket matches the operator-selected left-edge plate holes")

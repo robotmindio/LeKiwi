@@ -9,9 +9,10 @@ outward (+Y CAD / +X ROS), preserving its shoulder centre with a fixed half-turn
 Removed the still-exported Pi case and moved the lidar to its rear screw pair;
 all four RobotSkin fasteners match actual plate holes. The scan centre is
 135 mm rearward and 5 mm left in ROS. The operator identified the Astra's
-existing left-edge screw pair in a second photo: CAD x=-100, y=+/-20 mm.
-Moved its bracket there, facing outward left, and corrected its screw spacing
-from 44 to 40 mm. The plate-hole verifier now checks both sensor brackets.
+existing diagonal screw pair nearest each fingernail: CAD (-100, -20) and
+(-80, -60) mm. This supersedes the incorrectly inferred 40 mm lateral pair.
+Bracket centre is (-90, -40, 7) mm, yaw 116.565 degrees, screw spacing
+44.721 mm. The plate-hole verifier checks these exact two holes.
 
 Verified: native wrist STEP-fidelity checks, shoulder centre/pan/lift-axis preservation and
 propagation of a 20 mm assembly edit, Xacro semantics, chassis mesh fidelity,

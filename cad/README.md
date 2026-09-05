@@ -52,10 +52,11 @@ plus the corresponding y=-80 mm row. Its bracket faces rearward; the lidar
 centre is x=-5, y=-135 mm. `verify_sensor_mounts.py` checks all four fasteners
 against the actual upper-plate contours. The historical Pi case mounting
 datum is retained in `URDF/LeKiwi.urdf`, not as installed case geometry.
-The Astra uses the operator-selected existing left-edge pair at CAD
-x=-100, y=+/-20 mm. Its bracket screw spacing is 40 mm and its local frame
-is turned +90 degrees, placing the camera outward to the robot's left
-(ROS +Y), with the saddle's existing 8-degree downward pitch.
+The Astra uses the diagonal pair nearest the operator's two fingernails:
+CAD (-100, -20) and (-80, -60) mm, separated by sqrt(2000) = 44.721 mm.
+Its bracket centre is (-90, -40, 7) mm and its local yaw is 116.565 degrees,
+26.565 degrees counterclockwise from the previous left-facing placement.
+The camera faces outward left/rear, retaining the 8-degree downward pitch.
 
 Initialize it after cloning, then check the expected source bundle:
 

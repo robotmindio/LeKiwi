@@ -39,10 +39,10 @@ LD06_CENTER = (0.020, -0.005, 0.012)
 LD06_RADIUS_MM = 24.5
 LD06_HEIGHT_MM = 39
 
-# Operator-selected existing left-edge pair: CAD x=-100, y=+/-20 mm.
-# Local +Y faces outward to CAD -X (ROS +Y); keep the saddle's 8-degree pitch.
-ASTRA_MOUNT_ORIGIN = (-0.100, 0, 0.007)
-ASTRA_MOUNT_RPY = (0, 0, math.pi / 2)
+# Existing holes nearest the two fingernails in the operator's photo:
+# CAD (-100, -20) and (-80, -60) mm. Local +Y faces outward left/rear.
+ASTRA_MOUNT_ORIGIN = (-0.090, -0.040, 0.007)
+ASTRA_MOUNT_RPY = (0, 0, math.atan2(40, -20))
 
 
 def object_name(prefix, name):
