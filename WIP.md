@@ -7,12 +7,14 @@ official arm meshes refreshed on export.
 Verified: native wrist STEP-fidelity checks, shoulder centre/pan/lift-axis preservation and
 propagation of a 20 mm assembly edit, Xacro semantics, chassis mesh fidelity,
 native part trees and accessory source checks. Input/output manifest checks
-reject edits without regeneration. Full `verify_robot.sh` is finishing the
-remaining reference/manufacturing checks.
+reject edits without regeneration. Full `verify_robot.sh` passed, including
+reference/manufacturing checks (32 print assets, 2 flat parts, 32 sourced parts).
 
-Next: vendor this revision into cleanroom, verify the installed/live description,
-inspect the physical placements, and guide the user through SO-101 recalibration.
-Physical calibration and measured Astra optical-centre correction remain pending.
+Vendored into cleanroom and verified against the managed install and live
+robot_state_publisher. Next: inspect physical placements and guide SO-101
+recalibration once robot-1 is online (currently offline). Physical calibration
+and measured Astra optical-centre correction remain pending; cleanroom/WIP.md
+tracks the remaining runtime verification.
 
 The user's pre-existing `media/assembly_imgs/IMG_9250.jpg` change is unrelated
 and has not been staged. Remove this file after final model verification.
