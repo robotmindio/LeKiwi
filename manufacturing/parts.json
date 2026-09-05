@@ -252,6 +252,14 @@
   ],
   "additional_prints": [
     {
+      "id": "astra-pro-compact-mount-assembly",
+      "output": "URDF/meshes/reauthored/astra_pro_compact_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/accessories/astra_pro_compact_mount.scad",
+      "build": "scripts/sync_robotskin_lidar.sh",
+      "fidelity": "assembly_validated"
+    },
+    {
       "id": "robotskin-ld06-mount",
       "output": "URDF/meshes/reauthored/robotskin_lidar_mount.stl",
       "source_state": "open_parametric",

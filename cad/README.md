@@ -8,9 +8,9 @@
 - 10 links driven by 6 native parametric FreeCAD printed-part sources;
 - 23 STEP BREP references; and
 - 10 canonical URDF mesh references where the STEP and URDF exports differ by more than 2%; and
-- the RobotSkin LD06 base plus lidar body.
+- the RobotSkin LD06 base plus lidar body and compact Astra Pro mount.
 
-The final 37-link Xacro replaces that reference assembly's legacy arm subtree with the pinned SO-101 model described below. The exact source and validation result for every retained CAD link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount is regenerated from the pinned [RobotSkin OpenSCAD source](upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad) before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
+The final 37-link Xacro replaces that reference assembly's legacy arm subtree with the pinned SO-101 model described below. The exact source and validation result for every retained CAD link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount and the compact Astra mount are regenerated from their OpenSCAD sources before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
 
 ## Arm source
 

@@ -1,4 +1,4 @@
-"""Add the RobotSkin LD06 mount and lidar to the editable LeKiwi assembly."""
+"""Add the deterministic sensor mounts to the editable LeKiwi assembly."""
 
 import re
 import sys
@@ -9,24 +9,33 @@ import Mesh
 import Part
 
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 6:
     raise SystemExit(
-        "usage: add_lidar_accessory.py ASSEMBLY.FCStd SOURCE.scad MOUNT.stl"
+        "usage: add_lidar_accessory.py ASSEMBLY.FCStd LIDAR.scad LIDAR.stl ASTRA.scad ASTRA.stl"
     )
 
 
-assembly_path, source_path, mount_path = map(Path, sys.argv[1:])
-if not source_path.is_file():
-    raise RuntimeError(f"missing RobotSkin OpenSCAD source: {source_path}")
-if not mount_path.is_file():
-    raise RuntimeError(f"missing generated RobotSkin lidar mesh: {mount_path}")
+assembly_path, lidar_source, lidar_mesh, astra_source, astra_mesh = map(Path, sys.argv[1:])
+for source, mesh, name in (
+    (lidar_source, lidar_mesh, "RobotSkin lidar"),
+    (astra_source, astra_mesh, "Astra compact mount"),
+):
+    if not source.is_file():
+        raise RuntimeError(f"missing {name} OpenSCAD source: {source}")
+    if not mesh.is_file():
+        raise RuntimeError(f"missing generated {name} mesh: {mesh}")
 
-# CAD coordinates: +Y is forward.  The mount's LD06 centre is (20, -5) mm;
-# this places its scan centre 90 mm forward and 70 mm right in ROS base_link.
-MOUNT_ORIGIN = (0.050, 0.095, 0)
+# CAD coordinates: +Y is forward. The RobotSkin fasteners at (-35, +/-20)
+# and (-15, +/-20) mm land on the installed LeKiwi 20 mm plate grid.
+MOUNT_ORIGIN = (0.055, 0.080, 0)
+MOUNT_RPY = (0, 0, 0)
 LD06_CENTER = (0.020, -0.005, 0.012)
 LD06_RADIUS_MM = 24.5
 LD06_HEIGHT_MM = 39
+
+# The compact mount is centred on the installed 44 mm M3 pair in the front bay.
+ASTRA_MOUNT_ORIGIN = (0, 0.080, 0)
+ASTRA_MOUNT_RPY = (0, 0, 0)
 
 
 def object_name(prefix, name):
@@ -90,7 +99,7 @@ def add_link(document, links, name, part):
     links.addObject(link)
 
 
-def add_joint(document, joints, name, parent, child, xyz):
+def add_joint(document, joints, name, parent, child, xyz, rpy=(0, 0, 0)):
     joint = document.addObject("App::FeaturePython", object_name("Joint_", name))
     joint.Label = name
     for property_name, value in (
@@ -99,7 +108,7 @@ def add_joint(document, joints, name, parent, child, xyz):
         ("Parent", parent),
         ("Child", child),
         ("OriginXYZ", " ".join(str(value) for value in xyz)),
-        ("OriginRPY", "0 0 0"),
+        ("OriginRPY", " ".join(str(value) for value in rpy)),
         ("Axis", "0 0 1"),
         ("Lower", ""),
         ("Upper", ""),
@@ -128,18 +137,22 @@ for name in (
     "Joint_robotskin_lidar_mount_joint",
     "Joint_ld06_body",
     "Joint_ld06_body_mount",
+    "Link_astra_pro_compact_mount",
+    "Joint_astra_pro_compact_mount",
+    "Joint_astra_pro_compact_mount_joint",
     "RobotSkinLidarMount",
     "LD06Body",
+    "AstraProCompactMount",
 ):
     remove(document, name)
 
 mount = document.addObject("Mesh::Feature", "RobotSkinLidarMount")
 mount.Label = "RobotSkin LeKiwi lidar base"
-mount.Mesh = Mesh.Mesh(str(mount_path.resolve()))
+mount.Mesh = Mesh.Mesh(str(lidar_mesh.resolve()))
 mount.addProperty("App::PropertyString", "SourceFile", "Source")
-mount.SourceFile = source_path.as_posix()
+mount.SourceFile = lidar_source.as_posix()
 mount.addProperty("App::PropertyString", "GeneratedMesh", "Source")
-mount.GeneratedMesh = mount_path.as_posix()
+mount.GeneratedMesh = lidar_mesh.as_posix()
 mount.addProperty("App::PropertyString", "SourceKind", "Source")
 mount.SourceKind = "RobotSkin OpenSCAD source"
 mount.Visibility = False
@@ -151,6 +164,7 @@ add_joint(
     "base_plate_layer1-v5",
     "robotskin_lidar_mount",
     MOUNT_ORIGIN,
+    MOUNT_RPY,
 )
 
 lidar = document.addObject("Part::Feature", "LD06Body")
@@ -169,11 +183,32 @@ add_joint(
     LD06_CENTER,
 )
 
+astra = document.addObject("Mesh::Feature", "AstraProCompactMount")
+astra.Label = "Astra Pro compact mount"
+astra.Mesh = Mesh.Mesh(str(astra_mesh.resolve()))
+astra.addProperty("App::PropertyString", "SourceFile", "Source")
+astra.SourceFile = astra_source.as_posix()
+astra.addProperty("App::PropertyString", "GeneratedMesh", "Source")
+astra.GeneratedMesh = astra_mesh.as_posix()
+astra.addProperty("App::PropertyString", "SourceKind", "Source")
+astra.SourceKind = "Astra Pro compact-mount OpenSCAD source"
+astra.Visibility = False
+add_link(document, links, "astra_pro_compact_mount", astra)
+add_joint(
+    document,
+    joints,
+    "astra_pro_compact_mount_joint",
+    "base_plate_layer1-v5",
+    "astra_pro_compact_mount",
+    ASTRA_MOUNT_ORIGIN,
+    ASTRA_MOUNT_RPY,
+)
+
 document.recompute()
 document.save()
 output = assembly_path.parent.parent.parent / "URDF/meshes/reauthored"
 output.mkdir(parents=True, exist_ok=True)
-for name in ("robotskin_lidar_mount", "ld06_body"):
+for name in ("robotskin_lidar_mount", "ld06_body", "astra_pro_compact_mount"):
     link = next(item for item in links.Group if item.UrdfName == name)
     Mesh.export(link.CadParts, str(output / f"{name}.stl"))
-print("added RobotSkin lidar mount and LD06 body")
+print("added RobotSkin lidar mount, LD06 body, and Astra compact mount")

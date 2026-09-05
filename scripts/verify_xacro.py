@@ -6,8 +6,12 @@ from pathlib import Path
 
 
 XACRO_PROPERTY = "{http://www.ros.org/wiki/xacro}property"
-ACCESSORY_LINKS = {"robotskin_lidar_mount", "ld06_body"}
-ACCESSORY_JOINTS = {"robotskin_lidar_mount_joint", "ld06_body_mount"}
+ACCESSORY_LINKS = {"astra_pro_compact_mount", "robotskin_lidar_mount", "ld06_body"}
+ACCESSORY_JOINTS = {
+    "astra_pro_compact_mount_joint",
+    "robotskin_lidar_mount_joint",
+    "ld06_body_mount",
+}
 
 
 def normalise(element):
@@ -32,21 +36,45 @@ def normalise(element):
 if len(sys.argv) != 3:
     raise SystemExit("usage: verify_xacro.py BASELINE.urdf GENERATED.urdf.xacro")
 
-baseline = normalise(ET.parse(sys.argv[1]).getroot())
 generated_path = Path(sys.argv[2])
 generated_root = ET.parse(generated_path).getroot()
 baseline_root = ET.parse(sys.argv[1]).getroot()
 links = {link.get("name"): link for link in generated_root.findall("link")}
 joints = {joint.get("name"): joint for joint in generated_root.findall("joint")}
 if not ACCESSORY_LINKS <= links.keys() or not ACCESSORY_JOINTS <= joints.keys():
-    raise SystemExit("generated Xacro is missing the RobotSkin LD06 accessory")
-if (
-    joints["robotskin_lidar_mount_joint"].find("parent").get("link")
-    != "base_plate_layer1-v5"
-):
-    raise SystemExit("RobotSkin lidar mount must remain attached to the base plate")
-if joints["ld06_body_mount"].find("parent").get("link") != "robotskin_lidar_mount":
-    raise SystemExit("LD06 body must remain attached to its RobotSkin mount")
+    raise SystemExit("generated Xacro is missing a sensor accessory")
+expected_joints = {
+    "astra_pro_compact_mount_joint": (
+        "base_plate_layer1-v5", "astra_pro_compact_mount", "0 0.08 0", "0 0 0"
+    ),
+    "robotskin_lidar_mount_joint": (
+        "base_plate_layer1-v5", "robotskin_lidar_mount", "0.055 0.08 0", "0 0 0"
+    ),
+    "ld06_body_mount": (
+        "robotskin_lidar_mount", "ld06_body", "0.02 -0.005 0.012", "0 0 0"
+    ),
+    "so101_mount": (
+        "base_plate_layer2-v3", "so101_base_link", "0.04 0.08 0.007", "0 0 0"
+    ),
+}
+for name, (parent, child, xyz, rpy) in expected_joints.items():
+    joint = joints.get(name)
+    origin = joint.find("origin") if joint is not None else None
+    if (
+        joint is None
+        or joint.find("parent").get("link") != parent
+        or joint.find("child").get("link") != child
+        or origin is None
+        or origin.get("xyz") != xyz
+        or origin.get("rpy") != rpy
+    ):
+        raise SystemExit(f"{name}: unexpected physical mount pose")
+# The arm source is unchanged; only its checked fixed mounting pose supersedes
+# the legacy baseline pose.
+baseline_joint = baseline_root.find("joint[@name='so101_mount']")
+baseline_joint.find("origin").attrib = dict(
+    joints["so101_mount"].find("origin").attrib
+)
 for link in list(generated_root.findall("link")):
     if link.get("name") in ACCESSORY_LINKS:
         generated_root.remove(link)
@@ -79,6 +107,7 @@ for mesh in generated_root.findall(".//mesh"):
         )
         if not output.is_file() or output.stat().st_size == 0:
             raise SystemExit(f"missing reauthored mesh: {output}")
+baseline = normalise(baseline_root)
 generated = normalise(generated_root)
 if baseline != generated:
     raise SystemExit("generated Xacro does not preserve baseline URDF semantics")

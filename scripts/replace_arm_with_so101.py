@@ -13,6 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SO101_URDF = ROOT / "cad/upstream/SO-ARM100/Simulation/SO101/so101_new_calib.urdf"
 OLD_MOUNT_JOINT = "base_plate_layer2-v3_Rigid-42"
+SO101_MOUNT_XYZ = "0.04 0.08 0.007"
+SO101_MOUNT_RPY = "0 0 0"
 LINK_NAMES = {
     "base_link": "so101_base_link",
     "shoulder_link": "so101_shoulder_link",
@@ -87,7 +89,7 @@ def replace_arm(model: ET.Element) -> None:
     ET.SubElement(
         mount,
         "origin",
-        {"xyz": "0.0388353 0.06714801 0.007", "rpy": "0 0 3.14159"},
+        {"xyz": SO101_MOUNT_XYZ, "rpy": SO101_MOUNT_RPY},
     )
     ET.SubElement(mount, "parent", {"link": "base_plate_layer2-v3"})
     ET.SubElement(mount, "child", {"link": "so101_base_link"})
