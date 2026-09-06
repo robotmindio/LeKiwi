@@ -18,13 +18,21 @@ def main() -> None:
     assert abs(removed.Volume() - 100) < 1e-6
     assert abs(added.Volume() - 100) < 1e-6
 
-    original = load_part("flex_body").Solids()[0]
-    candidate = part8_simplified(original).val().Solids()[0]
+    source = load_part("flex_body")
+    assert source.isValid() and len(source.Solids()) == 1
+    original = source.Solids()[0]
+    result = part8_simplified(original).val()
+    assert result.isValid() and len(result.Solids()) == 1
+    candidate = result.Solids()[0]
     removed, added = solid_delta(original, candidate)
     assert added.Volume() < 1e-6, "added material needs a new motion-clearance check"
     assert 0 < removed.Volume() < original.Volume() * 0.01
     assert len(removed.Solids()) == 2, "only the two side skirts may change"
-    assert removed.BoundingBox().zmax < -19.69
+    assert removed.BoundingBox().zmax < -24.5
+    # Near-tangent spline booleans can silently miss one side while staying valid.
+    for y in (-14, 14):
+        point = (0, y, -29)
+        assert original.isInside(point, 1e-6) and not candidate.isInside(point, 1e-6)
 
     # Through-bores, counterbores, axis recesses and lower screw holes retain
     # their actual upstream faces, including centres, diameters and depths.
@@ -42,8 +50,7 @@ def main() -> None:
     )
 
     protected = {
-        "motor rails and heel": cq.Solid.makeBox(40, 24.8, 100, (-50.5, -12.4, -45)),
-        "left heel": cq.Solid.makeBox(30, 60, 100, (-48, -30, -45)),
+        "motor rails and heel": cq.Solid.makeBox(40, 60, 100, (-50.5, -30, -45)),
         "roll ears and roof": cq.Solid.makeBox(100, 60, 50, (-40, -30, 1.5)),
         "bottom seat and foot": cq.Solid.makeBox(40, 60, 60, (9.8, -30, -45)),
         "cable clip": cq.Solid.makeBox(14, 15, 13, (-10, -25, -22)),
