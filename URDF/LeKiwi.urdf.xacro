@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<robot xmlns:ns0="http://www.ros.org/wiki/xacro" name="LeKiwi">
-    <ns0:property name="mesh_dir" value="meshes" />
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="LeKiwi">
+    <xacro:property name="mesh_dir" value="meshes" />
     <link name="base_plate_layer1-v5">
         <inertial>
             <origin xyz="-4.730687660675253e-15 -2.7155537377808555e-05 -0.0035000000000000005" rpy="0.0 0.0 0.0" />

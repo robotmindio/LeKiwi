@@ -12,6 +12,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+XACRO_NS = "http://www.ros.org/wiki/xacro"
+ET.register_namespace("xacro", XACRO_NS)
 SO101_URDF = ROOT / "cad/upstream/SO-ARM100/Simulation/SO101/so101_new_calib.urdf"
 OLD_MOUNT_JOINT = "base_plate_layer2-v3_Rigid-42"
 LINK_NAMES = {
@@ -133,7 +135,7 @@ def replace_arm(model: ET.Element) -> None:
     ET.SubElement(arm_material, "color", {"rgba": "1.0 0.82 0.12 1.0"})
     model.append(arm_material)
 
-    xacro_model = model.find("{http://www.ros.org/wiki/xacro}property") is not None
+    xacro_model = model.find(f"{{{XACRO_NS}}}property") is not None
     mesh_prefix = "${mesh_dir}/so101/" if xacro_model else "meshes/so101/"
     for source_link in source.findall("link"):
         link = copy.deepcopy(source_link)

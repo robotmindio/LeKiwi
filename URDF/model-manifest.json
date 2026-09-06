@@ -35,11 +35,11 @@
     "scripts/export_so101_wrist.py": "03df8577e332202cd21d99570330ea69e5a0b17c99fa0ca250bf9e79d7ec05c5",
     "scripts/export_xacro.py": "cbfaa796c3c48645e877d3bb108682c4a553196c2288af883259cfde53a28de9",
     "scripts/export_xacro.sh": "565cec96208422bdd9a541931ab6b7376da2a12994564fa879b11448f70102bd",
-    "scripts/replace_arm_with_so101.py": "41ad23fbd8511805221d14232ab273d5a3b4e14e2f92b4079312a6c4d66aa068",
+    "scripts/replace_arm_with_so101.py": "99fffb43710ede3998a5618e495be347f22a976a9bbe76400f9c614dfec3cdb9",
     "scripts/sync_robotskin_lidar.sh": "196c4f8abd82eb57aed8edb1dffb37d87819feb18c3995b47bf7f121bcef49eb"
   },
   "outputs": {
-    "URDF/LeKiwi.urdf.xacro": "9e04d67c96a727640cf8d99dd2b0b6db8ac2ece1104e4731cc88747776e85cec",
+    "URDF/LeKiwi.urdf.xacro": "ecc1b9ff9620fdfe947b42e0b391b1808cbadb5431d0b00a36f9e322830acda7",
     "URDF/meshes/reauthored/4-Omni-Directional-Wheel_Single_Body-v1-1.stl": "42b0ddb6c1cb8f5c33dfd80a7ff0457ed929e64284b8959a3fa16fb24e737ec6",
     "URDF/meshes/reauthored/4-Omni-Directional-Wheel_Single_Body-v1-2.stl": "b753948f880be9aa15faea5563411fc823f22ac92aa81257d6df9f609f765eea",
     "URDF/meshes/reauthored/4-Omni-Directional-Wheel_Single_Body-v1.stl": "d2f19d55a4a9dd03a0970dcbe6073611d6617b77b2ffba9641fdab33c8b2b0fa",

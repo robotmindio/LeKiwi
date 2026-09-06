@@ -1,6 +1,7 @@
 """Check that a generated Xacro preserves the baseline URDF semantics."""
 
 import sys
+import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -42,6 +43,9 @@ if len(sys.argv) != 3:
     raise SystemExit("usage: verify_xacro.py BASELINE.urdf GENERATED.urdf.xacro")
 
 generated_path = Path(sys.argv[2])
+subprocess.run(
+    ["xacro", str(generated_path)], check=True, stdout=subprocess.DEVNULL
+)
 generated_root = ET.parse(generated_path).getroot()
 baseline_root = ET.parse(sys.argv[1]).getroot()
 links = {link.get("name"): link for link in generated_root.findall("link")}
