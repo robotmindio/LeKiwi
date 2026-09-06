@@ -57,20 +57,22 @@ Further structural simplification needs the intended loads and print setup.
 ## Serviceable redesign pilot
 
 `so101_part8_serviceable.py` is the deeper physical redesign: one load-bearing
-cradle and two removable rounded covers. It does **not** replace the production
+cradle and two removable circular covers. It does **not** replace the production
 robot exporter or the conservative candidate above.
 
-One rounded outline generates the structural webs and both cover profiles;
-one screw pattern generates the insert bosses and matching cover holes. The
-right/left covers share one function. There is no new CAD dependency or general
-arm-generator framework. `so101_scene.py` reuses the pinned URDF poses for checks
+The housing is one hollow cylinder with a rounded shoulder, split into mirrored
+halves. There are no ventilation slots or screw holes in its curved side faces.
+One underside screw pattern generates the insert bosses and matching cover
+ledges/holes. The right/left covers share one function. There is no new CAD
+dependency or general arm-generator framework. `so101_scene.py` reuses the pinned URDF poses for checks
 that can also be applied to later arm parts.
 
 This is deliberately a **hybrid STEP-backed/native design**, not a fully native
 reconstruction: clearance checking found discrepancies in the older native
-mounts. The actual upstream joint ears, lower motor seat/calibration foot, motor
-deck and rear rails are preserved within explicit regions. New webs, gussets and
-covers use simple sketches/extrusions. Retaining the source interfaces avoids
+mounts. The actual upstream smoothly blended upper fork/deck, lower motor
+seat/calibration foot and rear rails are preserved within explicit regions.
+Keeping the complete upper fork also avoids stepped rectangular ear supports.
+New webs, gussets and covers use simple sketches/extrusions. Retaining the source interfaces avoids
 duplicating or rounding their mechanical dimensions.
 
 The incoming wrist-flex axis remains at (-18.1, 0, 28) mm along X; the outgoing
@@ -78,8 +80,11 @@ wrist-roll axis remains at (0, 0, -33.1) mm along Z, within the pinned URDF's
 rounding. No joint transform, motor placement, link length or joint limit changes.
 Changing the structure still changes mass, stiffness and dynamics: the covers
 are cosmetic, not structural, and this is not a weight-optimized version.
-Default assembled solid volume is about 34.5 cm³ versus 32.3 cm³ for the original
-(about 7% more); printed mass also depends on material, walls and infill.
+The default housing is 68.6 mm in diameter and 35 mm tall, versus 39.4 mm
+side-to-side depth for the earlier flat covers. Its cosmetic center is at x=9 mm
+to enclose the offset rectangular servo; this is not a moved joint axis. The
+round enclosure has about 43.0 cm³ assembled solid volume versus 32.3 cm³ for the
+original (about 33% more). Printed mass also depends on material, walls and infill.
 
 ### Generate and inspect
 
@@ -93,7 +98,8 @@ Outputs are in `cad/generated/part8-serviceable/`:
 - `original.stl`, `cradle.stl`, `cover_left.stl`, `cover_right.stl`: millimetres,
   matching original assembly coordinates. Print the redesign as three parts.
 - `cradle_print.stl`, `cover_left_print.stl`, `cover_right_print.stl`: the same
-  parts pre-oriented on Z=0. Covers lie with their broad outside face on the bed;
+  parts pre-oriented on Z=0. Covers lie with their top shoulder face on the bed,
+  open underside facing up; assess supports for the rounded lip and screw ledges.
   the cradle lies on its left ear. The cradle needs slicer support assessment,
   particularly the overhanging deck/seat. These are not support-free guarantees.
 - `serviceable.step`: editable three-part assembly; `preview.png`: actual CAD
@@ -103,29 +109,36 @@ Outputs are in `cad/generated/part8-serviceable/`:
 
 ### Assembly and service
 
-Keep the original motor and joint mounting hardware. Each cover uses three M3
-countersunk screws, nominally M3×6 at the default 2 mm cover wall, and three
+Keep the original motor and joint mounting hardware. Each cover uses two M3
+countersunk screws underneath, nominally M3×6 at the default 2 mm cover wall, and two
 4 mm-long heat-set inserts. Default insert pockets are Ø4.6 × 4.2 mm deep; measure
 your inserts and calibrate those parameters before printing. Check screw
 engagement and tip clearance if changing wall thickness or hardware. Never drive
 a screw against the bottom of a blind pocket. Inserts go into the cradle, not
-the covers; avoid touching the installed servo with the insertion tool.
+the covers; install them before assembling the motors and adjacent joints.
 
-The cover-to-web clearance and center seam are 0.3 mm by default. After removing
-three screws, each cover withdraws sideways along its outward Y direction. The
+The housing radius allowance and center seam are 0.3 mm by default. After removing
+two screws, each cover withdraws sideways along its outward Y direction. With
+the other joints at URDF zero, wrist-roll service poses of -80° for the left
+cover and -100° for the right cover clear the checked 6 mm shaft/60 mm reach.
+These are geometry checks, not robot-motion commands; handle clearance and
+physical fastener extraction still need checking on the assembled arm. The
 split cable opening avoids trapping a connected cable. A tie slot in the cradle
 replaces the original external cable clip, so strain relief stays on the frame.
-Cover vents and the open top/bottom provide access and airflow, not an ingress
+The only side-wall interruptions are the rear bracket clearance and a rounded
+cable exit, which contains the previous 14 × 10 mm opening. There is no ingress
 or thermal rating. Full motor replacement still requires the original mounting
 fasteners and potentially the adjacent joint to be removed; this is not a
 verified quick-swap motor mechanism.
 
 ### What the pilot checks—and does not
 
-The check requires zero added/removed CAD volume in the four protected interface
+The check requires zero added/removed CAD volume in the three protected interface
 regions; it does not mistake equal total volume for equal shape. Every print STL
 must be closed, manifold, connected and within 0.1% of CAD volume. Cover/cradle
-intersections are checked at ten removal translations per side.
+intersections are checked at ten removal translations per side. Side-wall
+continuity is checked where the old ventilation and screw holes used to be;
+straight screwdriver shaft access is sampled at the two service poses.
 
 Actual pinned servo and immediate-neighbor meshes are checked at neutral and
 across both wrist limits with angle spacing no greater than 2°. Surface vertices,

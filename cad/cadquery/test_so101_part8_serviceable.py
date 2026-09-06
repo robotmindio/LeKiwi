@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from math import ceil, degrees
+from math import ceil, degrees, radians
 from pathlib import Path
 
 import cadquery as cq
@@ -12,7 +12,16 @@ from vtkmodules.vtkFiltersCore import vtkImplicitPolyDataDistance
 from vtkmodules.vtkIOGeometry import vtkSTLReader
 
 from cad_checks import export_stl
-from so101_part8_serviceable import INTERFACE_REGIONS, ServiceParameters, _source, parts
+from so101_part8_serviceable import (
+    BODY_CENTER_X,
+    BODY_RADIUS,
+    COVER_BASE_Z,
+    COVER_SCREWS,
+    INTERFACE_REGIONS,
+    ServiceParameters,
+    _source,
+    parts,
+)
 from so101_scene import URDF, placements, reference, wrist_scene
 from so101_wrist import PARTS
 
@@ -111,6 +120,39 @@ def check_clearance(meshes):
     }
 
 
+def check_tool_access():
+    """Sample a 6 mm straight shaft with 60 mm reach below the screw heads."""
+    poses = {"cover_left": -80, "cover_right": -100}
+    clearances = {}
+    for name, side in (("cover_left", -1), ("cover_right", 1)):
+        points = np.array(
+            [
+                (x + radius * np.cos(angle), side * y + radius * np.sin(angle), z)
+                for x, y in COVER_SCREWS
+                for z in np.linspace(COVER_BASE_Z - 0.1, COVER_BASE_Z - 60, 61)
+                for radius in (0, 3)
+                for angle in np.linspace(0, 2 * np.pi, 37)
+            ]
+        )
+        nearest = float("inf")
+        for _, obstacle_name, mesh in wrist_scene(
+            {"wrist_roll": radians(poses[name])},
+            {"wrist_link", "lower_arm_link", "gripper_link"},
+        ):
+            obstacle = field(mesh)
+            distance = min(obstacle.EvaluateFunction(point) for point in points)
+            assert distance >= 0, (name, obstacle_name, distance)
+            nearest = min(nearest, distance)
+        clearances[name] = nearest
+    return {
+        "wrist_roll_degrees": poses,
+        "shaft_diameter_mm": 6,
+        "reach_mm": 60,
+        "sampled_min_clearance_mm": clearances,
+        "scope": "Wrist flex and other joints at URDF zero. Shaft only; handle, fastener extraction and physical tool access still need bench checking.",
+    }
+
+
 def main():
     for invalid in (float("nan"), -1, 20):
         try:
@@ -120,6 +162,20 @@ def main():
         else:
             raise AssertionError("invalid dimensions accepted")
     solids = {name: part.val() for name, part in parts().items()}
+    radius = (
+        BODY_RADIUS + ServiceParameters().cover_gap + ServiceParameters().cover_wall / 2
+    )
+    for name, side in (("cover_left", -1), ("cover_right", 1)):
+        for angle in np.linspace(radians(30), radians(150), 61):
+            for z in (-3, -21, -27):
+                assert solids[name].isInside(
+                    (
+                        BODY_CENTER_X + radius * np.cos(angle),
+                        side * radius * np.sin(angle),
+                        z,
+                    ),
+                    1e-6,
+                ), "side wall must be uninterrupted"
     robot, visuals = reference()
     frames = placements({})
     part_pose = next(
@@ -165,7 +221,7 @@ def main():
         exported[name] = export_stl(solid, OUTPUT / f"{name}.stl")
         print(f"Exported {name}: checked closed single mesh", flush=True)
     for name, side in (("cover_left", -1), ("cover_right", 1)):
-        oriented = solids[name].rotate((0, 0, 0), (1, 0, 0), -90 * side)
+        oriented = solids[name].rotate((0, 0, 0), (1, 0, 0), 180)
         oriented = oriented.translate((0, 0, -oriented.BoundingBox().zmin))
         export_stl(oriented, OUTPUT / f"{name}_print.stl")
     oriented = solids["cradle"].rotate((0, 0, 0), (0, 1, 0), -90)
@@ -177,6 +233,7 @@ def main():
     assembly.save(str(OUTPUT / "serviceable.step"))
     meshes = {name: read_mesh(OUTPUT / f"{name}.stl") for name in exported}
     clearance = check_clearance(meshes)
+    tool_access = check_tool_access()
     report = {
         "units": "mm",
         "parameters": vars(ServiceParameters()),
@@ -186,6 +243,7 @@ def main():
         "joint_datums": datums,
         "cover_removal": "No CAD overlap at 10 translations along each cover's outward Y direction, screws removed.",
         "clearance": clearance,
+        "tool_access": tool_access,
         "meshes": exported,
         "qualification": "Geometric prototype: loads, fatigue, thermal performance, print strength and physical assembly have not been tested.",
     }

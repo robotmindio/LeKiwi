@@ -1,6 +1,7 @@
 """Render actual exported CAD: original, assembled redesign, and opened covers."""
 
 from vtkmodules.vtkIOImage import vtkPNGWriter
+from vtkmodules.vtkFiltersCore import vtkPolyDataNormals
 from vtkmodules.vtkRenderingCore import (
     vtkActor,
     vtkPolyDataMapper,
@@ -28,7 +29,7 @@ def main():
     for column, title in enumerate(
         (
             "Original upstream part",
-            "Serviceable redesign",
+            "Round housing / no vents",
             "Covers removed / servo shown",
         )
     ):
@@ -39,7 +40,7 @@ def main():
             [(meshes["original"], (0.65, 0.69, 0.74), 0)]
             if column == 0
             else [
-                (meshes["cradle"], (0.20, 0.25, 0.30), 0),
+                (meshes["cradle"], (0.80, 0.83, 0.86), 0),
                 (meshes["cover_left"], (0.90, 0.90, 0.87), -32 if column == 2 else 0),
                 (meshes["cover_right"], (0.90, 0.90, 0.87), 32 if column == 2 else 0),
             ]
@@ -47,14 +48,18 @@ def main():
         if column == 2:
             items.append((motor, (0.45, 0.48, 0.52), 0))
         for mesh, color, shift in items:
+            normals = vtkPolyDataNormals()
+            normals.SetInputData(mesh)
+            normals.SetFeatureAngle(45)
             mapper = vtkPolyDataMapper()
-            mapper.SetInputData(mesh)
+            mapper.SetInputConnection(normals.GetOutputPort())
             actor = vtkActor()
             actor.SetMapper(mapper)
             actor.SetPosition(0, shift, 0)
             actor.GetProperty().SetColor(color)
             actor.GetProperty().SetAmbient(0.25)
             actor.GetProperty().SetDiffuse(0.75)
+            actor.GetProperty().SetInterpolationToPhong()
             renderer.AddActor(actor)
         text = vtkTextActor()
         text.SetInput(title)
