@@ -55,32 +55,29 @@ def _top_frame() -> cq.Workplane:
         .box(14.2, 2 * outer_y, 2.0)
         .translate((-11.1, 0, FRAME_TOP_Z - 0.9))
     )
-    rails = None
-    for y in (-outer_y + WALL_THICKNESS / 2, outer_y - WALL_THICKNESS / 2):
-        rail = (
-            cq.Workplane("XY")
-            .box(FRAME_RIGHT_X + 4.1, WALL_THICKNESS, 2.0)
-            .translate(((FRAME_RIGHT_X - 4.1) / 2, y, FRAME_TOP_Z - 0.9))
-        )
-        rails = rail if rails is None else rails.union(rail)
-
-    shoulders = None
-    for y in (-13.6, 13.6):
-        shoulder = (
-            cq.Workplane("XY")
-            .box(9.2, 3.6, 1.2)
-            .translate((22.6, y, FRAME_TOP_Z + 0.1))
-        )
-        shoulders = shoulder if shoulders is None else shoulders.union(shoulder)
+    side_y = outer_y - WALL_THICKNESS / 2
+    rails = (
+        cq.Workplane("XY")
+        .pushPoints([(0, -side_y), (0, side_y)])
+        .box(FRAME_RIGHT_X + 4.1, WALL_THICKNESS, 2.0)
+        .translate(((FRAME_RIGHT_X - 4.1) / 2, 0, FRAME_TOP_Z - 0.9))
+    )
+    shoulders = (
+        cq.Workplane("XY")
+        .pushPoints([(22.6, -13.6), (22.6, 13.6)])
+        .box(9.2, 3.6, 1.2)
+        .translate((0, 0, FRAME_TOP_Z + 0.1))
+    )
     return back.union(rails).union(shoulders)
 
 
 def _servo_rails() -> cq.Workplane:
-    rails = None
-    for y in (-10.9, 10.9):
-        rail = cq.Workplane("XY").box(2.7, 3.0, 25.5).translate((-11.95, y, -11.25))
-        rails = rail if rails is None else rails.union(rail)
-    return rails
+    return (
+        cq.Workplane("XY")
+        .pushPoints([(-11.95, -10.9), (-11.95, 10.9)])
+        .box(2.7, 3.0, 25.5)
+        .translate((0, 0, -11.25))
+    )
 
 
 def part8_simplified(
