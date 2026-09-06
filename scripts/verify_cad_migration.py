@@ -10,6 +10,7 @@ import Mesh
 from scripts.cad_utils import bounds, bounds_error, mesh_filename, urdf_matrix
 
 MAX_ERROR = 0.02
+REMOVED_LINKS = {"Bottom-V2-v3", "Top-V2-v2"}
 
 
 if len(sys.argv) != 4:
@@ -21,7 +22,9 @@ urdf_path, mapping_path, output_directory = map(Path, sys.argv[1:])
 mapping = {item["urdf_link"]: item for item in json.loads(mapping_path.read_text())}
 root = ET.parse(urdf_path).getroot()
 links = [
-    link for link in root.findall("link") if not link.get("name").startswith("so101_")
+    link for link in root.findall("link")
+    if not link.get("name").startswith("so101_")
+    and link.get("name") not in REMOVED_LINKS
 ]
 if not {link.get("name") for link in links} <= set(mapping):
     raise SystemExit("mapping does not cover every CAD-derived URDF link")

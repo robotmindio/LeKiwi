@@ -5,3 +5,4 @@ cad/parts/*.FCBak
 cad/accessories/*.FCBak
 /cad/generated/
 /cad/reverse_engineered/**/generated/
+/.verify-robot.*/

@@ -2,11 +2,14 @@
 
 import xml.etree.ElementTree as ET
 import json
+import sys
 from pathlib import Path
 import FreeCAD as App
 from scripts.cad_utils import urdf_matrix
 
-doc = App.openDocument("cad/assembly/LeKiwi.FCStd")
+assembly = sys.argv[1] if len(sys.argv) > 1 else "cad/assembly/LeKiwi.FCStd"
+generated_path = sys.argv[2] if len(sys.argv) > 2 else "URDF/LeKiwi.urdf.xacro"
+doc = App.openDocument(assembly)
 links = {link.UrdfName: link for link in doc.getObject("LeKiwiLinks").Group}
 assert not {"Bottom-V2-v3", "Top-V2-v2"} & links.keys()
 plate_holes = []
@@ -15,7 +18,7 @@ for part in links["base_plate_layer2-v3"].CadParts:
         box = wire.BoundBox
         if box.ZLength < .001 and max(box.XLength, box.YLength) < 4:
             plate_holes.append(App.Vector((box.XMin+box.XMax)/2, (box.YMin+box.YMax)/2, 7))
-robot = ET.parse("URDF/LeKiwi.urdf.xacro").getroot()
+robot = ET.parse(generated_path).getroot()
 spec = json.loads(Path("cad/accessories/sensor_mount_spec.json").read_text())
 mount = robot.find("joint[@name='robotskin_lidar_mount_joint']")
 assert mount.find("parent").get("link") == "base_plate_layer2-v3"

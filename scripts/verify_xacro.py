@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 XACRO_PROPERTY = "{http://www.ros.org/wiki/xacro}property"
+ROOT = Path(__file__).resolve().parents[1]
 ACCESSORY_LINKS = {"astra_pro_compact_mount", "robotskin_lidar_mount", "ld06_body"}
 ACCESSORY_JOINTS = {
     "astra_pro_compact_mount_joint",
@@ -50,7 +51,7 @@ subprocess.run(
 generated_root = ET.parse(generated_path).getroot()
 baseline_root = ET.parse(sys.argv[1]).getroot()
 mount_spec = json.loads(
-    (generated_path.parents[1] / "cad/accessories/sensor_mount_spec.json").read_text()
+    (ROOT / "cad/accessories/sensor_mount_spec.json").read_text()
 )
 links = {link.get("name"): link for link in generated_root.findall("link")}
 joints = {joint.get("name"): joint for joint in generated_root.findall("joint")}

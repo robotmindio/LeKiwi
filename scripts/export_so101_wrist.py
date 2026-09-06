@@ -12,7 +12,7 @@ from so101_part8 import part8
 shape = part8().val()
 if not shape.isValid() or len(shape.Solids()) != 1:
     raise RuntimeError("native SO-101 wrist must be one valid solid")
-output = ROOT / "cad/generated/so101/native_wrist_flex.stl"
+output = Path(sys.argv[1]) if len(sys.argv) == 2 else ROOT / "cad/generated/so101/native_wrist_flex.stl"
 output.parent.mkdir(parents=True, exist_ok=True)
 # STEP/native coordinates are millimetres; official SO-101 URDF assets are metres.
 cq.exporters.export(shape.scale(0.001), str(output), tolerance=0.0001, angularTolerance=0.3)

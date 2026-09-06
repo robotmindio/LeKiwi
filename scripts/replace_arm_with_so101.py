@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import copy
 import math
+import os
 import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
@@ -186,7 +187,8 @@ def main() -> int:
     mesh_files = {Path(mesh.get("filename")).name for mesh in tree.findall(".//mesh")
                   if "/so101/" in mesh.get("filename", "")}
     contents = {name: (
-        ROOT / "cad/generated/so101" / name if name == "native_wrist_flex.stl"
+        Path(os.environ.get("LEKIWI_GENERATED_ROOT", ROOT / "cad/generated")) / "so101" / name
+        if name == "native_wrist_flex.stl"
         else assets / name
     ).read_bytes() for name in mesh_files}
     for name, content in contents.items():

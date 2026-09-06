@@ -1,6 +1,7 @@
 """Check that SO-101 integration preserves the editable assembly's shoulder datum."""
 
 import copy
+import sys
 import xml.etree.ElementTree as ET
 
 import FreeCAD as App
@@ -9,7 +10,9 @@ from scripts.cad_utils import urdf_matrix
 from scripts.replace_arm_with_so101 import joint_pose, replace_arm, shoulder_basis
 
 
-document = App.openDocument("cad/assembly/LeKiwi.FCStd")
+assembly = sys.argv[1] if len(sys.argv) > 1 else "cad/assembly/LeKiwi.FCStd"
+generated_path = sys.argv[2] if len(sys.argv) > 2 else "URDF/LeKiwi.urdf.xacro"
+document = App.openDocument(assembly)
 model = ET.Element("robot")
 for item in document.getObject("LeKiwiLinks").Group:
     ET.SubElement(model, "link", name=item.UrdfName)
@@ -52,7 +55,7 @@ for shift in (0, 0.02):
     tool = joint_pose(original, "so101_gripper_frame_joint", "base_plate_layer2-v3")
     assert tool.A24 > actual.A24 + 100
 
-generated = ET.parse("URDF/LeKiwi.urdf.xacro").getroot()
+generated = ET.parse(generated_path).getroot()
 yellow = generated.find("material[@name='so101_yellow']/color")
 assert yellow is not None and yellow.get("rgba") == "1.0 0.82 0.12 1.0"
 assert all(visual.find("material").get("name") == "so101_yellow"

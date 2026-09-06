@@ -110,7 +110,22 @@ After changing a source or robot metadata, run:
 ./scripts/verify_robot.sh
 ```
 
-`export_robot.sh` exports the FreeCAD link sources to `URDF/meshes/reauthored/`, replaces the legacy arm subtree with the pinned SO-101 follower, and writes the complete Xacro. There is no hand-edited Xacro step. `verify_cad_migration.sh` checks every retained CAD link against the baseline URDF; the SO-101 links remain verified directly against their pinned upstream source.
+The verifier generates the assembly, meshes, and Xacro under a temporary build
+directory and removes it when finished, so checking the model does not rewrite
+the source tree. Run `export_robot.sh` when the validated generated files should
+be promoted into `URDF/`. It exports the FreeCAD link sources to
+`URDF/meshes/reauthored/`, replaces the legacy arm subtree with the pinned
+SO-101 follower, and writes the complete Xacro. There is no hand-edited Xacro
+step. `verify_cad_migration.sh` checks every retained CAD link against the
+baseline URDF; the SO-101 links remain verified directly against their pinned
+upstream source.
+
+The slower reconstruction of legacy and recovery manufacturing files is a
+separate audit because those files do not feed the robot Xacro:
+
+```sh
+./scripts/verify_manufacturing.sh
+```
 
 `native_parts.json` is the source of truth for the six parametric printed-part documents, their assembly links, and their placement references.
 
