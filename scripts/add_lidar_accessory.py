@@ -2,7 +2,7 @@
 
 import re
 import sys
-import math
+import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -18,6 +18,7 @@ if len(sys.argv) != 6:
 
 
 assembly_path, lidar_source, lidar_mesh, astra_source, astra_mesh = map(Path, sys.argv[1:])
+spec = json.loads(Path("cad/accessories/sensor_mount_spec.json").read_text())
 for source, mesh, name in (
     (lidar_source, lidar_mesh, "RobotSkin lidar"),
     (astra_source, astra_mesh, "Astra compact mount"),
@@ -27,22 +28,13 @@ for source, mesh, name in (
     if not mesh.is_file():
         raise RuntimeError(f"missing generated {name} mesh: {mesh}")
 
-# CAD +Y is the arm/fixed-camera side. Reuse the removed Pi case's rear
-# screw pair from the historical assembly: x=+/-20, y=-100 mm. Turning the
-# RobotSkin bracket -90 degrees sends the sensor out past the rear edge.
-reference = ET.parse("URDF/LeKiwi.urdf").getroot()
-pi_mount = reference.find("joint[@name='base_plate_layer2-v3_Rigid-22']/origin")
-pi_x, pi_y, pi_z = map(float, pi_mount.get("xyz").split())
-MOUNT_ORIGIN = (pi_x + 0.020, round(pi_y - 0.015, 6), round(pi_z, 6))
-MOUNT_RPY = (0, 0, -math.pi / 2)
-LD06_CENTER = (0.020, -0.005, 0.012)
-LD06_RADIUS_MM = 24.5
-LD06_HEIGHT_MM = 39
-
-# Existing holes nearest the two fingernails in the operator's photo:
-# CAD (-100, -20) and (-80, -60) mm. Local +Y faces outward left/rear.
-ASTRA_MOUNT_ORIGIN = (-0.090, -0.040, 0.007)
-ASTRA_MOUNT_RPY = (0, 0, math.atan2(40, -20))
+MOUNT_ORIGIN = tuple(spec["lidar"]["mount_origin_m"])
+MOUNT_RPY = tuple(spec["lidar"]["mount_rpy_rad"])
+LD06_CENTER = tuple(spec["lidar"]["body_center_m"])
+LD06_RADIUS_MM = spec["lidar"]["body_radius_mm"]
+LD06_HEIGHT_MM = spec["lidar"]["body_height_mm"]
+ASTRA_MOUNT_ORIGIN = tuple(spec["astra"]["mount_origin_m"])
+ASTRA_MOUNT_RPY = tuple(spec["astra"]["mount_rpy_rad"])
 
 
 def object_name(prefix, name):

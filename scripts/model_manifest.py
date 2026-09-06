@@ -18,6 +18,8 @@ def snapshot(root):
     inputs = [root / path for path in (
         "URDF/LeKiwi.urdf",
         "cad/assembly/LeKiwi.FCStd", "cad/accessories/astra_pro_compact_mount.scad",
+        "cad/accessories/sensor_mount_spec.json", "cad/accessories/sensor_mount_spec.scad",
+        "cad/accessories/SENSOR_MOUNTS.md", "scripts/sync_sensor_mount_spec.py",
         "cad/upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad",
         "cad/upstream/RobotSkin/scad/lib/robotskin.scad",
         "cad/upstream/SO-ARM100/Simulation/SO101/so101_new_calib.urdf",

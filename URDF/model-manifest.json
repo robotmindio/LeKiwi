@@ -1,7 +1,10 @@
 {
   "inputs": {
     "URDF/LeKiwi.urdf": "f889c474f7f71098b17144fd42e35b3ba0d33de7b7b63ae127206ce739cceb82",
-    "cad/accessories/astra_pro_compact_mount.scad": "ec81297f476c98893ebda7997637bd0dd9f3db457b30fe3924452b113abef577",
+    "cad/accessories/SENSOR_MOUNTS.md": "dc534954cae5b79775ead6707acc393029be469df5f46d7e83fc66247aa0e918",
+    "cad/accessories/astra_pro_compact_mount.scad": "da647a7c832e9de2473eac2592b48d0055d720fd29d7b3d71ff1767c65d473f9",
+    "cad/accessories/sensor_mount_spec.json": "3638c90e6172316554d02f449182d9a8978e4386533647fadbbf904aeb2f3851",
+    "cad/accessories/sensor_mount_spec.scad": "6aafb5afbddd5f55148353f28bda61ffac16f6257fb2d2c644806a32bf041613",
     "cad/assembly/LeKiwi.FCStd": "1c9c7e0890562a77800278561720f6a9c781a8d4e9fc1cb1b6029697c60881a4",
     "cad/cadquery/so101_part8.py": "3ea95e31ea049df38f3a9bf0fe432881552039f1eec09ccbfddc1fbd4aafe17f",
     "cad/parts/base_camera_mount.FCStd": "31487acf96d010ee4ec6a446c5a7a021b4a117f2bfaadbb56d292f1eec687777",
@@ -28,7 +31,7 @@
     "cad/upstream/SO-ARM100/Simulation/SO101/assets/wrist_roll_follower_so101_v1.stl": "4b17b410a12d64ec39554abc3e8054d8a97384b2dc4a8d95a5ecb2a93670f5f4",
     "cad/upstream/SO-ARM100/Simulation/SO101/assets/wrist_roll_pitch_so101_v2.stl": "6c7ec5525b4d8b9e397a30ab4bb0037156a5d5f38a4adf2c7d943d6c56eda5ae",
     "cad/upstream/SO-ARM100/Simulation/SO101/so101_new_calib.urdf": "3a65d2d35e68a8d2f0c2cc176d19b884506543c93ba72980145b80abe276022c",
-    "scripts/add_lidar_accessory.py": "f50e0bd0705353e931ae5e949114ae852d679df63d3a3e3469bb28f1945ee880",
+    "scripts/add_lidar_accessory.py": "9a85c4b20111183f93c8937f45a571410669d63da9ac9b88e33a607b0b22d843",
     "scripts/cad_utils.py": "d4c1beb6fd1e5be8307f268586e111613b6a98930c7ddfc77c4ddb4cdc4a2aa6",
     "scripts/export_cad_meshes.py": "7ba98f3d54a10c66b70e4da25c120c9f1bc505b95c78624df3728a31ba26cdf6",
     "scripts/export_robot.sh": "d3bba9f8cb0bd89ed5b67957fedc90d28b340ae01e2a910f23d767e084787b8b",
@@ -36,7 +39,8 @@
     "scripts/export_xacro.py": "cbfaa796c3c48645e877d3bb108682c4a553196c2288af883259cfde53a28de9",
     "scripts/export_xacro.sh": "565cec96208422bdd9a541931ab6b7376da2a12994564fa879b11448f70102bd",
     "scripts/replace_arm_with_so101.py": "99fffb43710ede3998a5618e495be347f22a976a9bbe76400f9c614dfec3cdb9",
-    "scripts/sync_robotskin_lidar.sh": "196c4f8abd82eb57aed8edb1dffb37d87819feb18c3995b47bf7f121bcef49eb"
+    "scripts/sync_robotskin_lidar.sh": "8793303edbde95d4fe165a8a7d35fb5b5f79bb0cdf204b04ef5b1769e379765b",
+    "scripts/sync_sensor_mount_spec.py": "c33b1b5d820ab2be87fc08fe430550a1379e20f5daac248745a5368536393bbe"
   },
   "outputs": {
     "URDF/LeKiwi.urdf.xacro": "ecc1b9ff9620fdfe947b42e0b391b1808cbadb5431d0b00a36f9e322830acda7",

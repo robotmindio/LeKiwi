@@ -1,0 +1,18 @@
+{
+  "lidar": {
+    "mount_origin_m": [0.0, -0.115, 0.007],
+    "mount_rpy_rad": [0.0, 0.0, -1.5707963267948966],
+    "bracket_holes_local_mm": [[-35.0, -20.0], [-35.0, 20.0], [-15.0, -20.0], [-15.0, 20.0]],
+    "body_center_m": [0.02, -0.005, 0.012],
+    "body_center_in_plate_mm": [-5.0, -135.0, 19.0],
+    "body_radius_mm": 24.5,
+    "body_height_mm": 39.0
+  },
+  "astra": {
+    "plate_holes_mm": [[-80.0, -60.0, 7.0], [-100.0, -20.0, 7.0]],
+    "mount_origin_m": [-0.09, -0.04, 0.007],
+    "mount_rpy_rad": [0.0, 0.0, 2.0344439357957027],
+    "pitch_deg": 8.0,
+    "camera_contact_height_mm": 15.5
+  }
+}

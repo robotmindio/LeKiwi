@@ -1,5 +1,6 @@
 """Check that a generated Xacro preserves the baseline URDF semantics."""
 
+import json
 import sys
 import subprocess
 import xml.etree.ElementTree as ET
@@ -48,19 +49,25 @@ subprocess.run(
 )
 generated_root = ET.parse(generated_path).getroot()
 baseline_root = ET.parse(sys.argv[1]).getroot()
+mount_spec = json.loads(
+    (generated_path.parents[1] / "cad/accessories/sensor_mount_spec.json").read_text()
+)
 links = {link.get("name"): link for link in generated_root.findall("link")}
 joints = {joint.get("name"): joint for joint in generated_root.findall("joint")}
 if not ACCESSORY_LINKS <= links.keys() or not ACCESSORY_JOINTS <= joints.keys():
     raise SystemExit("generated Xacro is missing a sensor accessory")
 expected_joints = {
     "astra_pro_compact_mount_joint": (
-        "base_plate_layer2-v3", "astra_pro_compact_mount", "-0.09 -0.04 0.007", "0 0 2.0344439357957027"
+        "base_plate_layer2-v3", "astra_pro_compact_mount",
+        mount_spec["astra"]["mount_origin_m"], mount_spec["astra"]["mount_rpy_rad"],
     ),
     "robotskin_lidar_mount_joint": (
-        "base_plate_layer2-v3", "robotskin_lidar_mount", "0.0 -0.115 0.007", "0 0 -1.5707963267948966"
+        "base_plate_layer2-v3", "robotskin_lidar_mount",
+        mount_spec["lidar"]["mount_origin_m"], mount_spec["lidar"]["mount_rpy_rad"],
     ),
     "ld06_body_mount": (
-        "robotskin_lidar_mount", "ld06_body", "0.02 -0.005 0.012", "0 0 0"
+        "robotskin_lidar_mount", "ld06_body",
+        mount_spec["lidar"]["body_center_m"], [0, 0, 0],
     ),
 }
 for name, (parent, child, xyz, rpy) in expected_joints.items():
@@ -71,8 +78,10 @@ for name, (parent, child, xyz, rpy) in expected_joints.items():
         or joint.find("parent").get("link") != parent
         or joint.find("child").get("link") != child
         or origin is None
-        or origin.get("xyz") != xyz
-        or origin.get("rpy") != rpy
+        or any(abs(actual - expected) > 1e-12
+               for actual, expected in zip(map(float, origin.get("xyz").split()), xyz))
+        or any(abs(actual - expected) > 1e-12
+               for actual, expected in zip(map(float, origin.get("rpy").split()), rpy))
     ):
         raise SystemExit(f"{name}: unexpected physical mount pose")
 # The arm source is unchanged; only its checked fixed mounting pose supersedes
@@ -96,8 +105,10 @@ for joint in list(generated_root.findall("joint")):
         generated_root.remove(joint)
 baseline_links = {link.get("name"): link for link in baseline_root.findall("link")}
 # The SO-101 visual override deliberately paints all its parts yellow. Restore
-# only this presentation override for the structural baseline comparison; the
-# arm-mount verifier asserts the emitted yellow material itself.
+# only this explicitly validated presentation override for the structural
+# baseline comparison.
+yellow = generated_root.find("material[@name='so101_yellow']/color")
+assert yellow is not None and yellow.get("rgba") == "1.0 0.82 0.12 1.0"
 for link in generated_root.findall("link"):
     if not link.get("name", "").startswith("so101_"):
         continue
@@ -105,6 +116,7 @@ for link in generated_root.findall("link"):
     visuals = link.findall("visual")
     assert len(visuals) == len(baseline_visuals)
     for visual, baseline_visual in zip(visuals, baseline_visuals):
+        assert visual.find("material").get("name") == "so101_yellow"
         visual.find("material").set("name", baseline_visual.find("material").get("name"))
 for material in list(generated_root.findall("material")):
     if material.get("name") == "so101_yellow":

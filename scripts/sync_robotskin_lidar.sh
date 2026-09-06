@@ -17,6 +17,7 @@ astra_mesh=cad/generated/astra-pro-compact-mount.stl
   exit 1
 }
 mkdir -p "$(dirname "$generated_mesh")"
+python3 scripts/sync_sensor_mount_spec.py
 openscad -o "$generated_mesh" "$source_file"
 openscad -o "$astra_mesh" "$astra_source"
 

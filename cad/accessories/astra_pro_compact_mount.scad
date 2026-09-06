@@ -1,8 +1,10 @@
 $fn = 48;
 
+include <sensor_mount_spec.scad>
+
 // Camera faces +Y; positive pitch tilts its view downward toward +Y.
-pitch = 8.0;
-camera_contact_height = 15.5;
+pitch = astra_pitch;
+camera_contact_height = astra_camera_contact_height;
 
 // Base-removed Astra Pro interface measured from the physical camera.
 boss_length = 26.0;
@@ -18,7 +20,7 @@ m2_head_access = m2_head_diameter + 0.2;
 interface_skin = 2.4;
 
 // Physical mounting pair in the clear space between two wheels.
-m3_spacing = sqrt(20*20 + 40*40);
+m3_spacing = astra_m3_spacing;
 m3_insert_length = 4.0;
 m3_insert_hole = 4.0; // ponytail: tune to the insert and printer.
 m3_insert_depth = m3_insert_length + 0.2;
