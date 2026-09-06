@@ -24,6 +24,7 @@ for object_name, label, source_name, metadata_name in PLATES:
     part.Label = label
     part.LinkedObject = source.getObject("Extrusion")
     part.LinkTransform = True
+    part.Visibility = False
     metadata.CadParts = list(metadata.CadParts) + [part]
 
 assembly.recompute()

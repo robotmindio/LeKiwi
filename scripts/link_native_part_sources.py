@@ -63,6 +63,7 @@ for model in models:
         output.Label = f"Reauthored {model_name} — {urdf_name}"
         output.LinkedObject = final
         output.LinkTransform = True
+        output.Visibility = False
         output.addProperty("App::PropertyString", "NativeSource", "Source")
         output.NativeSource = f"cad/parts/{model_name}.FCStd#Final"
         if mesh_frame:
