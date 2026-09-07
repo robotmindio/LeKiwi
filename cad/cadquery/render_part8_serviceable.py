@@ -13,7 +13,6 @@ from vtkmodules.vtkRenderingCore import (
 import vtkmodules.vtkRenderingFreeType
 import vtkmodules.vtkRenderingOpenGL2
 
-from so101_scene import wrist_scene
 from test_so101_part8_serviceable import OUTPUT, read_mesh
 
 
@@ -25,12 +24,11 @@ def main():
         name: read_mesh(OUTPUT / f"{name}.stl")
         for name in ("original", "cradle", "cover_left", "cover_right")
     }
-    motor = next(mesh for _, _, mesh in wrist_scene({}, {"wrist_link"}))
     for column, title in enumerate(
         (
             "Original upstream part",
-            "Round housing / no vents",
-            "Covers removed / servo shown",
+            "New cradle / no covers",
+            "Same cradle / curved panels",
         )
     ):
         renderer = vtkRenderer()
@@ -41,12 +39,15 @@ def main():
             if column == 0
             else [
                 (meshes["cradle"], (0.80, 0.83, 0.86), 0),
-                (meshes["cover_left"], (0.90, 0.90, 0.87), -32 if column == 2 else 0),
-                (meshes["cover_right"], (0.90, 0.90, 0.87), 32 if column == 2 else 0),
             ]
         )
         if column == 2:
-            items.append((motor, (0.45, 0.48, 0.52), 0))
+            items.extend(
+                [
+                    (meshes[name], (0.90, 0.90, 0.87), 0)
+                    for name in ("cover_left", "cover_right")
+                ]
+            )
         for mesh, color, shift in items:
             normals = vtkPolyDataNormals()
             normals.SetInputData(mesh)
@@ -72,7 +73,7 @@ def main():
         camera.SetFocalPoint(4, 0, 0)
         camera.SetViewUp(0, 0, 1)
         camera.ParallelProjectionOn()
-        camera.SetParallelScale(100 if column == 2 else 75)
+        camera.SetParallelScale(75)
         renderer.ResetCameraClippingRange()
         window.AddRenderer(renderer)
     window.Render()
