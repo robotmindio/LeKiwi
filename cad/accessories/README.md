@@ -1,5 +1,9 @@
 # Published accessory sources
 
+The [RobotSkin chassis overlays](ROBOTSKIN_SURFACES.md) cover the exterior top,
+interior floor and interior ceiling. Their OpenSCAD recipe derives clearances
+from the installed chassis and builds a separate FreeCAD review assembly.
+
 This directory contains FreeCAD documents only when an exact, redistributable
 editable source is already published with LeKiwi. They are intentionally kept
 outside the URDF assembly: webcam mounts are alternative camera hardware, not
