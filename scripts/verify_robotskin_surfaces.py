@@ -22,6 +22,19 @@ for entry in json.loads((OUT / "layout.json").read_text()):
     assert not (errors := validate(path)), (name, errors)
     mesh = trimesh.load_mesh(path)
     assert np.allclose(mesh.bounds[:, 2], [0, 4], atol=0.001), name
+    ports = np.array(entry["ports"], dtype=float)
+    assert (ports % 10 == 0).all(), f"{name}: grid must align with chassis datum"
+    assert len(entry["chassis_ports"]) >= 4
+    assert set(map(tuple, entry["chassis_ports"])) <= set(map(tuple, ports))
+    if name == "ceiling":
+        ports[:, 1] *= -1
+    rays = np.column_stack((ports, np.full(len(ports), -1.0)))
+    assert not mesh.ray.intersects_any(
+        rays, np.tile([0, 0, 1], (len(ports), 1))
+    ).any(), (
+        name,
+        "every normal RobotSkin port must have a clear central screw passage",
+    )
     region = Polygon(entry["outline"]).buffer(-0.5, join_style="mitre")
     for cut in entry["cuts"]:
         region = region.difference(Polygon(cut))

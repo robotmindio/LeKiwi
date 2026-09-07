@@ -15,10 +15,11 @@ module overlay() {
         for (cut=layout[1]) polygon(cut);
         for (post=layout[2]) translate([post[0],post[1]]) circle(r=post[2]);
       }
-    for (p=layout[4]) translate([p[0],p[1],RM_PLATE_T])
-      mirror([0,0,1]) port_cut();
-    for (p=layout[3]) translate([p[0],p[1],-RM_EPS])
-      cylinder(h=RM_PLATE_T+2*RM_EPS,d=RM_M3_CLEARANCE);
+    for (p=layout[3]) translate([p[0],p[1],0]) {
+      translate([0,0,RM_PLATE_T]) mirror([0,0,1]) port_cut();
+      // Same central M3 passage as RobotSkin's existing through_plate().
+      plate_all_through_cuts(1,1);
+    }
   }
 }
 

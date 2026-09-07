@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 
 import FreeCAD as App
 import Mesh
+import MeshPart
 import Part
 
 from scripts.cad_utils import bounds, urdf_matrix
@@ -35,10 +36,40 @@ def face(points):
     return Part.Face(Part.makePolygon(vertices + vertices[:1]))
 
 
+def footprint(solid, z, clearance):
+    """Oriented convex footprint of hardware reaching this skin's clearance zone."""
+    if solid.BoundBox.ZMin >= z + 4 + clearance or solid.BoundBox.ZMax <= z - clearance:
+        return None
+    points = sorted(
+        set((round(p.x, 5), round(p.y, 5)) for p in solid.tessellate(0.02)[0])
+    )
+
+    def cross(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+
+    halves = []
+    for ordered in (points, points[::-1]):
+        half = []
+        for p in ordered:
+            while len(half) >= 2 and cross(half[-2], half[-1], p) <= 1e-9:
+                half.pop()
+            half.append(p)
+        halves.extend(half[:-1])
+    wire = face(halves).OuterWire.makeOffset2D(clearance, join=2)
+    return [[v.Point.x, v.Point.y] for v in wire.OrderedVertexes]
+
+
 def prepare(clearance):
     doc = App.openDocument("cad/assembly/LeKiwi.FCStd")
     model = ET.Element("robot")
     links = {item.UrdfName: item for item in doc.LeKiwiLinks.Group}
+    # The STEP occurrences are the physical assembly datum. Legacy URDF meshes
+    # were recentered independently and do not preserve these mounting positions.
+    references = {
+        p.UrdfLink: doc.getObject(p.ReferenceObject)
+        for p in doc.LeKiwiReferenceParts.Group
+        if p.ReferenceObject
+    }
     for name in links:
         ET.SubElement(model, "link", name=name)
     for item in doc.LeKiwiJoints.Group:
@@ -68,20 +99,57 @@ def prepare(clearance):
     context = App.newDocument("LeKiwiRobotSkin")
     for name, solid in [("LowerPlate", bottom), ("UpperPlate", upper)]:
         item = context.addObject("Part::Feature", name)
+        item.Label = LOWER if name == "LowerPlate" else UPPER
         item.Shape = solid
     obstacles = []
     motors, posts = [], []
+    placement_audit = []
     for name in links:
-        if not (name.startswith("drive_motor_mount-") or "Hex-Standoff" in name):
+        wheel_part = any(
+            s in name
+            for s in (
+                "drive_motor_mount-",
+                "ST3215_Servo",
+                "omni_wheel_mount-",
+                "Omni-Directional-Wheel",
+            )
+        )
+        if not (wheel_part or "Hex-Standoff" in name):
             continue
-        solid = shape(name)
+        solid = references[name].Shape.copy()
         item = context.addObject("Part::Feature", "Support")
         item.Label = name
         item.Shape = solid
         obstacles.append(solid)
         box = solid.BoundBox
-        if name.startswith("drive_motor_mount-"):
-            motors.append(rectangle(bounds(solid), clearance))
+        if wheel_part:
+            motors.append(solid)
+            if name.startswith("drive_motor_mount-"):
+                centres = sorted(
+                    set(
+                        (round(f.Surface.Center.x, 6), round(f.Surface.Center.y, 6))
+                        for f in solid.Faces
+                        if isinstance(f.Surface, Part.Cylinder)
+                        and abs(f.Surface.Axis.z) > 0.999
+                        and abs(f.Surface.Radius - 1.75) < 0.001
+                    )
+                )
+                assert len(centres) == 2, name
+                for x, y in centres:
+                    assert (
+                        bottom.common(
+                            Part.makeCylinder(1.65, 7, App.Vector(x, y, -7))
+                        ).Volume
+                        < 1e-5
+                    ), (name, "mount misses chassis hole", x, y)
+                delta = solid.BoundBox.Center - shape(name).BoundBox.Center
+                placement_audit.append(
+                    {
+                        "mount": name,
+                        "cad_minus_urdf_mm": list(delta),
+                        "physical_bolt_centres_mm": centres,
+                    }
+                )
         else:
             # Reserve washer / screw-head access as well as the actual hex post.
             posts.append(
@@ -91,7 +159,10 @@ def prepare(clearance):
                     max(4.0, math.hypot(box.XLength, box.YLength) / 2) + clearance,
                 ]
             )
-    assert len(motors) == 3 and len(posts) == 6
+    assert len(motors) == 12 and len(posts) == 6
+    (OUT / "wheel_placement_audit.json").write_text(
+        json.dumps(placement_audit, indent=2) + "\n"
+    )
 
     replace_arm(model)
     # Load the installed SO-101 base, including its fixed servo, from pinned meshes.
@@ -129,6 +200,47 @@ def prepare(clearance):
             polygon[2] = (polygon[2][0], upper.BoundBox.YMax + clearance)
             polygon[3] = (polygon[3][0], upper.BoundBox.YMax + clearance)
 
+    # Include the rest of the actual chassis for the requested full-build views.
+    present = {p.Label for p in context.Objects}
+    for link in model.findall("link"):
+        name = link.get("name")
+        if name.startswith("so101_") or name in present:
+            continue
+        if name in references:
+            item = context.addObject("Part::Feature", "Component")
+            item.Shape = references[name].Shape.copy()
+            item.Label = name
+        else:
+            for part in links[name].CadParts:
+                item = context.addObject(
+                    "Mesh::Feature" if hasattr(part, "Mesh") else "Part::Feature",
+                    "Component",
+                )
+                item.Label = name
+                if hasattr(part, "Mesh"):
+                    mesh = part.Mesh.copy()
+                    mesh.transform(pose(name))
+                    item.Mesh = mesh
+                else:
+                    item.Shape = shape(name)
+    (OUT / "scene").mkdir(exist_ok=True)
+    scene = []
+    for item in context.Objects:
+        mesh = (
+            item.Mesh
+            if hasattr(item, "Mesh")
+            else MeshPart.meshFromShape(
+                Shape=item.Shape,
+                LinearDeflection=0.05,
+                AngularDeflection=0.15,
+                Relative=False,
+            )
+        )
+        path = OUT / "scene" / (item.Name + ".stl")
+        mesh.write(str(path))
+        scene.append({"name": item.Label, "file": "scene/" + path.name})
+    (OUT / "scene.json").write_text(json.dumps(scene, indent=2) + "\n")
+
     data = []
     for name in NAMES:
         source = links[LOWER if name == "floor" else UPPER].CadParts[0].Shape
@@ -137,7 +249,18 @@ def prepare(clearance):
         # Laser profiles use straight polygon edges; retain their original perimeter.
         outline = [[v.Point.x, v.Point.y] for v in profile.OuterWire.OrderedVertexes]
         region = Part.Face(face(outline).OuterWire.makeOffset2D(-0.5))
-        cuts = motors if name == "floor" else arm_boxes if name == "top" else []
+        z = (
+            0
+            if name == "floor"
+            else height - 4
+            if name == "ceiling"
+            else upper.BoundBox.ZMax
+        )
+        cuts = [
+            polygon for solid in motors if (polygon := footprint(solid, z, clearance))
+        ]
+        if name == "top":
+            cuts += arm_boxes
         for polygon in cuts:
             region = region.cut(face(polygon))
         for x, y, radius in posts:
@@ -160,43 +283,28 @@ def prepare(clearance):
             arm_boxes,
         )
         boundary = Part.makeCompound(region.Edges)
-        # Four existing chassis grid holes, shared by both upper overlays.
-        screws = [[-60, -60], [60, -60], [-80, -20], [80, -20]]
-        for x, y in screws:
-            point = App.Vector(x, y, 0)
-            assert region.isInside(point, 1e-7, True), (
-                name,
-                "screw outside overlay",
-                x,
-                y,
-            )
-            assert region.distToShape(Part.Vertex(point))[0] < 1e-7
-            assert boundary.distToShape(Part.Vertex(point))[0] > 4
-            # Confirm actual hole in the underlying laser plate, not just grid arithmetic.
-            solid = bottom if name == "floor" else upper
-            probe = Part.makeCylinder(1.65, 7, App.Vector(x, y, solid.BoundBox.ZMin))
-            assert solid.common(probe).Volume < 1e-5, (
-                name,
-                "missing chassis hole",
-                x,
-                y,
-            )
         ports = []
-        for x in range(-105, 106, 10):
-            for y in range(-105, 106, 10):
+        for x in range(-100, 101, 10):
+            for y in range(-100, 101, 10):
                 point = App.Vector(x, y, 0)
                 if (
                     region.isInside(point, 1e-7, True)
                     and boundary.distToShape(Part.Vertex(point))[0] >= 5.5
-                    and all(math.hypot(x - sx, y - sy) >= 9 for sx, sy in screws)
                 ):
                     ports.append([x, y])
-        z = (
-            0
-            if name == "floor"
-            else height - 4
-            if name == "ceiling"
-            else upper.BoundBox.ZMax
+        hole_centres = []
+        for wire in profile.Wires:
+            if 3.3 < wire.BoundBox.XLength < 3.6 and 3.3 < wire.BoundBox.YLength < 3.6:
+                centre = Part.Face(wire).CenterOfMass
+                if wire.distToShape(Part.Vertex(centre))[0] >= 1.65:
+                    hole_centres.append(centre)
+        chassis_ports = [
+            [x, y]
+            for x, y in ports
+            if any(abs(p.x - x) < 0.001 and abs(p.y - y) < 0.001 for p in hole_centres)
+        ]
+        assert len(chassis_ports) >= 4, (
+            f"{name}: insufficient chassis-aligned RobotSkin ports"
         )
         blank = region.extrude(App.Vector(0, 0, 4))
         blank.translate(App.Vector(0, 0, z))
@@ -212,7 +320,7 @@ def prepare(clearance):
                 outline=outline,
                 cuts=cuts,
                 posts=posts,
-                screws=screws,
+                chassis_ports=chassis_ports,
                 ports=ports,
                 z=z,
                 port_count=len(ports),
@@ -223,9 +331,7 @@ def prepare(clearance):
     context.saveAs(str((OUT / "layout.FCStd").resolve()))
     (OUT / "layout.json").write_text(json.dumps(data, indent=2) + "\n")
     # OpenSCAD consumes the same measured regions and validated port centres.
-    arrays = [
-        [d[k] for k in ("outline", "cuts", "posts", "screws", "ports")] for d in data
-    ]
+    arrays = [[d[k] for k in ("outline", "cuts", "posts", "ports")] for d in data]
     (OUT / "layout.scad").write_text("layouts = " + json.dumps(arrays) + ";\n")
 
 

@@ -1,74 +1,75 @@
 # Superficies RobotSkin para LeKiwi
 
-Tres recubrimientos desmontables sobre las placas existentes, en milímetros:
+Tres recubrimientos de 4 mm: `top.stl` (Z=57–61), `floor.stl` (Z=0–4) y
+`ceiling.stl` (Z=46–50, puertos hacia abajo), en milímetros del chasis.
 
-| STL | Cara | Z instalada | Puertos |
-| --- | --- | --- | --- |
-| `top.stl` | Superior exterior | 57–61 | 182 |
-| `floor.stl` | Piso interior | 0–4 | 235 |
-| `ceiling.stl` | Techo interior, puertos hacia abajo | 46–50 | 300 |
+## Fuente de las posiciones
 
-El generador toma el perímetro de las placas editables de FreeCAD, las posiciones
-de los tres soportes de motor y los seis separadores metálicos del ensamblaje,
-y la base SO-101 instalada mediante la misma transformación del exportador.
-La superior reserva la envolvente rectangular de la base y abre el recorte
-hacia el frente (+Y). El piso reserva las envolventes de los soportes. Las tres
-caras dejan acceso a los separadores y sus tornillos: radio mínimo de 5 mm.
-Los demás componentes se omiten, según el montaje propuesto sobre RobotSkin.
+Los soportes, motores, cubos, ruedas y separadores usan las ocurrencias STEP
+de `cad/assembly/LeKiwi.FCStd`, identificadas por `ReferenceObject` en el grupo
+`LeKiwiReferenceParts`. Son la referencia dimensional física del repositorio.
+Se comprueba que los dos agujeros de cada soporte coinciden con agujeros reales
+de la placa inferior. El brazo SO-101 y los accesorios añadidos conservan sus
+transformaciones actuales.
 
-La separación respecto a esas envolventes es de 1 mm, ajustable mediante
-`--clearance` (0.5–3 mm). El perímetro queda 0.5 mm dentro del chasis.
-El grosor de 4 mm, los puertos octagonales, sus alojamientos para insertos y
-la retícula de 10 mm reutilizan directamente `port_cut()` del submódulo
-RobotSkin fijado por LeKiwi. Se conservan `RM_PORT_FIT`, `RM_PEG_FIT` y
-`RM_INSERT_BORE`; no se redefine la interfaz. Sólo se colocan puertos completos
-con margen de pared en los recortes y alrededor de los tornillos.
+La primera versión de estas pieles usó las posiciones del URDF heredado.
+Ese modelo desplazaba cada soporte aproximadamente 10 mm respecto al STEP;
+sus agujeros no coincidían con los del chasis, y dos cubos de rueda invadían
+la piel. `wheel_placement_audit.json` registra los desplazamientos y los centros
+de tornillos físicos. La corrección de las pieles no modifica automáticamente
+las posiciones del URDF de producción.
 
-## Generar y revisar
+Los recortes siguen las envolventes convexas orientadas de las piezas reales
+que alcanzan la altura de cada piel, con 1 mm de holgura. Se verifican los doce
+componentes de las tres unidades de rueda, además de los seis separadores.
+La holgura se ajusta con `--clearance` (0.5–3 mm); el borde exterior queda
+0.5 mm dentro del perímetro de la placa. Los componentes electrónicos no
+recortan la piel: se remontarán encima, según el montaje solicitado.
 
-Desde la raíz de LeKiwi, con FreeCAD Flatpak, OpenSCAD y Python con trimesh y Shapely 2:
+## Fijación usando los puertos normales
+
+No hay agujeros adicionales de montaje. Todos los puertos usan `port_cut()`
+y el paso central de `through_plate()` de la biblioteca RobotSkin existente.
+La retícula de 10 mm parte del origen del chasis, por lo que coincide con su
+retícula de tornillos de 20 mm. `chassis_ports` en `checks.json` enumera los
+puertos que coinciden con agujeros físicos utilizables de cada placa.
+
+Fijar las pieles por esos mismos puertos, con tornillos M3 y los insertos de
+RobotSkin. Usar un único inserto por unión: no enroscar un tornillo a través
+de dos insertos enfrentados. La placa superior con sus dos pieles suma 15 mm;
+la inferior con su piel suma 11 mm. Elegir la longitud según cabeza, arandelas
+y enganche del inserto. Se conservan los ajustes de impresión `RM_PORT_FIT`,
+`RM_PEG_FIT` y `RM_INSERT_BORE` de la biblioteca fijada por LeKiwi.
+
+## Regenerar e inspeccionar
+
+Requiere FreeCAD Flatpak, OpenSCAD y Python con trimesh, Shapely 2 y rtree;
+las imágenes usan VTK. Desde la raíz del repositorio:
 
 ```sh
 ./scripts/build_robotskin_surfaces.sh
-# Opcional: imagen de las mallas reales, requiere VTK.
 python3 scripts/render_robotskin_surfaces.py
+python3 scripts/render_robotskin_assembly.py
 ```
 
-Los resultados reproducibles quedan en `cad/generated/robotskin/`:
+Resultados en `cad/generated/robotskin/`:
 
-- `top.stl`, `floor.stl`, `ceiling.stl`: orientación de impresión, base en Z=0,
-  puertos arriba. El techo está reflejado en Y para quedar alineado al voltearlo.
-- `LeKiwi_RobotSkin.FCStd`: ensamblaje de revisión con las tres mallas instaladas,
-  placas originales, soportes, separadores y brazo. La receta editable está en
-  `robotskin_surfaces.scad` y `scripts/build_robotskin_surfaces.py`.
-- `preview.png`: caras expuestas y despiece de las tres láminas.
-- `checks.json`: coordenadas, puertos y volúmenes verificados.
+- `top.stl`, `floor.stl`, `ceiling.stl`: impresión con puertos arriba y base Z=0.
+  El techo se refleja en Y para recuperar las coordenadas CAD al voltearlo.
+- `LeKiwi_RobotSkin.FCStd`: ensamblaje de revisión con las pieles instaladas.
+- `preview.png`: las tres pieles y despiece.
+- `full_build.png`: chasis físico completo con SO-101 y accesorios actuales.
+- `wheel_assemblies.png`: planta con radios y planos de rueda, y las tres unidades.
+- `floor_wheel_fit.png`: piel corregida con motores, soportes, cubos y ruedas.
+- `checks.json`, `wheel_placement_audit.json`, `wheel_orientation_checks.json`:
+  geometría, fijaciones, comparación de posiciones y orientación de las ruedas.
 
-Cada ejecución comprueba que los tornillos coinciden con agujeros reales de
-las placas, que las envolventes no intersectan soportes/separadores/placas,
-y que las mallas finales son cerradas, orientadas y conectadas, con grosor de
-4 mm y vértices y caras dentro de esas envolventes (tolerancia STL de 0.002 mm).
-Los recortes del brazo incluyen
-su base fija y cualquier visual que alcance la altura de la lámina en postura
-neutra. No se ha certificado el barrido completo de los seis ejes del brazo.
+Las verificaciones exigen mallas cerradas y conectadas, grosor de 4 mm, paso
+central libre en todos los puertos y caras dentro de las envolventes comprobadas
+(tolerancia STL de 0.002 mm). Las imágenes muestran geometría CAD real, no un
+concepto ilustrativo. Los componentes que se remontarán se muestran en sus
+posiciones de referencia en la vista del robot completo.
 
-## Montaje
-
-Las tres láminas usan cuatro pasos M3 de 3.4 mm en las coordenadas CAD
-(-60,-60), (60,-60), (-80,-20), (80,-20). Los dos recubrimientos de la placa
-superior comparten esos tornillos: apilar superior + placa original + techo
-da 15 mm; el piso con su placa suma 11 mm. Elegir la longitud de tornillo
-añadiendo las arandelas, tuerca y su enganche real. Estos pasos son de fijación
-al chasis; los puertos RobotSkin conservan sus insertos ciegos independientes.
-
-Mantener el brazo y los separadores asentados directamente en sus placas
-originales; los recubrimientos no quedan bajo sus apoyos. El techo puede
-requerir retirar la placa superior para instalarse. Revisar también el espacio
-de las tuercas reales del brazo antes del montaje: no están detalladas como
-piezas independientes en este CAD. La altura interior libre pasa de 50 a 42 mm.
-Las láminas miden aproximadamente 215 × 212 mm; comprobar el área de impresión
-y calibrar un puerto antes de imprimirlas completas. La comprobación digital
-no sustituye la prueba de ajuste físico ni establece capacidad de carga.
-
-El ensamblaje de revisión es independiente: no modifica el CAD principal,
-el URDF ni las piezas que siguen en desarrollo.
+La altura interior libre queda en 42 mm. Las piezas caben aproximadamente en
+215 × 212 mm. Falta la prueba física de ajuste, incluida la tornillería real
+del brazo, y no se certifica el barrido completo de sus seis ejes.
