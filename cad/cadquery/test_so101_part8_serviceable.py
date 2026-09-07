@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from math import ceil, degrees, radians
+from math import ceil, degrees, sqrt
 from pathlib import Path
 
 import cadquery as cq
@@ -15,7 +15,6 @@ from cad_checks import export_stl
 from so101_part8_serviceable import (
     FRAME_OUTER_Y,
     COVER_HEAD_Y,
-    COVER_BASE_Z,
     COVER_SCREWS,
     INTERFACE_REGIONS,
     ServiceParameters,
@@ -80,8 +79,8 @@ def check_clearance(meshes):
     cases = [({}, {"wrist_link"})]
     ranges = {}
     for joint_name, link in (
-        ("wrist_flex", "lower_arm_link"),
         ("wrist_roll", "gripper_link"),
+        ("wrist_flex", "lower_arm_link"),
     ):
         limit = robot.find(f"joint[@name='{joint_name}']/limit")
         low, high = (float(limit.attrib[key]) for key in ("lower", "upper"))
@@ -171,7 +170,7 @@ def main():
     for name, side in (("cover_left", -1), ("cover_right", 1)):
         for x in (0, 5, 10):
             assert solids[name].isInside(
-                (x, side * 24.5, -21), 1e-6
+                (x, side * (FRAME_OUTER_Y - 1), -21), 1e-6
             ), "no ventilation slots"
     robot, visuals = reference()
     frames = placements({})
@@ -192,6 +191,42 @@ def main():
         assert np.allclose(axis, expected_axis, atol=0.00001)
         datums[joint] = {"point_mm": point, "axis": axis}
     original = _source()
+    # The outer ear silhouette is deliberately different; the counterbore
+    # seating planes and diameters must still match the pinned source exactly.
+    for x in (-21.2, 21.1):
+        region = cq.Solid.makeBox(0.1, 16, 16, (x, -8, 20))
+        expected = original.intersect(region)
+        actual = solids["cradle"].intersect(region)
+        assert abs(expected.cut(actual).Volume()) < 1e-5
+        assert abs(actual.cut(expected).Volume()) < 1e-5
+    for x in (-27.1, 21.1):
+        for y in (-7 / sqrt(2), 7 / sqrt(2)):
+            for z in (28 - 7 / sqrt(2), 28 + 7 / sqrt(2)):
+                bore = cq.Solid.makeCylinder(2.7, 6, (x, y, z), (1, 0, 0))
+                assert abs(solids["cradle"].intersect(bore).Volume()) < 1e-5
+    # No old sloping deck fragments, no upper-ear patch boundary on the rim.
+    assert not any(
+        3.4001 < face.Center().z < 18 and -13.3 < face.Center().x < 17
+        for face in solids["cradle"].Faces()
+    ), "unexpected raised deck geometry"
+    for edge in solids["cradle"].Edges():
+        bounds = edge.BoundingBox()
+        assert not (
+            abs(bounds.zmin - 20) < 1e-5
+            and abs(bounds.zmax - 20) < 1e-5
+            and (bounds.xmin < -22.1 or bounds.xmax > 22.1)
+        ), "external seam at old ear patch boundary"
+    for name in ("cover_left", "cover_right"):
+        assert (
+            max(
+                abs(v)
+                for v in (
+                    solids[name].BoundingBox().ymin,
+                    solids[name].BoundingBox().ymax,
+                )
+            )
+            <= FRAME_OUTER_Y + 1e-6
+        ), "cover projects beyond the frame"
     for name, (size, corner) in INTERFACE_REGIONS.items():
         region = cq.Solid.makeBox(*size, corner)
         retained = original.intersect(region)

@@ -11,7 +11,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkWindowToImageFilter,
 )
 import vtkmodules.vtkRenderingFreeType
-import vtkmodules.vtkRenderingOpenGL2
+import vtkmodules.vtkRenderingOpenGL2  # noqa: F401 - registers the rendering backend
 
 from test_so101_part8_serviceable import OUTPUT, read_mesh
 
@@ -28,7 +28,7 @@ def main():
         (
             "Original upstream part",
             "New cradle / no covers",
-            "Same cradle / curved panels",
+            "Same cradle / inset panels",
         )
     ):
         renderer = vtkRenderer()
@@ -51,7 +51,9 @@ def main():
         for mesh, color, shift in items:
             normals = vtkPolyDataNormals()
             normals.SetInputData(mesh)
-            normals.SetFeatureAngle(45)
+            # Keep countersink normals off planar faces (45° sinks otherwise
+            # create false triangular bulges in the preview).
+            normals.SetFeatureAngle(30)
             mapper = vtkPolyDataMapper()
             mapper.SetInputConnection(normals.GetOutputPort())
             actor = vtkActor()
