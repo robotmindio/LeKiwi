@@ -30,6 +30,9 @@ def make_plate(name, dxf_name, output_name, contour_count):
 
     faces = sorted((Part.Face(wire) for wire in wires), key=lambda face: face.Area)
     profile_shape = faces[-1].cut(Part.makeCompound(faces[:-1]))
+    if name == "upper":
+        from scripts.upper_plate_windows import corrected
+        profile_shape = corrected(profile_shape)
     for item in list(document.Objects):
         document.removeObject(item.Name)
 

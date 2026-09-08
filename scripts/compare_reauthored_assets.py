@@ -307,6 +307,9 @@ def main(arguments):
                 urdf_matrix(origin if origin is not None else ET.Element("origin"))
             )
         generated_path = URDF.parent / "meshes/reauthored" / mesh_filename(name)
+        if name == "base_plate_layer2-v3":
+            from scripts.upper_plate_windows import reference_mesh
+            original = reference_mesh()
         if not generated_path.is_file():
             raise RuntimeError(f"{name}: missing generated mesh {generated_path}")
         generated = Mesh.Mesh(str(generated_path))
@@ -317,6 +320,8 @@ def main(arguments):
             **comparison(original, generated),
         }
         entries.append(entry)
+        if name == "base_plate_layer2-v3":
+            entry["reference_adjustment"] = "scripts/upper_plate_windows.py"
         print(
             f"{name}: {entry['status']} max={entry['max_surface_error_mm']:.3f} mm "
             f"p95={entry['p95_surface_error_mm']:.3f} mm rms={entry['rms_surface_error_mm']:.3f} mm "

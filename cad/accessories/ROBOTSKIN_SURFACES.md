@@ -24,6 +24,11 @@ ampliar el recorte. `--motor-clearance` ajusta el margen independientemente
 de las otras holguras. `motor_bases` conserva las huellas y recortes verificados.
 El techo también deja espacio para los soportes de 45.5 mm de altura.
 Los seis separadores se comprueban en las tres pieles.
+Las dos ventanas de cables se derivan del perfil CAD superior: 60 × 20 mm
+centrada en (0, 0) y 20 × 30 mm en (0, 50), ambas con esquinas R4.
+Son aproximaciones de la fotografía usando la retícula de 20 mm, no medidas
+con calibre. El techo conserva ambas; la piel superior también las despeja,
+aunque pueden unirse al recorte del brazo. El piso no cambia.
 La holgura general se ajusta con `--clearance` (0.5–3 mm); el borde exterior queda
 0.5 mm dentro del perímetro de la placa. Los componentes electrónicos no
 recortan la piel: se remontarán encima, según el montaje solicitado.

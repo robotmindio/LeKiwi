@@ -44,6 +44,7 @@ def snapshot(root):
             "3DPrintMeshes/drive_motor_mount_v2.stl",
             "scripts/build_drive_motor_mount_v2.py",
             "scripts/install_wheel_mount_v2.py",
+            "scripts/upper_plate_windows.py",
         )
     ]
     inputs += list((root / "cad/parts").glob("*.FCStd"))

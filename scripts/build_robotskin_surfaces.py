@@ -261,6 +261,13 @@ def prepare(clearance, motor_clearance):
                 )
         if name == "top":
             cuts += arm_boxes
+        windows = []
+        if name != "floor":
+            for wire in profile.Wires:
+                if not wire.isSame(profile.OuterWire) and Part.Face(wire).Area > 100:
+                    windows.append([[p.x, p.y] for p in wire.discretize(Deflection=0.02)])
+            assert len(windows) == 2, "Upper plate must contain both cable windows"
+            cuts += windows
         for polygon in cuts:
             region = region.cut(face(polygon))
         for x, y, radius in posts:
@@ -330,6 +337,7 @@ def prepare(clearance, motor_clearance):
                 z=z,
                 port_count=len(ports),
                 motor_bases=motor_bases,
+                windows=windows,
             )
         )
         print(f"{name}: {len(ports)} complete ports, z={z:g}..{z + 4:g} mm")

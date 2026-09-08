@@ -55,3 +55,10 @@ The installer checks all twelve chassis bolt axes and preserves complete wheel u
 RobotSkin adds 4 mm per-side clearance; it does not enlarge the mount itself.
 
 Purchased or separately maintained designs, and optional accessory prints outside this URDF assembly, remain measured/vendor references rather than reverse-engineered LeKiwi-specific source models.
+
+The upper plate includes two photo-approximated rounded cable windows (R4):
+60 × 20 mm at (0, 0) and 20 × 30 mm at (0, 50), in chassis millimetres.
+`scripts/upper_plate_windows.py` replaces the original single opening while
+preserving the perimeter and remaining screw holes. The plate builder applies
+this correction after importing the historical DXF; that DXF remains unchanged.
+RobotSkin reads the resulting CAD contours for both upper overlays.

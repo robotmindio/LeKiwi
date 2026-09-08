@@ -38,6 +38,14 @@ for entry in json.loads((OUT / "layout.json").read_text()):
         "every normal RobotSkin port must have a clear central screw passage",
     )
     region = Polygon(entry["outline"]).buffer(-0.5, join_style="mitre")
+    windows = entry["windows"]
+    assert len(windows) == (0 if name == "floor" else 2)
+    if windows:
+        measured = sorted(Polygon(w).bounds for w in windows)
+        assert np.allclose(measured, [(-30, -10, 30, 10), (-10, 35, 10, 65)], atol=0.002)
+        assert np.allclose(sorted(Polygon(w).area for w in windows),
+                           [600 - (4 - math.pi) * 16, 1200 - (4 - math.pi) * 16], atol=1)
+        assert all(w in entry["cuts"] for w in windows)
     assert len(entry["posts"]) == 6
     assert {tuple(round(v, 3) for v in p[:2]) for p in entry["posts"]} == set(
         POSITIONS.values()

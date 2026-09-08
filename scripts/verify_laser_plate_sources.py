@@ -14,6 +14,9 @@ checks = (
 )
 for label, assembly_name, source_name, z_min, z_max, legacy_print in checks:
     reference_shape = next(item.Shape for item in reference.Objects if item.Label == label)
+    if assembly_name == "CadBasePlateUpper":
+        from scripts.upper_plate_windows import corrected
+        reference_shape = corrected(reference_shape)
     source = App.openDocument(source_name).getObject("Extrusion").Shape
     volume_error = abs(source.Volume / reference_shape.Volume - 1)
     if volume_error >= 0.001:

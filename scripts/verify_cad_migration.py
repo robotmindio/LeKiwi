@@ -51,6 +51,9 @@ for link in links:
             urdf_matrix(origin if origin is not None else ET.Element("origin"))
         )
     actual_path = output_directory / mesh_filename(name)
+    if name == "base_plate_layer2-v3":
+        from scripts.upper_plate_windows import reference_mesh
+        expected = reference_mesh()
     if not actual_path.is_file() or actual_path.stat().st_size == 0:
         raise SystemExit(f"{name}: missing exported mesh {actual_path}")
     actual = Mesh.Mesh(str(actual_path))
