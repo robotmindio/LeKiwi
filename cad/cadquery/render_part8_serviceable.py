@@ -1,4 +1,4 @@
-"""Render actual exported CAD: original, assembled redesign, and opened covers."""
+"""Render actual exported CAD: original, single-piece redesign, and underside."""
 
 from vtkmodules.vtkIOImage import vtkPNGWriter
 from vtkmodules.vtkFiltersCore import vtkPolyDataNormals
@@ -21,14 +21,13 @@ def main():
     window.SetOffScreenRendering(1)
     window.SetSize(1800, 900)
     meshes = {
-        name: read_mesh(OUTPUT / f"{name}.stl")
-        for name in ("original", "cradle", "cover_left", "cover_right")
+        name: read_mesh(OUTPUT / f"{name}.stl") for name in ("original", "cradle")
     }
     for column, title in enumerate(
         (
             "Original upstream part",
-            "New cradle / no covers",
-            "Same cradle / inset panels",
+            "Single-piece cradle",
+            "Underside / motor access",
         )
     ):
         renderer = vtkRenderer()
@@ -41,13 +40,6 @@ def main():
                 (meshes["cradle"], (0.80, 0.83, 0.86), 0),
             ]
         )
-        if column == 2:
-            items.extend(
-                [
-                    (meshes[name], (0.90, 0.90, 0.87), 0)
-                    for name in ("cover_left", "cover_right")
-                ]
-            )
         for mesh, color, shift in items:
             normals = vtkPolyDataNormals()
             normals.SetInputData(mesh)
@@ -71,7 +63,7 @@ def main():
         text.GetTextProperty().SetColor(0.12, 0.16, 0.20)
         renderer.AddActor2D(text)
         camera = renderer.GetActiveCamera()
-        camera.SetPosition(110, -180, 95)
+        camera.SetPosition(110, -180, -95 if column == 2 else 95)
         camera.SetFocalPoint(4, 0, 0)
         camera.SetViewUp(0, 0, 1)
         camera.ParallelProjectionOn()

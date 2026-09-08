@@ -1,4 +1,4 @@
-"""Build/export the pilot and check interfaces, caps and sampled URDF clearance."""
+"""Export the single-piece cradle and check interfaces and sampled motion."""
 
 import hashlib
 import json
@@ -14,17 +14,15 @@ from vtkmodules.vtkIOGeometry import vtkSTLReader
 from cad_checks import export_stl
 from so101_part8_serviceable import (
     FRAME_OUTER_Y,
-    COVER_HEAD_Y,
-    COVER_SCREWS,
+    SEAT_BOTTOM_Z,
     INTERFACE_REGIONS,
-    ServiceParameters,
     _source,
-    parts,
+    cradle,
 )
-from so101_scene import URDF, placements, reference, wrist_scene
+from so101_scene import URDF, placements, reference, wrist_scene, transform_mesh
 from so101_wrist import PARTS
 
-OUTPUT = Path(__file__).resolve().parents[1] / "generated/part8-serviceable"
+OUTPUT = Path(__file__).resolve().parents[1] / "generated/part8-smooth"
 TOLERANCE = 0.08  # mm; exported surface deflection is 0.02 mm.
 
 
@@ -119,59 +117,46 @@ def check_clearance(meshes):
     }
 
 
-def check_tool_access(meshes):
-    """Sample a 6 mm straight shaft with 60 mm reach outside the side screws."""
-    clearances = {}
-    for name, side in (("cover_left", -1), ("cover_right", 1)):
-        points = np.array(
-            [
-                (x + radius * np.cos(angle), side * y, z + radius * np.sin(angle))
-                for x, z in COVER_SCREWS
-                for y in np.linspace(COVER_HEAD_Y + 0.1, COVER_HEAD_Y + 60, 61)
-                for radius in (0, 3)
-                for angle in np.linspace(0, 2 * np.pi, 37)
+def check_motor_access(meshes):
+    """The new shell must not add obstructions to the original front entry.
+
+    ponytail: this compares sampled straight translations to upstream; existing
+    guide/clip interference means it does not prove a rigid, force-free assembly.
+    """
+    original, candidate = (field(meshes[name]) for name in ("original", "cradle"))
+    added = samples(meshes["cradle"])
+    added = added[[original.EvaluateFunction(p) > TOLERANCE for p in added]]
+    for _, name, motor in wrist_scene({}, {"wrist_link"}):
+        for travel in np.linspace(0, 60, 61):
+            moved = transform_mesh(motor, cq.Location((float(travel), 0, 0)))
+            motor_field = field(moved)
+            hits = [
+                p
+                for p in in_bounds(samples(moved), meshes["cradle"])
+                if candidate.EvaluateFunction(p) < -TOLERANCE
+                and original.EvaluateFunction(p) > TOLERANCE
             ]
-        )
-        nearest = float("inf")
-        obstacles = [
-            (name, mesh)
-            for _, name, mesh in wrist_scene(
-                {},
-                {"wrist_link", "lower_arm_link", "gripper_link"},
-            )
-        ] + list(meshes.items())
-        for obstacle_name, mesh in obstacles:
-            obstacle = field(mesh)
-            distance = min(obstacle.EvaluateFunction(point) for point in points)
-            assert distance >= 0, (name, obstacle_name, distance)
-            nearest = min(nearest, distance)
-        clearances[name] = nearest
-    return {
-        "pose": "All URDF joints at zero; straight side access, no service rotation.",
-        "shaft_diameter_mm": 6,
-        "reach_mm": 60,
-        "sampled_min_clearance_mm": clearances,
-        "scope": "Shaft only; handle, fastener extraction and physical tool access still need bench checking.",
-    }
+            hits += [
+                p
+                for p in in_bounds(added, moved)
+                if motor_field.EvaluateFunction(p) < -TOLERANCE
+            ]
+            assert not hits, (name, travel, len(hits), hits[:3])
+    return "No newly detected front-entry obstruction at 61 translations over 60 mm. Existing upstream clip/guide interference and physical assembly still need bench verification."
 
 
 def main():
-    for invalid in (float("nan"), -1, 20):
-        try:
-            ServiceParameters(cover_wall=invalid).validate()
-        except ValueError:
-            pass
-        else:
-            raise AssertionError("invalid dimensions accepted")
-    solids = {name: part.val() for name, part in parts().items()}
+    solids = {"cradle": cradle().val()}
+    assert abs(solids["cradle"].BoundingBox().ymax - FRAME_OUTER_Y) < 1e-6
     assert (
-        abs(solids["cradle"].BoundingBox().ymax - FRAME_OUTER_Y) < 1e-6
-    ), "no projecting mount arms"
-    for name, side in (("cover_left", -1), ("cover_right", 1)):
+        solids["cradle"].BoundingBox().zmin >= SEAT_BOTTOM_Z - 1e-5
+    ), "bottom tooth remains"
+    for side in (-1, 1):
         for x in (0, 5, 10):
-            assert solids[name].isInside(
-                (x, side * (FRAME_OUTER_Y - 1), -21), 1e-6
-            ), "no ventilation slots"
+            for z in (-8, -15.5, -21):
+                assert solids["cradle"].isInside(
+                    (x, side * (FRAME_OUTER_Y - 1), z), 1e-6
+                ), "side wall is not continuous"
     robot, visuals = reference()
     frames = placements({})
     part_pose = next(
@@ -216,17 +201,6 @@ def main():
             and abs(bounds.zmax - 20) < 1e-5
             and (bounds.xmin < -22.1 or bounds.xmax > 22.1)
         ), "external seam at old ear patch boundary"
-    for name in ("cover_left", "cover_right"):
-        assert (
-            max(
-                abs(v)
-                for v in (
-                    solids[name].BoundingBox().ymin,
-                    solids[name].BoundingBox().ymax,
-                )
-            )
-            <= FRAME_OUTER_Y + 1e-6
-        ), "cover projects beyond the frame"
     for name, (size, corner) in INTERFACE_REGIONS.items():
         region = cq.Solid.makeBox(*size, corner)
         retained = original.intersect(region)
@@ -238,44 +212,26 @@ def main():
             removed.Volume(),
             added.Volume(),
         )
-    for name, side in (("cover_left", -1), ("cover_right", 1)):
-        for travel in (0, 0.25, 0.5, 1, 2, 4, 8, 16, 30, 45):
-            overlap = (
-                solids[name]
-                .translate((0, side * travel, 0))
-                .intersect(solids["cradle"])
-            )
-            assert overlap.isValid() and abs(overlap.Volume()) < 1e-6, (name, travel)
-    overlap = solids["cover_left"].intersect(solids["cover_right"])
-    assert overlap.isValid() and abs(overlap.Volume()) < 1e-6
     exported = {}
     for name, solid in {"original": original, **solids}.items():
         exported[name] = export_stl(solid, OUTPUT / f"{name}.stl")
         print(f"Exported {name}: checked closed single mesh", flush=True)
-    for name, side in (("cover_left", -1), ("cover_right", 1)):
-        oriented = solids[name].rotate((0, 0, 0), (1, 0, 0), 90 * side)
-        oriented = oriented.translate((0, 0, -oriented.BoundingBox().zmin))
-        export_stl(oriented, OUTPUT / f"{name}_print.stl")
     oriented = solids["cradle"].rotate((0, 0, 0), (0, 1, 0), -90)
     oriented = oriented.translate((0, 0, -oriented.BoundingBox().zmin))
     export_stl(oriented, OUTPUT / "cradle_print.stl")
-    assembly = cq.Assembly()
-    for name, solid in solids.items():
-        assembly.add(solid, name=name)
-    assembly.save(str(OUTPUT / "serviceable.step"))
+    cq.exporters.export(solids["cradle"], str(OUTPUT / "cradle.step"))
     meshes = {name: read_mesh(OUTPUT / f"{name}.stl") for name in exported}
     clearance = check_clearance(meshes)
-    tool_access = check_tool_access(meshes)
+    motor_access = check_motor_access(meshes)
     report = {
         "units": "mm",
-        "parameters": vars(ServiceParameters()),
         "source_sha256": hashlib.sha256(PARTS["flex_body"].read_bytes()).hexdigest(),
         "urdf_sha256": hashlib.sha256(URDF.read_bytes()).hexdigest(),
         "exact_interfaces": list(INTERFACE_REGIONS),
         "joint_datums": datums,
-        "cover_removal": "No CAD overlap at 10 translations along each cover's outward Y direction, screws removed.",
+        "travel_stop": "Bottom tooth removed by user request. Software limits unchanged; the original physical stop is no longer present.",
         "clearance": clearance,
-        "tool_access": tool_access,
+        "motor_access": motor_access,
         "meshes": exported,
         "qualification": "Geometric prototype: loads, fatigue, thermal performance, print strength and physical assembly have not been tested.",
     }

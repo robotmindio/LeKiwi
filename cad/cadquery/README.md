@@ -54,44 +54,30 @@ supports, stiffness and fatigue have not been physically qualified. Closed
 STL geometry does not establish support-free printing or equal strength.
 Further structural simplification needs the intended loads and print setup.
 
-## Serviceable redesign pilot
+## Single-piece rounded redesign
 
-`so101_part8_serviceable.py` is the deeper physical redesign: one load-bearing
-cradle and two removable curved side panels. It does **not** replace the production
-robot exporter or the conservative candidate above.
+`so101_part8_serviceable.py` retains its historical filename but now builds
+**one piece**: a smooth motor cradle with integral curved sides and a mirrored
+fork. The cover builders, seams, windows, screw bosses, inserts, cable-tie
+tunnels and cover calibration parameters are gone. The outside is 34 mm wide,
+versus 40.2 mm for the last covered version. The motor opening stays open;
+this is not a sealed enclosure or a lightweight optimization.
 
-The bare cradle is the primary shape: a rounded frame, softly flared fork roots,
-uninterrupted outer fork rims and a planar motor deck. One rounded outline and
-one R80 side surface drive both frame and inset panels. The panels meet that
-same surface across a deliberate clearance seam instead of standing proud of
-the frame. One side screw pattern drives the recessed lands and panel fixings;
-the two panels share one mirrored builder. There are no separate triangular
-braces, projecting cover-mount arms or ventilation slots.
-No new dependency or arm-generator framework is added. `so101_scene.py` reuses
-the pinned URDF poses for checks that can also be applied to later arm parts.
+The bottom tooth is removed at the user's request. It previously contacted the
+rotating wrist outside the configured motion range, consistent with a travel
+stop. **That mechanical stop no longer exists.** The software limits have not
+been expanded; do not assume the old physical end-stop/calibration behavior.
 
-This is deliberately a **hybrid STEP-backed/native design**, not a fully native
-reconstruction: clearance checking found discrepancies in the older native
-mounts. Five explicit regions retain the actual left/right inner joint faces,
-motor-deck contact layer, lower seat/calibration foot and rear rails. The outer
-ear shape is no longer patched with entire original ear sections; the through
-bores, recesses and counterbore seats are checked independently. The deck is
-extruded from its original planar motor-contact footprint, keeping the relief
-opening without importing the original sloping fragments. The lower internal
-rear relief leaves clearance for the rotating neighboring wrist part. The
-rear-rail region overlaps the rebuilt deck by 0.1 mm to avoid a coplanar-only
-connection. Functional seat/rail steps and the calibration foot remain;
-these are not decorative protrusions.
+The incoming wrist-flex axis stays at (-18.1, 0, 28) mm along X and outgoing
+wrist-roll at (0, 0, -33.1) mm along Z, within the pinned URDF's rounding.
+Motor placement, joint transforms, link lengths and software limits are unchanged.
+Mass, stiffness and payload capacity are not guaranteed equivalent.
 
-The incoming wrist-flex axis remains at (-18.1, 0, 28) mm along X; the outgoing
-wrist-roll axis remains at (0, 0, -33.1) mm along Z, within the pinned URDF's
-rounding. No joint transform, motor placement, link length or joint limit changes.
-Changing the structure still changes mass, stiffness and dynamics: the covers
-are cosmetic, not structural, and this is not a weight-optimized version.
-The bare cradle and covered assembly are both 40.2 mm across Y, versus
-53 mm for the previous stand-off panels. See `checks.json` for solid volumes;
-printed mass also depends on material, walls and infill. Structural simplicity
-and retained kinematics do not establish equal stiffness or payload capacity.
+This remains a hybrid native/STEP-backed design. Native rounded geometry defines
+the shell and fork; exact source patches retain the motor contacts, rails,
+joint faces and mounting holes. The lower-seat patch ends at Z=-34.4 mm rather
+than importing the tooth underneath. The deck is planar, retaining the original
+contact footprint and access opening. The original source is never modified.
 
 ### Generate and inspect
 
@@ -100,67 +86,40 @@ python cad/cadquery/test_so101_part8_serviceable.py
 python cad/cadquery/render_part8_serviceable.py
 ```
 
-Outputs are in `cad/generated/part8-serviceable/`:
+Current outputs are in **`cad/generated/part8-smooth/`**:
 
-- `original.stl`, `cradle.stl`, `cover_left.stl`, `cover_right.stl`: millimetres,
-  matching original assembly coordinates. Print the redesign as three parts.
-- `cradle_print.stl`, `cover_left_print.stl`, `cover_right_print.stl`: the same
-  parts pre-oriented on Z=0. Panels have their curved exterior facing up;
-  their inner surfaces are curved too and require support/brim assessment.
-  The cradle lies on its left ear. It also needs slicer support assessment,
-  particularly the overhanging deck/seat. These are not support-free guarantees.
-- `serviceable.step`: editable three-part assembly; `preview.png`: actual CAD
-  original/bare-cradle/covered comparison at equal scale, not an AI concept image.
-- `checks.json`: source hashes, interface comparisons, mesh checks and sampled
-  motion-clearance results. Generated files are ignored and reproducible.
+- `original.stl` and `cradle.stl`: matching original assembly coordinates, mm.
+- `cradle_print.stl`: the same single part oriented with its left ear down.
+  Inspect supports for the deck and lower seat in your slicer; this is not a
+  support-free or physically qualified print.
+- `cradle.step`: editable solid.
+- `preview.png`: actual original/redesign/underside views at equal scale.
+- `checks.json`: source hashes, exact-interface and sampled-clearance results.
 
-### Assembly and service
+The older `part8-serviceable/` generated files are superseded. They are not
+outputs of this builder; do not print their covers for this version.
 
-Keep the original motor and joint mounting hardware. Each cover uses two M3
-countersunk screws from the side, nominally M3×6, and two
-4 mm-long heat-set inserts. Default insert pockets are Ø4.6 × 4.2 mm deep; measure
-your inserts and calibrate those parameters before printing. Check screw
-engagement and tip clearance if changing wall thickness or hardware. Never drive
-a screw against the bottom of a blind pocket. Inserts go into the cradle, not
-the covers; install them before assembling the motors and adjacent joints.
+### Assembly and checks
 
-The rim clearance is 0.3 mm by default. Screw heads seat at Y=±20.1 mm and the
-panel mounting pads at Y=±17.7 mm: M3×6 gives 3.6 mm nominal engagement in the
-default 4.2 mm-deep pocket. At the minimum 3.5 mm pocket depth, use shorter
-hardware; the default screw would bottom out. These pad locations do not change
-with panel wall calibration. Do not reuse the previous version's M3×10 screws.
-After removing two screws, each panel withdraws along its outward Y direction.
-A straight 6 mm shaft with 60 mm reach is checked at URDF zero; no special wrist
-service rotation is needed. The access recess is only 6.2 mm in diameter; check
-print calibration and use a shaft that fits, not a larger bit holder.
-Handle clearance and physical fastener extraction
-still need bench checking. The front motor/cable opening remains open between
-the cheeks, so there is no additional cable window cut into either panel.
-An internal tie tunnel high in each front rail, away from the insert pockets,
-keeps strain relief on the frame and clear of the panels. There is no ingress
-or thermal rating.
-Full motor replacement still requires the original mounting
-fasteners and potentially the adjacent joint to be removed; this is not a
-verified quick-swap motor mechanism.
+Use the original motor/joint hardware. There are no additional cover screws or
+heat-set inserts. The open front provides motor access; the fork-root opening
+clears the motor's top tab. Removing the motor still requires its fasteners and
+possibly the neighboring joint to be removed.
 
-### What the pilot checks—and does not
+Checks compare added/removed material in the five protected contact regions and
+counterbore seating layers—not just total volume. They also check the empty
+counterbores, absence of the tooth and old raised deck fragments, uninterrupted
+side walls, and absence of the old fork-patch seam. Each STL must be closed,
+manifold, connected and within 0.1% of CAD volume.
 
-The check requires zero added/removed CAD volume in the five protected contact
-regions and the counterbore seating layers, plus empty Ø5.4 counterbores. It does
-not mistake equal total volume for equal shape. It also guards against raised
-deck fragments, the old external ear-patch seam, and proud covers. Every print STL
-must be closed, manifold, connected and within 0.1% of CAD volume. Cover/cradle
-intersections are checked at ten removal translations per side. Panel continuity
-is checked at the former vent positions; a frame-width check guards against
-projecting mounting arms. Straight screwdriver access is sampled at URDF zero,
-against the neighboring visuals and the actual panels/frame.
+The actual pinned motor and immediate neighboring meshes are sampled across
+259 configurations, with wrist angle spacing no greater than 2°. New
+penetration beyond 0.08 mm relative to upstream fails. Front motor entry is
+also compared to upstream in both sampling directions at 61 translations over
+60 mm. The source model already has clip/guide interference, so this is **not**
+proof of a rigid, force-free insertion path.
 
-Actual pinned servo and immediate-neighbor meshes are checked at neutral and
-across both wrist limits with angle spacing no greater than 2°. Surface vertices,
-triangle centroids and edge midpoints are sampled in both directions; new
-penetrations exceeding 0.08 mm relative to the upstream part fail the check.
-This is finite sampling, **not** a continuous collision proof or a whole-arm
-non-neighbor collision certification. Physical fit, tool access, cable bends,
-strength, fatigue, print orientation/material and thermal performance still need
-bench validation. Start with a fit prototype; do not assume the original payload
-rating carries over to the redesigned frame.
+These are finite geometric checks, not continuous swept-volume proof, whole-arm
+collision certification, or bench validation. Physical assembly, cable routing,
+print fit, cooling, strength and fatigue still need testing. Start with a fit
+prototype and retain the software motion limits.
