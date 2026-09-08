@@ -154,6 +154,20 @@ Here `1240` is only an example density in kg/m³. Use a measured printed mass in
 
 Chassis joint metadata remains editable in the `LeKiwiJoints` group. SO-101 joint names, parents, children, axes, origins, and limits come from the pinned upstream URDF; together they form the deterministic composite Xacro contract.
 
+### Measured chassis rod placements
+
+The six screws identified by the operator in the marked underside photograph
+are existing 20 mm-grid holes at `(±100, 0)` and `(±60, ±80)` mm. The working
+`assembly/LeKiwi.FCStd` places all six existing rods there, with no central rod.
+The visible rod placements and their ROS joint poses are both corrected. The
+upper plate remains at `(0, 0, 50)` mm; its joint offset compensates for moving
+the rod that is its parent. The original `LeKiwi_reference.FCStd` stays unchanged.
+
+Run `./scripts/run_freecad_script.sh scripts/correct_chassis_rods.py` to verify
+all six placements against holes in both editable plates. Add `--apply` to
+reapply this measured layout. This does not resize the motor stands. Regenerate
+RobotSkin exports after chassis corrections; old generated skins are not current.
+
 ## Rebuild after replacing the Fusion STEP export
 
 ```sh

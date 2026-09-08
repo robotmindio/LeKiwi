@@ -5,7 +5,7 @@
     "cad/accessories/astra_pro_compact_mount.scad": "da647a7c832e9de2473eac2592b48d0055d720fd29d7b3d71ff1767c65d473f9",
     "cad/accessories/sensor_mount_spec.json": "3638c90e6172316554d02f449182d9a8978e4386533647fadbbf904aeb2f3851",
     "cad/accessories/sensor_mount_spec.scad": "6aafb5afbddd5f55148353f28bda61ffac16f6257fb2d2c644806a32bf041613",
-    "cad/assembly/LeKiwi.FCStd": "d4118efa9145c7f97600682a10a5a35655c1f9f38d8abe1494c61399eaf38e0d",
+    "cad/assembly/LeKiwi.FCStd": "41aaeef2c6e578f8be3f0570f2d7466a815122174cf07c7f1b1f4899e4dce54c",
     "cad/cadquery/so101_part8.py": "3ea95e31ea049df38f3a9bf0fe432881552039f1eec09ccbfddc1fbd4aafe17f",
     "cad/parts/base_camera_mount.FCStd": "31487acf96d010ee4ec6a446c5a7a021b4a117f2bfaadbb56d292f1eec687777",
     "cad/parts/base_plate_lower.FCStd": "7730f2c718a7f367ebbc0a2ee7820e878bbeb440aa7f407c129d562dc8de0b0e",
@@ -33,6 +33,7 @@
     "cad/upstream/SO-ARM100/Simulation/SO101/so101_new_calib.urdf": "3a65d2d35e68a8d2f0c2cc176d19b884506543c93ba72980145b80abe276022c",
     "scripts/add_lidar_accessory.py": "9a85c4b20111183f93c8937f45a571410669d63da9ac9b88e33a607b0b22d843",
     "scripts/cad_utils.py": "d4c1beb6fd1e5be8307f268586e111613b6a98930c7ddfc77c4ddb4cdc4a2aa6",
+    "scripts/correct_chassis_rods.py": "ac043d8b5af40f21a9e05b0f81910db8a22d12d142d043551cd961d76e333011",
     "scripts/export_cad_meshes.py": "7ba98f3d54a10c66b70e4da25c120c9f1bc505b95c78624df3728a31ba26cdf6",
     "scripts/export_robot.sh": "9aeb71d424589451522d3d5afe3e70d3b9a07eec90af7af14f39de48606afba6",
     "scripts/export_so101_wrist.py": "2d92eca857a69db16bf07c48ae769aaf0cbb9333a2e1167af9d1f8d858e91896",
@@ -43,7 +44,7 @@
     "scripts/sync_sensor_mount_spec.py": "c33b1b5d820ab2be87fc08fe430550a1379e20f5daac248745a5368536393bbe"
   },
   "outputs": {
-    "URDF/LeKiwi.urdf.xacro": "c6631ca106632b9d8c807cceb92aefae1349602280a048b5a767ac9c24f82864",
+    "URDF/LeKiwi.urdf.xacro": "95dbad152b44a9eaad15ddd729db5bb654850213c8001ee44e7c29f4a0d9afda",
     "URDF/meshes/reauthored/4-Omni-Directional-Wheel_Single_Body-v1-1.stl": "42b0ddb6c1cb8f5c33dfd80a7ff0457ed929e64284b8959a3fa16fb24e737ec6",
     "URDF/meshes/reauthored/4-Omni-Directional-Wheel_Single_Body-v1-2.stl": "b753948f880be9aa15faea5563411fc823f22ac92aa81257d6df9f609f765eea",
     "URDF/meshes/reauthored/4-Omni-Directional-Wheel_Single_Body-v1.stl": "d2f19d55a4a9dd03a0970dcbe6073611d6617b77b2ffba9641fdab33c8b2b0fa",

@@ -6,6 +6,8 @@ import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from correct_chassis_rods import POSITIONS, ROD
+
 
 XACRO_PROPERTY = "{http://www.ros.org/wiki/xacro}property"
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,30 +47,48 @@ if len(sys.argv) != 3:
     raise SystemExit("usage: verify_xacro.py BASELINE.urdf GENERATED.urdf.xacro")
 
 generated_path = Path(sys.argv[2])
-subprocess.run(
-    ["xacro", str(generated_path)], check=True, stdout=subprocess.DEVNULL
-)
+subprocess.run(["xacro", str(generated_path)], check=True, stdout=subprocess.DEVNULL)
 generated_root = ET.parse(generated_path).getroot()
 baseline_root = ET.parse(sys.argv[1]).getroot()
-mount_spec = json.loads(
-    (ROOT / "cad/accessories/sensor_mount_spec.json").read_text()
-)
+mount_spec = json.loads((ROOT / "cad/accessories/sensor_mount_spec.json").read_text())
 links = {link.get("name"): link for link in generated_root.findall("link")}
 joints = {joint.get("name"): joint for joint in generated_root.findall("joint")}
+# Operator-identified chassis holes supersede the legacy rod placements.
+by_child = {j.find("child").get("link"): j for j in joints.values()}
+rod_poses = {name: [x / 1000, y / 1000, 0] for name, (x, y) in POSITIONS.items()}
+x, y = POSITIONS[ROD]
+rod_poses["base_plate_layer2-v3"] = [-x / 1000, y / 1000, -0.05]
+for child, xyz in rod_poses.items():
+    joint = by_child[child]
+    assert joint.find("parent").get("link") == (
+        ROD if child == "base_plate_layer2-v3" else "base_plate_layer1-v5"
+    )
+    actual = list(map(float, joint.find("origin").get("xyz").split()))
+    assert len(actual) == 3 and all(abs(a - b) < 1e-12 for a, b in zip(actual, xyz)), (
+        child
+    )
+    baseline_joint = baseline_root.find(f"joint[@name='{joint.get('name')}']")
+    baseline_joint.find("origin").set("xyz", joint.find("origin").get("xyz"))
 if not ACCESSORY_LINKS <= links.keys() or not ACCESSORY_JOINTS <= joints.keys():
     raise SystemExit("generated Xacro is missing a sensor accessory")
 expected_joints = {
     "astra_pro_compact_mount_joint": (
-        "base_plate_layer2-v3", "astra_pro_compact_mount",
-        mount_spec["astra"]["mount_origin_m"], mount_spec["astra"]["mount_rpy_rad"],
+        "base_plate_layer2-v3",
+        "astra_pro_compact_mount",
+        mount_spec["astra"]["mount_origin_m"],
+        mount_spec["astra"]["mount_rpy_rad"],
     ),
     "robotskin_lidar_mount_joint": (
-        "base_plate_layer2-v3", "robotskin_lidar_mount",
-        mount_spec["lidar"]["mount_origin_m"], mount_spec["lidar"]["mount_rpy_rad"],
+        "base_plate_layer2-v3",
+        "robotskin_lidar_mount",
+        mount_spec["lidar"]["mount_origin_m"],
+        mount_spec["lidar"]["mount_rpy_rad"],
     ),
     "ld06_body_mount": (
-        "robotskin_lidar_mount", "ld06_body",
-        mount_spec["lidar"]["body_center_m"], [0, 0, 0],
+        "robotskin_lidar_mount",
+        "ld06_body",
+        mount_spec["lidar"]["body_center_m"],
+        [0, 0, 0],
     ),
 }
 for name, (parent, child, xyz, rpy) in expected_joints.items():
@@ -79,18 +99,20 @@ for name, (parent, child, xyz, rpy) in expected_joints.items():
         or joint.find("parent").get("link") != parent
         or joint.find("child").get("link") != child
         or origin is None
-        or any(abs(actual - expected) > 1e-12
-               for actual, expected in zip(map(float, origin.get("xyz").split()), xyz))
-        or any(abs(actual - expected) > 1e-12
-               for actual, expected in zip(map(float, origin.get("rpy").split()), rpy))
+        or any(
+            abs(actual - expected) > 1e-12
+            for actual, expected in zip(map(float, origin.get("xyz").split()), xyz)
+        )
+        or any(
+            abs(actual - expected) > 1e-12
+            for actual, expected in zip(map(float, origin.get("rpy").split()), rpy)
+        )
     ):
         raise SystemExit(f"{name}: unexpected physical mount pose")
 # The arm source is unchanged; only its checked fixed mounting pose supersedes
 # the legacy baseline pose.
 baseline_joint = baseline_root.find("joint[@name='so101_mount']")
-baseline_joint.find("origin").attrib = dict(
-    joints["so101_mount"].find("origin").attrib
-)
+baseline_joint.find("origin").attrib = dict(joints["so101_mount"].find("origin").attrib)
 removed = {"Bottom-V2-v3", "Top-V2-v2"}
 assert not removed & links.keys(), "removed Pi case must not return on export"
 for element in list(baseline_root):
@@ -118,7 +140,9 @@ for link in generated_root.findall("link"):
     assert len(visuals) == len(baseline_visuals)
     for visual, baseline_visual in zip(visuals, baseline_visuals):
         assert visual.find("material").get("name") == "so101_yellow"
-        visual.find("material").set("name", baseline_visual.find("material").get("name"))
+        visual.find("material").set(
+            "name", baseline_visual.find("material").get("name")
+        )
 for material in list(generated_root.findall("material")):
     if material.get("name") == "so101_yellow":
         generated_root.remove(material)

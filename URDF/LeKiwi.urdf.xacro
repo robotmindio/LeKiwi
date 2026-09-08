@@ -597,12 +597,12 @@
         <child link="Battery---Battery-5.2-Ah-DC5521-Plug-v2" />
     </joint>
     <joint name="base_plate_layer1-v5_Rigid-20" type="fixed">
-        <origin xyz="0.0 0.0 0.0" rpy="3.141592653589793 -0.0 0.0" />
+        <origin xyz="-0.06 0.08 0" rpy="3.141592653589793 -0.0 0.0" />
         <parent link="base_plate_layer1-v5" />
         <child link="94868A713_NO-THREADS_Female-Threaded-Hex-Standoff" />
     </joint>
     <joint name="94868A713_NO-THREADS_Female-Threaded-Hex-Standoff_Rigid-21" type="fixed">
-        <origin xyz="0.0 0.0 -0.05" rpy="3.141592653589793 -0.0 0.0" />
+        <origin xyz="0.06 0.08 -0.05" rpy="3.141592653589793 -0.0 0.0" />
         <parent link="94868A713_NO-THREADS_Female-Threaded-Hex-Standoff" />
         <child link="base_plate_layer2-v3" />
     </joint>
@@ -617,27 +617,27 @@
         <child link="Camera-Model-v3" />
     </joint>
     <joint name="base_plate_layer1-v5_Rigid-30" type="fixed">
-        <origin xyz="0.02 -0.1 0.0" rpy="3.141592653589793 -0.0 0.0" />
+        <origin xyz="0.06 -0.08 0" rpy="3.141592653589793 -0.0 0.0" />
         <parent link="base_plate_layer1-v5" />
         <child link="94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-5" />
     </joint>
     <joint name="base_plate_layer1-v5_Rigid-31" type="fixed">
-        <origin xyz="0.07660254 0.06732051 0.0" rpy="3.141592653589793 -0.0 0.0" />
+        <origin xyz="0.06 0.08 0" rpy="3.141592653589793 -0.0 0.0" />
         <parent link="base_plate_layer1-v5" />
         <child link="94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-4" />
     </joint>
     <joint name="base_plate_layer1-v5_Rigid-32" type="fixed">
-        <origin xyz="-0.09660254 0.032679490000000005 0.0" rpy="3.141592653589793 -0.0 0.0" />
+        <origin xyz="-0.06 -0.08 0" rpy="3.141592653589793 -0.0 0.0" />
         <parent link="base_plate_layer1-v5" />
         <child link="94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-3" />
     </joint>
     <joint name="base_plate_layer1-v5_Rigid-69" type="fixed">
-        <origin xyz="0.1 -0.02 0.0" rpy="3.141592653589793 -0.0 0.0" />
+        <origin xyz="0.1 0 0" rpy="3.141592653589793 -0.0 0.0" />
         <parent link="base_plate_layer1-v5" />
         <child link="94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-2" />
     </joint>
     <joint name="base_plate_layer1-v5_Rigid-70" type="fixed">
-        <origin xyz="-0.1 -0.02 0.0" rpy="3.141592653589793 -0.0 0.0" />
+        <origin xyz="-0.1 0 0" rpy="3.141592653589793 -0.0 0.0" />
         <parent link="base_plate_layer1-v5" />
         <child link="94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-1" />
     </joint>

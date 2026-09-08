@@ -29,6 +29,7 @@ def snapshot(root):
         "scripts/export_xacro.py", "scripts/export_xacro.sh",
         "scripts/export_so101_wrist.py", "scripts/replace_arm_with_so101.py",
         "scripts/cad_utils.py",
+        "scripts/correct_chassis_rods.py",
     )]
     inputs += list((root / "cad/parts").glob("*.FCStd"))
     inputs += list((root / "cad/upstream/SO-ARM100/Simulation/SO101/assets").glob("*.stl"))
