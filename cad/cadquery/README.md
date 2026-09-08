@@ -59,9 +59,18 @@ Further structural simplification needs the intended loads and print setup.
 `so101_part8_serviceable.py` retains its historical filename but now builds
 **one piece**: a smooth motor cradle with integral curved sides and a mirrored
 fork. The cover builders, seams, windows, screw bosses, inserts, cable-tie
-tunnels and cover calibration parameters are gone. The outside is 34 mm wide,
-versus 40.2 mm for the last covered version. The motor opening stays open;
+tunnels and cover calibration parameters are gone. The outside is 37 mm wide,
+versus 34 mm for the preceding single-piece version, and its nose extends
+4 mm farther forward. This extra envelope lets the housing wrap around the
+lower seat instead of leaving an external shelf. The motor opening stays open;
 this is not a sealed enclosure or a lightweight optimization.
+
+The fork no longer has separate flared collars. Its inner junctions are blended
+after union with the housing; the rear outer face meets the back curve without
+a bottom-edge fillet interrupting the join. R60 side surfaces and R3 edge blends
+replace the shallower R80 sides and R2 rim. A tangent-ended lower profile flows
+down to the seat, and the deck's exposed upper edges have R0.6 rounding. Sharp
+motor-contact and access edges are not indiscriminately rounded.
 
 The bottom tooth is removed at the user's request. It previously contacted the
 rotating wrist outside the configured motion range, consistent with a travel
@@ -76,7 +85,9 @@ Mass, stiffness and payload capacity are not guaranteed equivalent.
 This remains a hybrid native/STEP-backed design. Native rounded geometry defines
 the shell and fork; exact source patches retain the motor contacts, rails,
 joint faces and mounting holes. The lower-seat patch ends at Z=-34.4 mm rather
-than importing the tooth underneath. The deck is planar, retaining the original
+than importing the tooth underneath, and is limited to Y=±12.4 mm so it does not
+restore the old outer skirt edges. This retains the motor seats and the mounting
+counterbores (which reach Y=±12.25 mm). The deck retains the original planar
 contact footprint and access opening. The original source is never modified.
 
 ### Generate and inspect
@@ -94,6 +105,7 @@ Current outputs are in **`cad/generated/part8-smooth/`**:
   support-free or physically qualified print.
 - `cradle.step`: editable solid.
 - `preview.png`: actual original/redesign/underside views at equal scale.
+- `details.png`: close-up fork/deck, front opening, rear and underside views.
 - `checks.json`: source hashes, exact-interface and sampled-clearance results.
 
 The older `part8-serviceable/` generated files are superseded. They are not

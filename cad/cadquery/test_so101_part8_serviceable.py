@@ -191,7 +191,7 @@ def main():
                 assert abs(solids["cradle"].intersect(bore).Volume()) < 1e-5
     # No old sloping deck fragments, no upper-ear patch boundary on the rim.
     assert not any(
-        3.4001 < face.Center().z < 18 and -13.3 < face.Center().x < 17
+        3.4001 < face.Center().z < 18 and -13.3 < face.Center().x < 14
         for face in solids["cradle"].Faces()
     ), "unexpected raised deck geometry"
     for edge in solids["cradle"].Edges():

@@ -16,46 +16,36 @@ import vtkmodules.vtkRenderingOpenGL2  # noqa: F401 - registers the rendering ba
 from test_so101_part8_serviceable import OUTPUT, read_mesh
 
 
-def main():
+def render(views, filename, columns):
     window = vtkRenderWindow()
     window.SetOffScreenRendering(1)
-    window.SetSize(1800, 900)
-    meshes = {
-        name: read_mesh(OUTPUT / f"{name}.stl") for name in ("original", "cradle")
-    }
-    for column, title in enumerate(
-        (
-            "Original upstream part",
-            "Single-piece cradle",
-            "Underside / motor access",
-        )
-    ):
+    rows = (len(views) + columns - 1) // columns
+    window.SetSize(700 * columns, 650 * rows)
+    for index, (title, name, position, focus, scale) in enumerate(views):
+        column, row = index % columns, index // columns
         renderer = vtkRenderer()
-        renderer.SetViewport(column / 3, 0, (column + 1) / 3, 1)
-        renderer.SetBackground(0.94, 0.95, 0.97)
-        items = (
-            [(meshes["original"], (0.65, 0.69, 0.74), 0)]
-            if column == 0
-            else [
-                (meshes["cradle"], (0.80, 0.83, 0.86), 0),
-            ]
+        renderer.SetViewport(
+            column / columns,
+            1 - (row + 1) / rows,
+            (column + 1) / columns,
+            1 - row / rows,
         )
-        for mesh, color, shift in items:
-            normals = vtkPolyDataNormals()
-            normals.SetInputData(mesh)
-            # Keep countersink normals off planar faces (45° sinks otherwise
-            # create false triangular bulges in the preview).
-            normals.SetFeatureAngle(30)
-            mapper = vtkPolyDataMapper()
-            mapper.SetInputConnection(normals.GetOutputPort())
-            actor = vtkActor()
-            actor.SetMapper(mapper)
-            actor.SetPosition(0, shift, 0)
-            actor.GetProperty().SetColor(color)
-            actor.GetProperty().SetAmbient(0.25)
-            actor.GetProperty().SetDiffuse(0.75)
-            actor.GetProperty().SetInterpolationToPhong()
-            renderer.AddActor(actor)
+        renderer.SetBackground(0.94, 0.95, 0.97)
+        normals = vtkPolyDataNormals()
+        normals.SetInputData(read_mesh(OUTPUT / f"{name}.stl"))
+        # Avoid false smoothing across the sharp mounting-hole edges.
+        normals.SetFeatureAngle(30)
+        mapper = vtkPolyDataMapper()
+        mapper.SetInputConnection(normals.GetOutputPort())
+        actor = vtkActor()
+        actor.SetMapper(mapper)
+        actor.GetProperty().SetColor(
+            (0.65, 0.69, 0.74) if name == "original" else (0.80, 0.83, 0.86)
+        )
+        actor.GetProperty().SetAmbient(0.25)
+        actor.GetProperty().SetDiffuse(0.75)
+        actor.GetProperty().SetInterpolationToPhong()
+        renderer.AddActor(actor)
         text = vtkTextActor()
         text.SetInput(title)
         text.SetPosition(22, 28)
@@ -63,11 +53,11 @@ def main():
         text.GetTextProperty().SetColor(0.12, 0.16, 0.20)
         renderer.AddActor2D(text)
         camera = renderer.GetActiveCamera()
-        camera.SetPosition(110, -180, -95 if column == 2 else 95)
-        camera.SetFocalPoint(4, 0, 0)
+        camera.SetPosition(*position)
+        camera.SetFocalPoint(*focus)
         camera.SetViewUp(0, 0, 1)
         camera.ParallelProjectionOn()
-        camera.SetParallelScale(75)
+        camera.SetParallelScale(scale)
         renderer.ResetCameraClippingRange()
         window.AddRenderer(renderer)
     window.Render()
@@ -75,9 +65,31 @@ def main():
     capture.SetInput(window)
     capture.Update()
     writer = vtkPNGWriter()
-    writer.SetFileName(str(OUTPUT / "preview.png"))
+    writer.SetFileName(str(OUTPUT / filename))
     writer.SetInputConnection(capture.GetOutputPort())
     writer.Write()
+
+
+def main():
+    render(
+        [
+            ("Original upstream part", "original", (110, -180, 95), (4, 0, 0), 60),
+            ("Blended single-piece cradle", "cradle", (110, -180, 95), (4, 0, 0), 60),
+            ("Underside / motor access", "cradle", (110, -180, -95), (4, 0, 0), 60),
+        ],
+        "preview.png",
+        3,
+    )
+    render(
+        [
+            ("Fork roots and deck", "cradle", (100, -160, 120), (0, 0, 12), 30),
+            ("Front motor opening", "cradle", (160, -60, 25), (19, 0, -12), 35),
+            ("Rear transitions", "cradle", (-140, -170, 80), (-4, 0, -5), 45),
+            ("Seat and underside", "cradle", (100, -160, -120), (8, 0, -16), 33),
+        ],
+        "details.png",
+        2,
+    )
 
 
 if __name__ == "__main__":
