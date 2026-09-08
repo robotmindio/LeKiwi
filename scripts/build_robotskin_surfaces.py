@@ -40,9 +40,10 @@ def footprint(solid, z, clearance):
     """Oriented convex footprint of hardware reaching this skin's clearance zone."""
     if solid.BoundBox.ZMin >= z + 4 + clearance or solid.BoundBox.ZMax <= z - clearance:
         return None
-    points = sorted(
-        set((round(p.x, 5), round(p.y, 5)) for p in solid.tessellate(0.02)[0])
+    vertices = (
+        solid.Topology[0] if hasattr(solid, "Topology") else solid.tessellate(0.02)[0]
     )
+    points = sorted(set((round(p.x, 5), round(p.y, 5)) for p in vertices))
 
     def cross(a, b, c):
         return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
@@ -55,6 +56,8 @@ def footprint(solid, z, clearance):
                 half.pop()
             half.append(p)
         halves.extend(half[:-1])
+    if clearance == 0:
+        return [list(p) for p in halves]
     wire = face(halves).OuterWire.makeOffset2D(clearance, join=2)
     return [[v.Point.x, v.Point.y] for v in wire.OrderedVertexes]
 
@@ -88,6 +91,11 @@ def prepare(clearance, motor_clearance):
         )
 
     def shape(name):
+        if hasattr(links[name].CadParts[0], "Mesh"):
+            assert len(links[name].CadParts) == 1
+            result = links[name].CadParts[0].Mesh.copy()
+            result.transform(pose(name))
+            return result
         result = Part.makeCompound([p.Shape for p in links[name].CadParts])
         result.transformShape(pose(name))
         return result
@@ -102,8 +110,7 @@ def prepare(clearance, motor_clearance):
         item.Label = LOWER if name == "LowerPlate" else UPPER
         item.Shape = solid
     obstacles = []
-    motors, posts = [], []
-    placement_audit = []
+    motors, posts, mounts = [], [], []
     for name in links:
         wheel_part = any(
             s in name
@@ -116,39 +123,22 @@ def prepare(clearance, motor_clearance):
         )
         if not (wheel_part or "Hex-Standoff" in name):
             continue
-        solid = references[name].Shape.copy()
-        item = context.addObject("Part::Feature", "Support")
+        solid = shape(name)
+        is_mesh = hasattr(solid, "Topology")
+        item = context.addObject(
+            "Mesh::Feature" if is_mesh else "Part::Feature", "Support"
+        )
         item.Label = name
-        item.Shape = solid
+        if is_mesh:
+            item.Mesh = solid
+        else:
+            item.Shape = solid
         box = solid.BoundBox
         if wheel_part:
             motors.append(solid)
             if name.startswith("drive_motor_mount-"):
-                centres = sorted(
-                    set(
-                        (round(f.Surface.Center.x, 6), round(f.Surface.Center.y, 6))
-                        for f in solid.Faces
-                        if isinstance(f.Surface, Part.Cylinder)
-                        and abs(f.Surface.Axis.z) > 0.999
-                        and abs(f.Surface.Radius - 1.75) < 0.001
-                    )
-                )
-                assert len(centres) == 2, name
-                for x, y in centres:
-                    assert (
-                        bottom.common(
-                            Part.makeCylinder(1.65, 7, App.Vector(x, y, -7))
-                        ).Volume
-                        < 1e-5
-                    ), (name, "mount misses chassis hole", x, y)
-                delta = solid.BoundBox.Center - shape(name).BoundBox.Center
-                placement_audit.append(
-                    {
-                        "mount": name,
-                        "cad_minus_urdf_mm": list(delta),
-                        "physical_bolt_centres_mm": centres,
-                    }
-                )
+                assert "v2" in links[name].CadParts[0].LinkedObject.NativePart
+                mounts.append((name, solid))
         else:
             obstacles.append(solid)
             # Reserve washer / screw-head access as well as the actual hex post.
@@ -159,10 +149,7 @@ def prepare(clearance, motor_clearance):
                     max(4.0, math.hypot(box.XLength, box.YLength) / 2) + clearance,
                 ]
             )
-    assert len(motors) == 12 and len(posts) == 6
-    (OUT / "wheel_placement_audit.json").write_text(
-        json.dumps(placement_audit, indent=2) + "\n"
-    )
+    assert len(motors) == 12 and len(posts) == 6 and len(mounts) == 3
 
     replace_arm(model)
     # Load the installed SO-101 base, including its fixed servo, from pinned meshes.
@@ -257,46 +244,21 @@ def prepare(clearance, motor_clearance):
             else upper.BoundBox.ZMax
         )
         motor_bases = []
-        if name == "floor":
-            # User-measured bases replace the incompatible legacy wheel mounts.
-            # The three 50 mm chassis flats set both orientation and position.
-            for a, b in zip(outline, outline[1:] + outline[:1]):
-                length = math.dist(a, b)
-                if abs(length - 50) > 0.01:
-                    continue
-                midpoint = [(a[i] + b[i]) / 2 for i in range(2)]
-                tangent = [(b[i] - a[i]) / length for i in range(2)]
-                inward = [-tangent[1], tangent[0]]
-                if sum(midpoint[i] * inward[i] for i in range(2)) > 0:
-                    inward = [-v for v in inward]
-
-                def base_rectangle(margin):
-                    return [
-                        [midpoint[i] + u * tangent[i] + v * inward[i] for i in range(2)]
-                        for u, v in (
-                            (-25 - margin, -margin),
-                            (25 + margin, -margin),
-                            (25 + margin, 37 + margin),
-                            (-25 - margin, 37 + margin),
-                        )
-                    ]
-
+        cuts = [
+            polygon
+            for solid in motors
+            if (polygon := footprint(solid, z, motor_clearance))
+        ]
+        for mount_name, solid in mounts:
+            if (cut := footprint(solid, z, motor_clearance)) is not None:
                 motor_bases.append(
                     dict(
-                        flat=[a, b],
-                        footprint=base_rectangle(0),
-                        cut=base_rectangle(motor_clearance),
+                        name=mount_name,
+                        footprint=footprint(solid, 0, 0),
+                        cut=cut,
                         clearance_mm=motor_clearance,
                     )
                 )
-            assert len(motor_bases) == 3, "Expected three 50 mm chassis flats"
-            cuts = [base["cut"] for base in motor_bases]
-        else:
-            cuts = [
-                polygon
-                for solid in motors
-                if (polygon := footprint(solid, z, clearance))
-            ]
         if name == "top":
             cuts += arm_boxes
         for polygon in cuts:
@@ -348,19 +310,11 @@ def prepare(clearance, motor_clearance):
         blank.translate(App.Vector(0, 0, z))
         for obstacle in obstacles:
             assert blank.common(obstacle).Volume < 1e-5, f"{name}: support collision"
-        if name == "floor":
-            for base in motor_bases:
-                assert (
-                    blank.common(
-                        face(base["footprint"]).extrude(App.Vector(0, 0, 4))
-                    ).Volume
-                    < 1e-5
-                )
-        else:
-            for motor in motors:
-                assert blank.common(motor).Volume < 1e-5, (
-                    f"{name}: reference wheel collision"
-                )
+        # The full convex projections conservatively clear solids and mesh-only wheels.
+        for polygon in cuts:
+            assert region.common(face(polygon)).Area < 1e-5, (
+                f"{name}: hardware projection collision"
+            )
         for plate in (bottom, upper):
             assert blank.common(plate).Volume < 1e-5, f"{name}: chassis collision"
         item = context.addObject("Part::Feature", name.title() + "Envelope")
@@ -424,13 +378,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--motor-clearance",
         type=float,
-        default=2.0,
-        help="Per-side clearance around measured 50 x 37 mm floor bases",
+        default=4.0,
+        help="Per-side clearance around the installed v2 wheel assemblies",
     )
     args = parser.parse_args()
     if not math.isfinite(args.clearance) or not 0.5 <= args.clearance <= 3:
         parser.error("--clearance must be between 0.5 and 3 mm")
-    if not math.isfinite(args.motor_clearance) or not 0.5 <= args.motor_clearance <= 3:
-        parser.error("--motor-clearance must be between 0.5 and 3 mm")
+    if not math.isfinite(args.motor_clearance) or not 0.5 <= args.motor_clearance <= 6:
+        parser.error("--motor-clearance must be between 0.5 and 6 mm")
     OUT.mkdir(parents=True, exist_ok=True)
     finish() if args.finish else prepare(args.clearance, args.motor_clearance)

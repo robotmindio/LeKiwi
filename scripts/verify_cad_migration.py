@@ -21,8 +21,15 @@ if len(sys.argv) != 4:
 urdf_path, mapping_path, output_directory = map(Path, sys.argv[1:])
 mapping = {item["urdf_link"]: item for item in json.loads(mapping_path.read_text())}
 root = ET.parse(urdf_path).getroot()
+replacements = {
+    link: item["reference_mesh"]
+    for item in json.loads(Path("cad/native_parts.json").read_text())
+    if item.get("reference_mesh")
+    for link in item["links"]
+}
 links = [
-    link for link in root.findall("link")
+    link
+    for link in root.findall("link")
     if not link.get("name").startswith("so101_")
     and link.get("name") not in REMOVED_LINKS
 ]
@@ -35,11 +42,14 @@ for link in links:
     mesh_xml = visual.find("geometry/mesh") if visual is not None else None
     if mesh_xml is None:
         raise SystemExit(f"{name}: visual mesh is required")
-    expected = Mesh.Mesh(str(urdf_path.parent / mesh_xml.get("filename")))
-    origin = visual.find("origin")
-    expected.transform(
-        urdf_matrix(origin if origin is not None else ET.Element("origin"))
+    expected = Mesh.Mesh(
+        replacements.get(name, str(urdf_path.parent / mesh_xml.get("filename")))
     )
+    origin = visual.find("origin")
+    if name not in replacements:
+        expected.transform(
+            urdf_matrix(origin if origin is not None else ET.Element("origin"))
+        )
     actual_path = output_directory / mesh_filename(name)
     if not actual_path.is_file() or actual_path.stat().st_size == 0:
         raise SystemExit(f"{name}: missing exported mesh {actual_path}")

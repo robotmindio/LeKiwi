@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import FreeCAD as App
+import Mesh
 
 from scripts.cad_utils import bounds, bounds_error, urdf_matrix
 
@@ -21,7 +22,9 @@ def reference_name(link_name):
 
 
 def visual_placement(metadata):
-    origin = ET.Element("origin", {"xyz": metadata.VisualXYZ, "rpy": metadata.VisualRPY})
+    origin = ET.Element(
+        "origin", {"xyz": metadata.VisualXYZ, "rpy": metadata.VisualRPY}
+    )
     return App.Placement(urdf_matrix(origin))
 
 
@@ -42,18 +45,28 @@ for model in models:
     model_name = model["source"]
     source_reference = model["reference_object"]
     mesh_frame = model["mesh_frame"]
-    source = App.openDocument(str((Path("cad/parts") / f"{model_name}.FCStd").resolve()))
+    source = App.openDocument(
+        str((Path("cad/parts") / f"{model_name}.FCStd").resolve())
+    )
     final = source.getObject("Final")
     if not final or final.Shape.isNull() or final.Shape.Volume <= 0:
         raise RuntimeError(f"{model_name}: missing native Final solid")
-    source_shape = assembly.getObject(source_reference).Shape if source_reference else None
+    source_shape = (
+        assembly.getObject(source_reference).Shape if source_reference else None
+    )
     for urdf_name, object_name in model["links"].items():
         metadata = metadata_by_name[urdf_name]
         current = list(metadata.CadParts)
-        foreign = [part for part in current if part not in reference_parts and part.Name not in managed_names]
+        foreign = [
+            part
+            for part in current
+            if part not in reference_parts and part.Name not in managed_names
+        ]
         if foreign:
             names = ", ".join(part.Label for part in foreign)
-            raise RuntimeError(f"{urdf_name}: refusing to replace non-generated CAD sources: {names}")
+            raise RuntimeError(
+                f"{urdf_name}: refusing to replace non-generated CAD sources: {names}"
+            )
         existing = assembly.getObject(object_name)
         if existing:
             for link in metadata_by_name.values():
@@ -66,24 +79,40 @@ for model in models:
         output.Visibility = False
         output.addProperty("App::PropertyString", "NativeSource", "Source")
         output.NativeSource = f"cad/parts/{model_name}.FCStd#Final"
-        if mesh_frame:
+        if model.get("link_frame"):
+            output.Placement = App.Placement()
+        elif mesh_frame:
             output.Placement = visual_placement(metadata)
         else:
             reference = assembly.getObject(reference_name(urdf_name))
             if not reference or reference.Shape.isNull():
                 raise RuntimeError(f"{urdf_name}: missing BREP reference for placement")
-            output.Placement = reference.Shape.Placement * source_shape.Placement.inverse()
+            output.Placement = (
+                reference.Shape.Placement * source_shape.Placement.inverse()
+            )
         metadata.CadParts = [output]
         metadata.UseCadMass = False
         assembly.recompute()
         reference = assembly.getObject(reference_name(urdf_name))
-        expected = reference.Mesh if mesh_frame else reference.Shape
+        expected = (
+            Mesh.Mesh(model["reference_mesh"])
+            if model.get("reference_mesh")
+            else reference.Mesh
+            if mesh_frame
+            else reference.Shape
+        )
         box_error = bounds_error(bounds(output.Shape), bounds(expected))
         volume_error = abs(output.Shape.Volume / expected.Volume - 1.0)
         if box_error > MAX_ERROR or volume_error > MAX_ERROR:
-            raise RuntimeError(f"{urdf_name}: native source mismatch (bbox={box_error:.3%}, volume={volume_error:.3%})")
+            raise RuntimeError(
+                f"{urdf_name}: native source mismatch (bbox={box_error:.3%}, volume={volume_error:.3%})"
+            )
         print(f"linked {urdf_name}: bbox={box_error:.3%}, volume={volume_error:.3%}")
 
+installed = assembly.getObject("InstalledWheelUnits")
+if installed:
+    for item in installed.Group:
+        item.LinkedObject = metadata_by_name[item.Label].CadParts[0]
 assembly.recompute()
 assembly.save()
 print("linked all native LeKiwi part sources")

@@ -18,12 +18,12 @@
     "reference_label": "Reauthored drive_motor_mount \u2014 drive_motor_mount-v11-2",
     "reference_type": "App::Link",
     "source_kind": "native FreeCAD parametric source",
-    "source_bbox_error": 1.9827867816629462e-08,
-    "link_bbox_error": 1.9827867816629462e-08,
-    "volume_error": 7.092047979107008e-05,
-    "mesh_filename": "meshes/drive_motor_mount-v11-2.stl",
-    "visual_xyz": "0.0 0.0 -0.0035000000000000005",
-    "visual_rpy": "3.141592653589793 -0.0 1.5707963267948966"
+    "source_bbox_error": 1.6061883964130697e-08,
+    "link_bbox_error": 1.6061883964130697e-08,
+    "volume_error": 0.0006998773381476919,
+    "mesh_filename": "../3DPrintMeshes/drive_motor_mount_v2.stl",
+    "visual_xyz": "0 0 0",
+    "visual_rpy": "0 0 0"
   },
   {
     "urdf_link": "ST3215_Servo_Motor-v1-2",
@@ -70,12 +70,12 @@
     "reference_label": "Reauthored drive_motor_mount \u2014 drive_motor_mount-v11-1",
     "reference_type": "App::Link",
     "source_kind": "native FreeCAD parametric source",
-    "source_bbox_error": 5.875929564158223e-08,
-    "link_bbox_error": 5.875929564158223e-08,
-    "volume_error": 7.092047979095906e-05,
-    "mesh_filename": "meshes/drive_motor_mount-v11-1.stl",
-    "visual_xyz": "2.3027551065979426e-09 1.924311203715945e-09 0.0035000000000000005",
-    "visual_rpy": "0.0 -0.0 0.5235987755982988"
+    "source_bbox_error": 1.6061883964130697e-08,
+    "link_bbox_error": 1.6061883964130697e-08,
+    "volume_error": 0.0006998773381476919,
+    "mesh_filename": "../3DPrintMeshes/drive_motor_mount_v2.stl",
+    "visual_xyz": "0 0 0",
+    "visual_rpy": "0 0 0"
   },
   {
     "urdf_link": "ST3215_Servo_Motor-v1-1",
@@ -122,12 +122,12 @@
     "reference_label": "Reauthored drive_motor_mount \u2014 drive_motor_mount-v11",
     "reference_type": "App::Link",
     "source_kind": "native FreeCAD parametric source",
-    "source_bbox_error": 4.9571305412646866e-08,
-    "link_bbox_error": 4.9571305412646866e-08,
-    "volume_error": 7.09204797901819e-05,
-    "mesh_filename": "meshes/drive_motor_mount-v11.stl",
-    "visual_xyz": "-2.3027550621890213e-09 1.9243111992750526e-09 -0.0035000000000000035",
-    "visual_rpy": "-3.141592653589793 -1.0340504353649803e-16 -2.6179938779914944"
+    "source_bbox_error": 1.6061883964130697e-08,
+    "link_bbox_error": 1.6061883964130697e-08,
+    "volume_error": 0.0006998773381476919,
+    "mesh_filename": "../3DPrintMeshes/drive_motor_mount_v2.stl",
+    "visual_xyz": "0 0 0",
+    "visual_rpy": "0 0 0"
   },
   {
     "urdf_link": "ST3215_Servo_Motor-v1",

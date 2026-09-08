@@ -69,6 +69,18 @@ for child, xyz in rod_poses.items():
     )
     baseline_joint = baseline_root.find(f"joint[@name='{joint.get('name')}']")
     baseline_joint.find("origin").set("xyz", joint.find("origin").get("xyz"))
+for child, pose in json.loads(
+    (ROOT / "cad/wheel_mount_v2_poses.json").read_text()
+).items():
+    joint = by_child[child]
+    for field in ("xyz", "rpy"):
+        actual = list(map(float, joint.find("origin").get(field).split()))
+        expected = list(map(float, pose[field].split()))
+        assert len(actual) == len(expected) == 3 and all(
+            abs(a - b) < 1e-10 for a, b in zip(actual, expected)
+        ), (child, field)
+    baseline_joint = baseline_root.find(f"joint[@name='{joint.get('name')}']")
+    baseline_joint.find("origin").attrib = dict(joint.find("origin").attrib)
 if not ACCESSORY_LINKS <= links.keys() or not ACCESSORY_JOINTS <= joints.keys():
     raise SystemExit("generated Xacro is missing a sensor accessory")
 expected_joints = {

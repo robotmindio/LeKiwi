@@ -98,7 +98,14 @@ Each printed-part file has an `Editable dimensions` (`Parameters`) object and a 
 
 `build_native_part_sources.sh` reconstructs the six initial source files from the validated STEP/STL references. It intentionally overwrites those source files, so use it to reset or regenerate a baseline, not after manual edits you intend to keep.
 
-Five models preserve their STEP component frame and are placed into the URDF link frame by `link_native_part_sources.sh`. The omni-wheel source uses the canonical URDF mesh frame because its Fusion STEP revision does not match the shipped URDF mesh; its editable sectional profiles are derived once from canonical STL slices and then built as normal FreeCAD features. The linker's validation must remain below the 2% geometry tolerance before it saves the assembly.
+Four models preserve their STEP component frame. The omni-wheel source uses the canonical URDF mesh frame; the drive-motor source uses the user-selected `3DPrintMeshes/drive_motor_mount_v2.stl` frame. Both use editable native features derived from STL sections. The linker's validation must remain below the 2% geometry tolerance before it saves the assembly.
+
+The v2 motor cages measure 47.5 × 34.8 × 45.5 mm installed. Their three placements
+are aligned to the existing chassis bolt holes, 1.25 mm inset from the flats.
+`scripts/install_wheel_mount_v2.py --apply` updates the six cage/servo joint poses,
+the visible complete wheel units and `wheel_mount_v2_poses.json`; without `--apply`
+it checks the installation. Six rods occupy (±100, 0) and (±60, ±80) mm.
+RobotSkin uses 4 mm per-side wheel-unit clearance from this corrected geometry.
 
 Published, non-URDF accessory sources live in [accessories/](accessories/README.md). At present, the two webcam mounts have exact LeKiwi STEP sources and are imported as editable BREP documents; their source files are not duplicated or hand-recreated.
 
@@ -135,11 +142,11 @@ For a stricter shape-fidelity audit, run:
 ./scripts/compare_reauthored_assets.sh
 ```
 
-It compares each native FreeCAD export with its original URDF mesh using
+It compares each native FreeCAD export with its configured reference mesh using
 bidirectional sampled surface distance. Add `--strict` to fail on more than
 0.25 mm maximum or 0.10 mm 95th-percentile deviation. The checked-in baseline
-passes all twelve native links, at 0.056 mm maximum and 0.034 mm p95 or
-better; this remains separate from the older bounding-box and volume check.
+uses the v2 STL for all three motor cages (0.211 mm maximum, 0.041 mm p95
+sampled deviation); this remains separate from the older bounding-box and volume check.
 
 ## Mass and inertia
 

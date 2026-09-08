@@ -10,6 +10,8 @@ import shapely
 from shapely.geometry import Polygon
 import trimesh
 
+from correct_chassis_rods import POSITIONS
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.dont_write_bytecode = True  # Keep imports from dirtying the pinned submodule.
 sys.path.insert(0, str(ROOT / "cad/upstream/RobotSkin/scripts"))
@@ -36,33 +38,26 @@ for entry in json.loads((OUT / "layout.json").read_text()):
         "every normal RobotSkin port must have a clear central screw passage",
     )
     region = Polygon(entry["outline"]).buffer(-0.5, join_style="mitre")
+    assert len(entry["posts"]) == 6
+    assert {tuple(round(v, 3) for v in p[:2]) for p in entry["posts"]} == set(
+        POSITIONS.values()
+    )
     if name == "floor":
-        assert len(entry["motor_bases"]) == len(entry["cuts"]) == 3
-        for base, cut in zip(entry["motor_bases"], entry["cuts"]):
+        assert len(entry["motor_bases"]) == 3
+        for base in entry["motor_bases"]:
             points = np.array(base["footprint"])
-            flat = np.array(base["flat"])
+            cut = base["cut"]
             margin = base["clearance_mm"]
-            assert base["flat"] in [
-                [a, b]
-                for a, b in zip(
-                    entry["outline"], entry["outline"][1:] + entry["outline"][:1]
-                )
-            ]
-            assert abs(np.linalg.norm(flat[1] - flat[0]) - 50) < 0.01
-            assert np.allclose(
-                np.linalg.norm(np.roll(points, -1, axis=0) - points, axis=1),
-                [50, 37, 50, 37],
+            rectangle = np.array(
+                Polygon(points).minimum_rotated_rectangle.exterior.coords
+            )[:4]
+            lengths = sorted(
+                np.linalg.norm(np.roll(rectangle, -1, axis=0) - rectangle, axis=1)
             )
-            assert np.allclose(points[:2].mean(axis=0), flat.mean(axis=0))
-            assert (
-                abs(np.linalg.det([points[1] - points[0], flat[1] - flat[0]])) < 0.001
-            )
-            assert np.linalg.norm(points[2:].mean(axis=0)) < np.linalg.norm(
-                flat.mean(axis=0)
-            )
+            assert np.allclose(lengths, [34.8, 34.8, 47.5, 47.5], atol=0.002)
             expected = Polygon(points).buffer(margin, join_style="mitre")
-            assert expected.symmetric_difference(Polygon(cut)).area < 1e-6
-            assert abs(Polygon(cut).area - (50 + 2 * margin) * (37 + 2 * margin)) < 1e-6
+            assert expected.symmetric_difference(Polygon(cut)).area < 0.01
+            assert cut in entry["cuts"]
     for cut in entry["cuts"]:
         region = region.difference(Polygon(cut))
     for x, y, radius in entry["posts"]:

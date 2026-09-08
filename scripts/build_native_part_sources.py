@@ -223,66 +223,6 @@ def new_model(name, title, **parameters):
     return document, group
 
 
-def build_drive_motor_mount(assembly):
-    title = "drive motor mount"
-    document, group = new_model(
-        "LeKiwiDriveMotorMount",
-        title,
-        BaseThickness=5.5,
-        WallThickness=1.0,
-        LowerClearanceDepth=2.5,
-        NutTrapDepth=3.0,
-    )
-    base_profile = profile(
-        document,
-        group,
-        "BaseProfile",
-        "Exact lower tray outline",
-        source_outer_face(assembly, "Part__Feature001", 49, 1034.758),
-        "Part__Feature001 Face49 outer contour",
-    )
-    base = extrusion(document, group, "BaseExtrusion", "Editable tray base", base_profile, 5.5, True, "BaseThickness")
-    lower_clearances = fuse(
-        document,
-        group,
-        "LowerClearanceTools",
-        "Editable lower circular clearances",
-        [
-            cylinder(document, group, "LowerClearanceA", "Lower circular clearance", 1.75, 2.5, (-20.0, -80.0, 0.0), expressions=(("Height", "LowerClearanceDepth"),)),
-            cylinder(document, group, "LowerClearanceB", "Lower circular clearance", 1.75, 2.5, (-20.0, -100.0, 0.0), expressions=(("Height", "LowerClearanceDepth"),)),
-        ],
-    )
-    base = cut(document, group, "BaseWithLowerClearances", "Tray base with lower clearances", base, lower_clearances)
-    nut_traps = []
-    for number, index in enumerate((7, 14), 1):
-        pocket = profile(
-            document,
-            group,
-            f"NutTrapProfile{number}",
-            f"Exact motor nut trap {number}",
-            source_outer_face(assembly, "Part__Feature001", index, 17.537),
-            f"Part__Feature001 Face{index} outer contour",
-        )
-        nut_traps.append(extrusion(document, group, f"NutTrap{number}", f"Editable motor nut trap {number}", pocket, 3.0, False, "NutTrapDepth"))
-    base = cut(document, group, "BaseWithNutTraps", "Tray base with motor nut traps", base, fuse(document, group, "NutTrapTools", "Motor nut-trap cut tools", nut_traps))
-    walls = []
-    for number, (index, area, label) in enumerate(
-        ((19, 271.235, "Front"), (20, 379.440, "Left"), (21, 320.826, "Rear")),
-        1,
-    ):
-        wall_profile = profile(
-            document,
-            group,
-            f"{label}WallProfile",
-            f"Exact {label.lower()} tray-wall profile",
-            source_face(assembly, "Part__Feature001", index, area),
-            f"Part__Feature001 Face{index}",
-        )
-        walls.append(extrusion(document, group, f"{label}Wall", f"Editable {label.lower()} tray wall", wall_profile, 1.0, True, "WallThickness"))
-    final = fuse(document, group, "Final", title, [base, *walls])
-    finish(document, group, final, PARTS / "drive_motor_mount.FCStd", title, assembly.getObject("Part__Feature001").Shape)
-
-
 def build_servo_controller_mount(assembly):
     title = "servo controller mount"
     target = assembly.getObject("Part__Feature061").Shape
@@ -639,14 +579,16 @@ def build_omni_wheel_mount(assembly):
     finish(document, group, final, PARTS / "omni_wheel_mount.FCStd", title, target)
 
 
-if len(sys.argv) != 1:
-    raise SystemExit("usage: build_native_part_sources.py")
+if __name__ == "__main__":
+    if len(sys.argv) != 1:
+        raise SystemExit("usage: build_native_part_sources.py")
+    assembly = App.openDocument(str(ASSEMBLY.resolve()))
+    from scripts.build_drive_motor_mount_v2 import build
 
-assembly = App.openDocument(str(ASSEMBLY.resolve()))
-build_drive_motor_mount(assembly)
-build_omni_wheel_mount(assembly)
-build_servo_controller_mount(assembly)
-build_lipo_battery_mount(assembly)
-build_base_camera_mount(assembly)
-build_wrist_camera_mount(assembly)
-App.closeDocument(assembly.Name)
+    build()
+    build_omni_wheel_mount(assembly)
+    build_servo_controller_mount(assembly)
+    build_lipo_battery_mount(assembly)
+    build_base_camera_mount(assembly)
+    build_wrist_camera_mount(assembly)
+    App.closeDocument(assembly.Name)

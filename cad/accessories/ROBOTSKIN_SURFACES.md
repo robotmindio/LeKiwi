@@ -5,35 +5,25 @@ Tres recubrimientos de 4 mm: `top.stl` (Z=57–61), `floor.stl` (Z=0–4) y
 
 ## Fuente de las posiciones
 
-Para el piso, las medidas y posiciones confirmadas por el usuario sustituyen
-los soportes del CAD: tres bases de **50 × 37 mm**, centradas en los tres
-segmentos planos de 50 mm del contorno. El lado exterior de 50 mm queda a ras
-del segmento; los 37 mm se extienden hacia el centro. Se reservan **2 mm por
-cada lado**: rectángulos de 54 × 41 mm, abiertos al borde de la piel.
-`--motor-clearance` ajusta ese margen independientemente de las otras holguras.
-`motor_bases` en los JSON conserva segmentos, huellas y recortes para comprobar
-centrado, orientación, dimensiones y margen. No se infieren altura, agujeros
-ni geometría 3D de estas bases a partir de una fotografía.
+El soporte autoritativo es `3DPrintMeshes/drive_motor_mount_v2.stl`, indicado
+por el usuario. Su reconstrucción paramétrica mide **47.5 × 34.8 × 45.5 mm**
+(ancho tangencial × profundidad radial × altura instalada), no 50 × 37 mm.
+Los cuatro ejes de fijación de cada soporte coinciden con agujeros del chasis;
+el borde exterior queda 1.25 mm dentro del segmento plano. Las tres unidades
+se orientan a 120°, con los ejes de rueda radiales y los planos tangenciales.
 
-Los soportes, motores, cubos, ruedas y separadores usan las ocurrencias STEP
-de `cad/assembly/LeKiwi.FCStd`, identificadas por `ReferenceObject` en el grupo
-`LeKiwiReferenceParts`. Son la referencia dimensional física del repositorio.
-Se conservan como contexto CAD de referencia, no como prueba de ajuste del
-hardware fotografiado. El brazo SO-101 y los accesorios añadidos conservan sus
-transformaciones actuales. El ensamblaje de revisión aún incluye los soportes
-3D antiguos; para el piso usar la comprobación de huellas `floor_base_fit.png`.
+Soportes, motores, cubos, ruedas y seis separadores se obtienen de los `CadParts`
+activos y las posiciones articulares de `cad/assembly/LeKiwi.FCStd`.
+Los separadores están en (±100, 0) y (±60, ±80) mm, en los tornillos señalados.
+El brazo SO-101 y los accesorios conservan sus transformaciones actuales.
 
-La primera versión de estas pieles usó las posiciones del URDF heredado.
-Ese modelo desplazaba cada soporte aproximadamente 10 mm respecto al STEP;
-sus agujeros no coincidían con los del chasis, y dos cubos de rueda invadían
-la piel. `wheel_placement_audit.json` registra los desplazamientos y los centros
-de tornillos físicos. La corrección de las pieles no modifica automáticamente
-las posiciones del URDF de producción.
-
-En las pieles superior y de techo, los recortes siguen las envolventes convexas
-orientadas del CAD de referencia que alcanzan su altura, con 1 mm de holgura.
-En el piso se comprueban las tres huellas medidas en lugar de esos doce
-componentes antiguos. Los seis separadores se comprueban en las tres pieles.
+Los recortes reservan **4 mm por cada lado** de las envolventes convexas XY
+de las unidades de rueda que alcanzan la altura de cada piel. La huella nominal
+del soporte con ese margen mide 55.5 × 42.8 mm; otros componentes pueden
+ampliar el recorte. `--motor-clearance` ajusta el margen independientemente
+de las otras holguras. `motor_bases` conserva las huellas y recortes verificados.
+El techo también deja espacio para los soportes de 45.5 mm de altura.
+Los seis separadores se comprueban en las tres pieles.
 La holgura general se ajusta con `--clearance` (0.5–3 mm); el borde exterior queda
 0.5 mm dentro del perímetro de la placa. Los componentes electrónicos no
 recortan la piel: se remontarán encima, según el montaje solicitado.
@@ -70,19 +60,21 @@ Resultados en `cad/generated/robotskin/`:
   El techo se refleja en Y para recuperar las coordenadas CAD al voltearlo.
 - `LeKiwi_RobotSkin.FCStd`: ensamblaje de revisión con las pieles instaladas.
 - `preview.png`: las tres pieles y despiece.
-- `full_build.png`, `wheel_assemblies.png`: vistas del CAD anterior como referencia;
-  no representan las bases medidas del usuario ni validan su ajuste.
-- `floor_base_fit.png`: STL del piso con las tres huellas medidas de 50 × 37 mm.
-  Sustituye la imagen anterior `floor_wheel_fit.png`, que se elimina al renderizar.
-- `checks.json`, `wheel_placement_audit.json`, `wheel_orientation_checks.json`:
-  geometría, fijaciones, comparación de posiciones y orientación de las ruedas.
+- `full_build.png`, `wheel_assemblies.png`: CAD corregido y unidades de rueda.
+- `floor_base_fit.png`: STL del piso y huellas v2 con 4 mm por lado.
+- `floor_wheel_fit.png`: piso instalado y conjuntos completos de rueda.
+- `checks.json`, `wheel_orientation_checks.json`: geometría, fijaciones y ejes.
 
 Las verificaciones exigen mallas cerradas y conectadas, grosor de 4 mm, paso
 central libre en todos los puertos y caras dentro de las envolventes comprobadas
-(tolerancia STL de 0.002 mm). La imagen de ajuste muestra el STL y huellas 2D
-medidas, no conjuntos de motor reconstruidos. Los componentes que se remontarán se muestran en sus
+(tolerancia STL de 0.002 mm). Los componentes que se remontarán se muestran en sus
 posiciones de referencia en la vista del robot completo.
 
 La altura interior libre queda en 42 mm. Las piezas caben aproximadamente en
 215 × 212 mm. Falta la prueba física de ajuste, incluida la tornillería real
 del brazo, y no se certifica el barrido completo de sus seis ejes.
+
+La referencia de servo tiene pequeñas intersecciones de esquina con el soporte
+v2 (menos de 1 mm³ por unidad, también presentes contra el STL original).
+Esto no es una colisión con RobotSkin ni una certificación de ajuste físico
+servo/soporte. No se ha deformado el soporte oficial para ocultarlas.

@@ -30,10 +30,13 @@ COLORS = {
     "arm": (0.93, 0.68, 0.14),
     "other": (0.45, 0.51, 0.54),
     "skin": (0.95, 0.60, 0.13),
+    "post": (0.72, 0.51, 0.20),
 }
 
 
 def kind(name):
+    if "Hex-Standoff" in name:
+        return "post"
     if "Omni-Directional-Wheel" in name:
         return "wheel"
     if "omni_wheel_mount" in name:
@@ -126,7 +129,7 @@ def main():
         window,
         (0, 0, 0.5, 1),
         SCENE,
-        "Physical CAD chassis + current SO-101 and accessories\nFront oblique view",
+        "Corrected CAD: v2 cages, six pillars + SO-101\nFront oblique view",
         (450, 550, 440),
         (0, 45, 130),
         None,
@@ -152,7 +155,7 @@ def main():
         window,
         (0, 0.5, 0.5, 1),
         wheel_parts + floor,
-        "Physical CAD: all three wheel assemblies\nGreen: radius / red: wheel-plane direction",
+        "Corrected CAD: all three v2 wheel assemblies\nGreen: radius / red: wheel-plane direction",
         (0, 0, 500),
         (0, 0, 0),
         190,
@@ -214,12 +217,6 @@ def main():
     (OUT / "wheel_orientation_checks.json").write_text(
         json.dumps(checks, indent=2) + "\n"
     )
-    if any(e.get("motor_bases") for e in json.loads((OUT / "layout.json").read_text())):
-        print(
-            "Legacy CAD reference views only: measured motor bases supersede these mounts. "
-            "Run render_robotskin_surfaces.py for floor_base_fit.png."
-        )
-        return
     if (
         not (OUT / "floor_installed.stl").exists()
         or (OUT / "floor_installed.stl").stat().st_mtime

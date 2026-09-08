@@ -22,7 +22,12 @@ NATIVE_PARTS = {
     "base_plate_layer1-v5": ("CadBasePlateLower", "native FreeCAD laser-cut source"),
     "base_plate_layer2-v3": ("CadBasePlateUpper", "native FreeCAD laser-cut source"),
 }
+REPLACEMENTS = {}
 for native_part in json.loads(NATIVE_PARTS_FILE.read_text()):
+    if native_part.get("reference_mesh"):
+        REPLACEMENTS.update(
+            (link, native_part["reference_mesh"]) for link in native_part["links"]
+        )
     NATIVE_PARTS.update(
         (link, (object_name, "native FreeCAD parametric source"))
         for link, object_name in native_part["links"].items()
@@ -131,7 +136,9 @@ if set(STEP_OBJECTS) != expected:
 document = App.openDocument(str(ASSEMBLY.resolve()))
 links_group = document.getObject("LeKiwiLinks")
 if not links_group:
-    raise RuntimeError("missing LeKiwi robot metadata; run seed_robot_metadata.sh first")
+    raise RuntimeError(
+        "missing LeKiwi robot metadata; run seed_robot_metadata.sh first"
+    )
 metadata = {item.UrdfName: item for item in links_group.Group}
 
 matches = []
@@ -141,10 +148,16 @@ for link_name, xml in link_xml.items():
     mesh_xml = visual.find("geometry/mesh") if visual is not None else None
     if mesh_xml is None:
         raise RuntimeError(f"{link_name}: visual mesh is required")
-    mesh_path = URDF.parent / mesh_xml.get("filename")
+    mesh_path = (
+        Path(REPLACEMENTS[link_name])
+        if link_name in REPLACEMENTS
+        else URDF.parent / mesh_xml.get("filename")
+    )
     mesh = Mesh.Mesh(str(mesh_path))
     origin = visual.find("origin")
     visual_matrix = urdf_matrix(origin if origin is not None else ET.Element("origin"))
+    if link_name in REPLACEMENTS:
+        visual_matrix = App.Matrix()
     mesh_bounds = bounds(mesh)
     volume = mesh.Volume
     if link_name in NATIVE_PARTS:
@@ -183,7 +196,9 @@ for link_name, xml in link_xml.items():
     else:
         source = document.getObject(STEP_OBJECTS[link_name])
         if not source or source.Shape.isNull() or not source.Shape.Solids:
-            raise RuntimeError(f"{link_name}: missing STEP object {STEP_OBJECTS[link_name]}")
+            raise RuntimeError(
+                f"{link_name}: missing STEP object {STEP_OBJECTS[link_name]}"
+            )
         raw_shape = translated_to_bounds(local_shape(source), mesh_bounds)
         source_error = bounds_error(bounds(raw_shape), mesh_bounds)
         output_shape = transformed_shape(raw_shape, visual_matrix)
@@ -191,7 +206,11 @@ for link_name, xml in link_xml.items():
         target_mesh.transform(visual_matrix)
         link_error = bounds_error(bounds(output_shape), bounds(target_mesh))
         volume_error = abs(raw_shape.Volume / volume - 1.0)
-        source_kind = "STEP BREP reference" if max(source_error, link_error, volume_error) <= MAX_ERROR else "canonical URDF STL mesh reference"
+        source_kind = (
+            "STEP BREP reference"
+            if max(source_error, link_error, volume_error) <= MAX_ERROR
+            else "canonical URDF STL mesh reference"
+        )
         if source_kind != "STEP BREP reference":
             link_error = 0.0
         match = {
@@ -207,6 +226,9 @@ for link_name, xml in link_xml.items():
         }
     match["visual_xyz"] = origin.get("xyz", "0 0 0") if origin is not None else "0 0 0"
     match["visual_rpy"] = origin.get("rpy", "0 0 0") if origin is not None else "0 0 0"
+    if link_name in REPLACEMENTS:
+        match["mesh_filename"] = os.path.relpath(mesh_path, URDF.parent)
+        match["visual_xyz"] = match["visual_rpy"] = "0 0 0"
     matches.append(match)
 
 if MODE == "apply":
@@ -228,7 +250,9 @@ if MODE == "apply":
     for link in metadata.values():
         foreign = [part for part in link.CadParts if part not in existing]
         if link.UrdfName not in NATIVE_PARTS and foreign:
-            raise RuntimeError(f"{link.UrdfName}: refusing to replace an existing CAD source")
+            raise RuntimeError(
+                f"{link.UrdfName}: refusing to replace an existing CAD source"
+            )
     if not group:
         group = document.addObject("App::DocumentObjectGroup", "LeKiwiReferenceParts")
         group.Label = "Link-local CAD references"
@@ -244,25 +268,38 @@ if MODE == "apply":
         source_kind = match["source_kind"]
         if link.UrdfName in STEP_OBJECTS:
             if not source or source.Shape.isNull() or not source.Shape.Solids:
-                raise RuntimeError(f"{link.UrdfName}: missing STEP object {source_name}")
+                raise RuntimeError(
+                    f"{link.UrdfName}: missing STEP object {source_name}"
+                )
             raw_shape = translated_to_bounds(
-                local_shape(source), bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"])))
+                local_shape(source),
+                bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"]))),
             )
-            visual_origin = ET.Element("origin", {"xyz": match["visual_xyz"], "rpy": match["visual_rpy"]})
+            visual_origin = ET.Element(
+                "origin", {"xyz": match["visual_xyz"], "rpy": match["visual_rpy"]}
+            )
             output_shape = transformed_shape(raw_shape, urdf_matrix(visual_origin))
             target_mesh = Mesh.Mesh(str(URDF.parent / match["mesh_filename"]))
             target_mesh.transform(urdf_matrix(visual_origin))
             source_kind = (
                 "STEP BREP reference"
                 if max(
-                    bounds_error(bounds(raw_shape), bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"])))),
+                    bounds_error(
+                        bounds(raw_shape),
+                        bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"]))),
+                    ),
                     bounds_error(bounds(output_shape), bounds(target_mesh)),
                     abs(raw_shape.Volume / target_mesh.Volume - 1.0),
                 )
                 <= MAX_ERROR
                 else "canonical URDF STL mesh reference"
             )
-        part = document.addObject("Part::Feature" if source_kind == "STEP BREP reference" else "Mesh::Feature", object_name(link.UrdfName))
+        part = document.addObject(
+            "Part::Feature"
+            if source_kind == "STEP BREP reference"
+            else "Mesh::Feature",
+            object_name(link.UrdfName),
+        )
         part.Label = f"{source_kind} — {link.UrdfName}"
         part.addProperty("App::PropertyString", "UrdfLink", "Source")
         part.addProperty("App::PropertyString", "ReferenceObject", "Source")
@@ -270,9 +307,17 @@ if MODE == "apply":
         part.UrdfLink = link.UrdfName
         part.ReferenceObject = source.Name if source else ""
         part.SourceKind = source_kind
-        visual_origin = ET.Element("origin", {"xyz": match["visual_xyz"], "rpy": match["visual_rpy"]})
+        visual_origin = ET.Element(
+            "origin", {"xyz": match["visual_xyz"], "rpy": match["visual_rpy"]}
+        )
         if source_kind == "STEP BREP reference":
-            part.Shape = transformed_shape(translated_to_bounds(local_shape(source), bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"])))), urdf_matrix(visual_origin))
+            part.Shape = transformed_shape(
+                translated_to_bounds(
+                    local_shape(source),
+                    bounds(Mesh.Mesh(str(URDF.parent / match["mesh_filename"]))),
+                ),
+                urdf_matrix(visual_origin),
+            )
         else:
             reference_mesh = Mesh.Mesh(str(URDF.parent / match["mesh_filename"]))
             reference_mesh.transform(urdf_matrix(visual_origin))
@@ -283,6 +328,10 @@ if MODE == "apply":
             link.CadParts = [part]
             link.UseCadMass = False
 
+    installed = document.getObject("InstalledWheelUnits")
+    if installed:
+        for item in installed.Group:
+            item.LinkedObject = metadata[item.Label].CadParts[0]
     document.recompute()
     document.save()
     if unlinked_native_parts:

@@ -17,13 +17,13 @@
     },
     {
       "urdf_link": "drive_motor_mount-v11-2",
-      "original_mesh": "meshes/drive_motor_mount-v11-2.stl",
+      "original_mesh": "3DPrintMeshes/drive_motor_mount_v2.stl",
       "generated_mesh": "meshes/reauthored/drive_motor_mount-v11-2.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
       "samples": 1024,
-      "max_surface_error_mm": 0.01490768433918374,
-      "p95_surface_error_mm": 0.004838336392389234,
-      "rms_surface_error_mm": 0.0020189238212470328,
+      "max_surface_error_mm": 0.21116863607312264,
+      "p95_surface_error_mm": 0.04076991329610524,
+      "rms_surface_error_mm": 0.018939172747764806,
       "status": "pass"
     },
     {
@@ -39,13 +39,13 @@
     },
     {
       "urdf_link": "drive_motor_mount-v11-1",
-      "original_mesh": "meshes/drive_motor_mount-v11-1.stl",
+      "original_mesh": "3DPrintMeshes/drive_motor_mount_v2.stl",
       "generated_mesh": "meshes/reauthored/drive_motor_mount-v11-1.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
       "samples": 1024,
-      "max_surface_error_mm": 0.014907632343740734,
-      "p95_surface_error_mm": 0.004858713400740854,
-      "rms_surface_error_mm": 0.0020245194933375755,
+      "max_surface_error_mm": 0.21116863607312264,
+      "p95_surface_error_mm": 0.04076991329610524,
+      "rms_surface_error_mm": 0.018939172747764806,
       "status": "pass"
     },
     {
@@ -61,13 +61,13 @@
     },
     {
       "urdf_link": "drive_motor_mount-v11",
-      "original_mesh": "meshes/drive_motor_mount-v11.stl",
+      "original_mesh": "3DPrintMeshes/drive_motor_mount_v2.stl",
       "generated_mesh": "meshes/reauthored/drive_motor_mount-v11.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
       "samples": 1024,
-      "max_surface_error_mm": 0.014907603662158707,
-      "p95_surface_error_mm": 0.004859363438139764,
-      "rms_surface_error_mm": 0.002024536360496778,
+      "max_surface_error_mm": 0.21116863607312264,
+      "p95_surface_error_mm": 0.04076991329610524,
+      "rms_surface_error_mm": 0.018939172747764806,
       "status": "pass"
     },
     {
@@ -123,17 +123,6 @@
       "max_surface_error_mm": 0.02580091228288556,
       "p95_surface_error_mm": 0.012343843647323875,
       "rms_surface_error_mm": 0.005300616672784844,
-      "status": "pass"
-    },
-    {
-      "urdf_link": "Wrist-Camera-Mount-v11",
-      "original_mesh": "meshes/Wrist-Camera-Mount-v11.stl",
-      "generated_mesh": "meshes/reauthored/Wrist-Camera-Mount-v11.stl",
-      "method": "bidirectional sampled closest point-to-triangle surface distance",
-      "samples": 1024,
-      "max_surface_error_mm": 0.03781807249562991,
-      "p95_surface_error_mm": 0.00976642941162872,
-      "rms_surface_error_mm": 0.004202836772428295,
       "status": "pass"
     }
   ]

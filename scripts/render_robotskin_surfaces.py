@@ -127,9 +127,9 @@ camera.SetParallelScale(135)
 label = vtkTextActor()
 margin = floor["motor_bases"][0]["clearance_mm"]
 label.SetInput(
-    "Blue: measured 50 x 37 mm bases, centered and flush with chassis flats\n"
+    "Blue: v2 mount footprints, 47.5 x 34.8 mm, aligned to chassis holes\n"
     f"Orange: floor STL / {margin:g} mm clearance on every side\n"
-    "Footprints only; not a reconstruction of the complete motor assemblies"
+    "Footprint overlay; see wheel_assemblies.png for complete assemblies"
 )
 label.SetPosition(25, 20)
 label.GetTextProperty().SetFontSize(21)
@@ -144,5 +144,3 @@ capture.Update()
 writer.SetFileName(str(OUT / "floor_base_fit.png"))
 writer.Write()
 print(OUT / "floor_base_fit.png")
-# This previous image asserted fit against the superseded wheel-mount geometry.
-(OUT / "floor_wheel_fit.png").unlink(missing_ok=True)

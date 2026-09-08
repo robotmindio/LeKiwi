@@ -39,8 +39,19 @@ The source models use independent FreeCAD profile features and standard Part ope
 `verify_native_part_sources.sh` checks the native feature-tree contract and the
 2% bounds/volume placement tolerance. It is not a surface-equivalence test.
 Run `./scripts/compare_reauthored_assets.sh` for the stricter bidirectional
-mesh audit. The checked-in report passes all twelve native link instances,
-with no more than 0.056 mm maximum or 0.034 mm 95th-percentile sampled
-surface deviation from the original URDF assets.
+mesh audit. The checked-in report passes all eleven active native link instances
+against the configured STEP/STL references, including the user-selected v2 cage.
+The v2 rebuild's sampled deviation is 0.211 mm maximum and 0.041 mm p95;
+the audit limits are 0.25 mm maximum and 0.10 mm p95.
+
+The drive-motor source now follows `3DPrintMeshes/drive_motor_mount_v2.stl`
+(SHA256 `9ad701cf2c012c735edac7867db5e3b8f24142a89b58cb0f7729b1d9a2c9615b`).
+Installed dimensions are 47.5 × 34.8 × 45.5 mm; native structural extrusions,
+mounting holes, counterbores and editable vent profiles replace the old tray.
+Only the small vent chamfers use 0.1 mm stepped sections.
+Rebuild just this source with `run_freecad_script.sh scripts/build_drive_motor_mount_v2.py`,
+then link it and run `run_freecad_script.sh scripts/install_wheel_mount_v2.py --apply`.
+The installer checks all twelve chassis bolt axes and preserves complete wheel units.
+RobotSkin adds 4 mm per-side clearance; it does not enlarge the mount itself.
 
 Purchased or separately maintained designs, and optional accessory prints outside this URDF assembly, remain measured/vendor references rather than reverse-engineered LeKiwi-specific source models.

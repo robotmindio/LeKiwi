@@ -258,37 +258,61 @@ def main(arguments):
         original_path, generated_path = map(Path, arguments[1:])
         if not original_path.is_file() or not generated_path.is_file():
             raise SystemExit("--mesh requires two existing STL files")
-        original, generated = Mesh.Mesh(str(original_path)), Mesh.Mesh(str(generated_path))
-        result = aligned_comparison(original, generated) if arguments[0] == "--mesh-align" else comparison(original, generated)
-        result.update(original_mesh=str(original_path), generated_mesh=str(generated_path))
+        original, generated = (
+            Mesh.Mesh(str(original_path)),
+            Mesh.Mesh(str(generated_path)),
+        )
+        result = (
+            aligned_comparison(original, generated)
+            if arguments[0] == "--mesh-align"
+            else comparison(original, generated)
+        )
+        result.update(
+            original_mesh=str(original_path), generated_mesh=str(generated_path)
+        )
         print(json.dumps(result, indent=2))
         raise SystemExit(0 if result["status"] == "pass" else 1)
 
     if set(arguments) - {"--strict"}:
-        raise SystemExit("usage: compare_reauthored_assets.py [--strict] | --mesh ORIGINAL.stl GENERATED.stl | --mesh-align ORIGINAL.stl GENERATED.stl")
+        raise SystemExit(
+            "usage: compare_reauthored_assets.py [--strict] | --mesh ORIGINAL.stl GENERATED.stl | --mesh-align ORIGINAL.stl GENERATED.stl"
+        )
 
     strict = "--strict" in arguments
     root = ET.parse(URDF).getroot()
     visuals = {link.get("name"): link.find("visual") for link in root.findall("link")}
     entries = []
+    replacements = {
+        link: item["reference_mesh"]
+        for item in json.loads(Path("cad/native_parts.json").read_text())
+        if item.get("reference_mesh")
+        for link in item["links"]
+    }
     for item in json.loads(MAPPING.read_text()):
         if not item["source_kind"].startswith("native FreeCAD"):
             continue
         name = item["urdf_link"]
+        if name not in visuals:
+            continue  # Retired SO-100 parts remain in the historical migration map.
         visual = visuals.get(name)
         mesh_xml = visual.find("geometry/mesh") if visual is not None else None
         if mesh_xml is None:
             raise RuntimeError(f"{name}: missing original URDF visual mesh")
-        original = Mesh.Mesh(str(URDF.parent / mesh_xml.get("filename")))
+        original = Mesh.Mesh(
+            replacements.get(name, str(URDF.parent / mesh_xml.get("filename")))
+        )
         origin = visual.find("origin")
-        original.transform(urdf_matrix(origin if origin is not None else ET.Element("origin")))
+        if name not in replacements:
+            original.transform(
+                urdf_matrix(origin if origin is not None else ET.Element("origin"))
+            )
         generated_path = URDF.parent / "meshes/reauthored" / mesh_filename(name)
         if not generated_path.is_file():
             raise RuntimeError(f"{name}: missing generated mesh {generated_path}")
         generated = Mesh.Mesh(str(generated_path))
         entry = {
             "urdf_link": name,
-            "original_mesh": mesh_xml.get("filename"),
+            "original_mesh": replacements.get(name, mesh_xml.get("filename")),
             "generated_mesh": str(generated_path.relative_to(URDF.parent)),
             **comparison(original, generated),
         }
@@ -314,7 +338,9 @@ def main(arguments):
         + "\n"
     )
     failures = [entry["urdf_link"] for entry in entries if entry["status"] == "fail"]
-    print(f"wrote {OUTPUT}; {len(entries) - len(failures)}/{len(entries)} native link instances pass")
+    print(
+        f"wrote {OUTPUT}; {len(entries) - len(failures)}/{len(entries)} native link instances pass"
+    )
     if strict and failures:
         raise SystemExit("surface-fidelity failures: " + ", ".join(failures))
 
