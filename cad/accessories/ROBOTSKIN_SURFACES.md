@@ -78,3 +78,10 @@ La referencia de servo tiene pequeñas intersecciones de esquina con el soporte
 v2 (menos de 1 mm³ por unidad, también presentes contra el STL original).
 Esto no es una colisión con RobotSkin ni una certificación de ajuste físico
 servo/soporte. No se ha deformado el soporte oficial para ocultarlas.
+
+Verificación del 2026-09-08: `verify_robot.sh`, `compare_reauthored_assets.sh --strict`,
+`verify_robotskin_surfaces.py`, `correct_chassis_rods.py` e `install_wheel_mount_v2.py`
+aprobados. Puertos completos: superior 179, piso 222, techo 222. Piso y techo
+conservan seis agujeros independientes para separadores; dos claros superiores
+se abren al recorte del brazo. Desviación máxima eje/radio en las tres ruedas:
+0.172°. Las imágenes proceden de geometría CAD/STL, no de una ilustración generada.
