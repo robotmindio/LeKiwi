@@ -250,6 +250,19 @@ def main():
         195,
     )
     save(window, "floor_wheel_fit.png")
+    window = vtkRenderWindow()
+    window.SetOffScreenRendering(1)
+    window.SetSize(1600, 900)
+    upper = [e for e in SCENE if e["name"] == "base_plate_layer2-v3"]
+    ceiling = [{"name": "ceiling_skin", "file": "ceiling_installed.stl"}]
+    for index, (parts, title) in enumerate((
+        (upper, "Upper-plate CAD: rounded cable windows"),
+        (ceiling, "Ceiling skin: same installed XY coordinates"),
+    )):
+        panel(window, (index / 2, 0, (index + 1) / 2, 1), parts,
+              title + "\n60 x 20 mm at (0, 0); 20 x 30 mm at (0, 50); R4\nPhoto-approximated dimensions",
+              (0, 0, 500), (0, 0, 50), 140, (0, 1, 0))
+    save(window, "upper_windows.png")
     print(json.dumps(checks, indent=2))
 
 

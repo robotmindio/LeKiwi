@@ -68,6 +68,7 @@ Resultados en `cad/generated/robotskin/`:
 - `full_build.png`, `wheel_assemblies.png`: CAD corregido y unidades de rueda.
 - `floor_base_fit.png`: STL del piso y huellas v2 con 4 mm por lado.
 - `floor_wheel_fit.png`: piso instalado y conjuntos completos de rueda.
+- `upper_windows.png`: ventanas del CAD superior y techo en coordenadas instaladas.
 - `checks.json`, `wheel_orientation_checks.json`: geometría, fijaciones y ejes.
 
 Las verificaciones exigen mallas cerradas y conectadas, grosor de 4 mm, paso
@@ -86,7 +87,9 @@ servo/soporte. No se ha deformado el soporte oficial para ocultarlas.
 
 Verificación del 2026-09-08: `verify_robot.sh`, `compare_reauthored_assets.sh --strict`,
 `verify_robotskin_surfaces.py`, `correct_chassis_rods.py` e `install_wheel_mount_v2.py`
-aprobados. Puertos completos: superior 179, piso 222, techo 222. Piso y techo
+aprobados; la revisión con ventanas también pasa `verify_laser_plate_sources.sh`,
+el ensayo completo del robot, la comparación estricta y la comprobación de las
+tres pieles. Puertos con ventanas: superior 172, piso 222, techo 190. Piso y techo
 conservan seis agujeros independientes para separadores; dos claros superiores
 se abren al recorte del brazo. Desviación máxima eje/radio en las tres ruedas:
 0.172°. Las imágenes proceden de geometría CAD/STL, no de una ilustración generada.

@@ -109,10 +109,11 @@
       "generated_mesh": "meshes/reauthored/base_plate_layer2-v3.stl",
       "method": "bidirectional sampled closest point-to-triangle surface distance",
       "samples": 1024,
-      "max_surface_error_mm": 0.00041993013957201795,
-      "p95_surface_error_mm": 4.128864414479352e-05,
-      "rms_surface_error_mm": 3.7641605220903444e-05,
-      "status": "pass"
+      "max_surface_error_mm": 0.04456763676639406,
+      "p95_surface_error_mm": 0.03886964959691066,
+      "rms_surface_error_mm": 0.016930181359606684,
+      "status": "pass",
+      "reference_adjustment": "scripts/upper_plate_windows.py"
     },
     {
       "urdf_link": "Camera-Mount-v8",
