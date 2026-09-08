@@ -5,12 +5,23 @@ Tres recubrimientos de 4 mm: `top.stl` (Z=57–61), `floor.stl` (Z=0–4) y
 
 ## Fuente de las posiciones
 
+Para el piso, las medidas y posiciones confirmadas por el usuario sustituyen
+los soportes del CAD: tres bases de **50 × 37 mm**, centradas en los tres
+segmentos planos de 50 mm del contorno. El lado exterior de 50 mm queda a ras
+del segmento; los 37 mm se extienden hacia el centro. Se reservan **2 mm por
+cada lado**: rectángulos de 54 × 41 mm, abiertos al borde de la piel.
+`--motor-clearance` ajusta ese margen independientemente de las otras holguras.
+`motor_bases` en los JSON conserva segmentos, huellas y recortes para comprobar
+centrado, orientación, dimensiones y margen. No se infieren altura, agujeros
+ni geometría 3D de estas bases a partir de una fotografía.
+
 Los soportes, motores, cubos, ruedas y separadores usan las ocurrencias STEP
 de `cad/assembly/LeKiwi.FCStd`, identificadas por `ReferenceObject` en el grupo
 `LeKiwiReferenceParts`. Son la referencia dimensional física del repositorio.
-Se comprueba que los dos agujeros de cada soporte coinciden con agujeros reales
-de la placa inferior. El brazo SO-101 y los accesorios añadidos conservan sus
-transformaciones actuales.
+Se conservan como contexto CAD de referencia, no como prueba de ajuste del
+hardware fotografiado. El brazo SO-101 y los accesorios añadidos conservan sus
+transformaciones actuales. El ensamblaje de revisión aún incluye los soportes
+3D antiguos; para el piso usar la comprobación de huellas `floor_base_fit.png`.
 
 La primera versión de estas pieles usó las posiciones del URDF heredado.
 Ese modelo desplazaba cada soporte aproximadamente 10 mm respecto al STEP;
@@ -19,10 +30,11 @@ la piel. `wheel_placement_audit.json` registra los desplazamientos y los centros
 de tornillos físicos. La corrección de las pieles no modifica automáticamente
 las posiciones del URDF de producción.
 
-Los recortes siguen las envolventes convexas orientadas de las piezas reales
-que alcanzan la altura de cada piel, con 1 mm de holgura. Se verifican los doce
-componentes de las tres unidades de rueda, además de los seis separadores.
-La holgura se ajusta con `--clearance` (0.5–3 mm); el borde exterior queda
+En las pieles superior y de techo, los recortes siguen las envolventes convexas
+orientadas del CAD de referencia que alcanzan su altura, con 1 mm de holgura.
+En el piso se comprueban las tres huellas medidas en lugar de esos doce
+componentes antiguos. Los seis separadores se comprueban en las tres pieles.
+La holgura general se ajusta con `--clearance` (0.5–3 mm); el borde exterior queda
 0.5 mm dentro del perímetro de la placa. Los componentes electrónicos no
 recortan la piel: se remontarán encima, según el montaje solicitado.
 
@@ -58,16 +70,17 @@ Resultados en `cad/generated/robotskin/`:
   El techo se refleja en Y para recuperar las coordenadas CAD al voltearlo.
 - `LeKiwi_RobotSkin.FCStd`: ensamblaje de revisión con las pieles instaladas.
 - `preview.png`: las tres pieles y despiece.
-- `full_build.png`: chasis físico completo con SO-101 y accesorios actuales.
-- `wheel_assemblies.png`: planta con radios y planos de rueda, y las tres unidades.
-- `floor_wheel_fit.png`: piel corregida con motores, soportes, cubos y ruedas.
+- `full_build.png`, `wheel_assemblies.png`: vistas del CAD anterior como referencia;
+  no representan las bases medidas del usuario ni validan su ajuste.
+- `floor_base_fit.png`: STL del piso con las tres huellas medidas de 50 × 37 mm.
+  Sustituye la imagen anterior `floor_wheel_fit.png`, que se elimina al renderizar.
 - `checks.json`, `wheel_placement_audit.json`, `wheel_orientation_checks.json`:
   geometría, fijaciones, comparación de posiciones y orientación de las ruedas.
 
 Las verificaciones exigen mallas cerradas y conectadas, grosor de 4 mm, paso
 central libre en todos los puertos y caras dentro de las envolventes comprobadas
-(tolerancia STL de 0.002 mm). Las imágenes muestran geometría CAD real, no un
-concepto ilustrativo. Los componentes que se remontarán se muestran en sus
+(tolerancia STL de 0.002 mm). La imagen de ajuste muestra el STL y huellas 2D
+medidas, no conjuntos de motor reconstruidos. Los componentes que se remontarán se muestran en sus
 posiciones de referencia en la vista del robot completo.
 
 La altura interior libre queda en 42 mm. Las piezas caben aproximadamente en

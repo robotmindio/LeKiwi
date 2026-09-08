@@ -59,7 +59,7 @@ def footprint(solid, z, clearance):
     return [[v.Point.x, v.Point.y] for v in wire.OrderedVertexes]
 
 
-def prepare(clearance):
+def prepare(clearance, motor_clearance):
     doc = App.openDocument("cad/assembly/LeKiwi.FCStd")
     model = ET.Element("robot")
     links = {item.UrdfName: item for item in doc.LeKiwiLinks.Group}
@@ -120,7 +120,6 @@ def prepare(clearance):
         item = context.addObject("Part::Feature", "Support")
         item.Label = name
         item.Shape = solid
-        obstacles.append(solid)
         box = solid.BoundBox
         if wheel_part:
             motors.append(solid)
@@ -151,6 +150,7 @@ def prepare(clearance):
                     }
                 )
         else:
+            obstacles.append(solid)
             # Reserve washer / screw-head access as well as the actual hex post.
             posts.append(
                 [
@@ -256,9 +256,47 @@ def prepare(clearance):
             if name == "ceiling"
             else upper.BoundBox.ZMax
         )
-        cuts = [
-            polygon for solid in motors if (polygon := footprint(solid, z, clearance))
-        ]
+        motor_bases = []
+        if name == "floor":
+            # User-measured bases replace the incompatible legacy wheel mounts.
+            # The three 50 mm chassis flats set both orientation and position.
+            for a, b in zip(outline, outline[1:] + outline[:1]):
+                length = math.dist(a, b)
+                if abs(length - 50) > 0.01:
+                    continue
+                midpoint = [(a[i] + b[i]) / 2 for i in range(2)]
+                tangent = [(b[i] - a[i]) / length for i in range(2)]
+                inward = [-tangent[1], tangent[0]]
+                if sum(midpoint[i] * inward[i] for i in range(2)) > 0:
+                    inward = [-v for v in inward]
+
+                def base_rectangle(margin):
+                    return [
+                        [midpoint[i] + u * tangent[i] + v * inward[i] for i in range(2)]
+                        for u, v in (
+                            (-25 - margin, -margin),
+                            (25 + margin, -margin),
+                            (25 + margin, 37 + margin),
+                            (-25 - margin, 37 + margin),
+                        )
+                    ]
+
+                motor_bases.append(
+                    dict(
+                        flat=[a, b],
+                        footprint=base_rectangle(0),
+                        cut=base_rectangle(motor_clearance),
+                        clearance_mm=motor_clearance,
+                    )
+                )
+            assert len(motor_bases) == 3, "Expected three 50 mm chassis flats"
+            cuts = [base["cut"] for base in motor_bases]
+        else:
+            cuts = [
+                polygon
+                for solid in motors
+                if (polygon := footprint(solid, z, clearance))
+            ]
         if name == "top":
             cuts += arm_boxes
         for polygon in cuts:
@@ -310,6 +348,19 @@ def prepare(clearance):
         blank.translate(App.Vector(0, 0, z))
         for obstacle in obstacles:
             assert blank.common(obstacle).Volume < 1e-5, f"{name}: support collision"
+        if name == "floor":
+            for base in motor_bases:
+                assert (
+                    blank.common(
+                        face(base["footprint"]).extrude(App.Vector(0, 0, 4))
+                    ).Volume
+                    < 1e-5
+                )
+        else:
+            for motor in motors:
+                assert blank.common(motor).Volume < 1e-5, (
+                    f"{name}: reference wheel collision"
+                )
         for plate in (bottom, upper):
             assert blank.common(plate).Volume < 1e-5, f"{name}: chassis collision"
         item = context.addObject("Part::Feature", name.title() + "Envelope")
@@ -324,6 +375,7 @@ def prepare(clearance):
                 ports=ports,
                 z=z,
                 port_count=len(ports),
+                motor_bases=motor_bases,
             )
         )
         print(f"{name}: {len(ports)} complete ports, z={z:g}..{z + 4:g} mm")
@@ -369,8 +421,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--finish", action="store_true")
     parser.add_argument("--clearance", type=float, default=1.0)
+    parser.add_argument(
+        "--motor-clearance",
+        type=float,
+        default=2.0,
+        help="Per-side clearance around measured 50 x 37 mm floor bases",
+    )
     args = parser.parse_args()
     if not math.isfinite(args.clearance) or not 0.5 <= args.clearance <= 3:
         parser.error("--clearance must be between 0.5 and 3 mm")
+    if not math.isfinite(args.motor_clearance) or not 0.5 <= args.motor_clearance <= 3:
+        parser.error("--motor-clearance must be between 0.5 and 3 mm")
     OUT.mkdir(parents=True, exist_ok=True)
-    finish() if args.finish else prepare(args.clearance)
+    finish() if args.finish else prepare(args.clearance, args.motor_clearance)

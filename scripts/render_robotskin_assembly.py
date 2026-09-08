@@ -214,6 +214,12 @@ def main():
     (OUT / "wheel_orientation_checks.json").write_text(
         json.dumps(checks, indent=2) + "\n"
     )
+    if any(e.get("motor_bases") for e in json.loads((OUT / "layout.json").read_text())):
+        print(
+            "Legacy CAD reference views only: measured motor bases supersede these mounts. "
+            "Run render_robotskin_surfaces.py for floor_base_fit.png."
+        )
+        return
     if (
         not (OUT / "floor_installed.stl").exists()
         or (OUT / "floor_installed.stl").stat().st_mtime

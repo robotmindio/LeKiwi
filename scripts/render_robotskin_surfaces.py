@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+from vtkmodules.vtkFiltersSources import vtkLineSource
 from vtkmodules.vtkIOGeometry import vtkSTLReader
 from vtkmodules.vtkIOImage import vtkPNGWriter
 from vtkmodules.vtkRenderingCore import (
@@ -18,9 +19,8 @@ import vtkmodules.vtkRenderingOpenGL2  # noqa: F401 - registers OpenGL renderer
 
 
 OUT = Path(__file__).resolve().parents[1] / "cad/generated/robotskin"
-LEVELS = {
-    entry["name"]: entry["z"] for entry in json.loads((OUT / "layout.json").read_text())
-}
+LAYOUT = json.loads((OUT / "layout.json").read_text())
+LEVELS = {entry["name"]: entry["z"] for entry in LAYOUT}
 COLORS = [(0.10, 0.65, 0.70), (0.93, 0.61, 0.13), (0.43, 0.48, 0.82)]
 window = vtkRenderWindow()
 window.SetOffScreenRendering(1)
@@ -96,3 +96,53 @@ writer.SetFileName(str(OUT / "preview.png"))
 writer.SetInputConnection(capture.GetOutputPort())
 writer.Write()
 print(OUT / "preview.png")
+
+# Measured footprints, not the incompatible legacy 3D motor assemblies.
+floor = next(entry for entry in LAYOUT if entry["name"] == "floor")
+window = vtkRenderWindow()
+window.SetOffScreenRendering(1)
+window.SetSize(1100, 1100)
+renderer = vtkRenderer()
+renderer.SetBackground(0.96, 0.97, 0.98)
+actor(renderer, "floor", COLORS[1])
+for base in floor["motor_bases"]:
+    points = base["footprint"]
+    for a, b in zip(points, points[1:] + points[:1]):
+        line = vtkLineSource()
+        line.SetPoint1(*a, 5)
+        line.SetPoint2(*b, 5)
+        mapper = vtkPolyDataMapper()
+        mapper.SetInputConnection(line.GetOutputPort())
+        item = vtkActor()
+        item.SetMapper(mapper)
+        item.GetProperty().SetColor(0.10, 0.32, 0.85)
+        item.GetProperty().SetLineWidth(3)
+        renderer.AddActor(item)
+camera = renderer.GetActiveCamera()
+camera.SetPosition(0, 0, 400)
+camera.SetFocalPoint(0, 0, 0)
+camera.SetViewUp(0, 1, 0)
+camera.ParallelProjectionOn()
+camera.SetParallelScale(135)
+label = vtkTextActor()
+margin = floor["motor_bases"][0]["clearance_mm"]
+label.SetInput(
+    "Blue: measured 50 x 37 mm bases, centered and flush with chassis flats\n"
+    f"Orange: floor STL / {margin:g} mm clearance on every side\n"
+    "Footprints only; not a reconstruction of the complete motor assemblies"
+)
+label.SetPosition(25, 20)
+label.GetTextProperty().SetFontSize(21)
+label.GetTextProperty().SetColor(0.12, 0.16, 0.21)
+renderer.AddActor2D(label)
+renderer.ResetCameraClippingRange()
+window.AddRenderer(renderer)
+window.Render()
+capture.SetInput(window)
+capture.Modified()
+capture.Update()
+writer.SetFileName(str(OUT / "floor_base_fit.png"))
+writer.Write()
+print(OUT / "floor_base_fit.png")
+# This previous image asserted fit against the superseded wheel-mount geometry.
+(OUT / "floor_wheel_fit.png").unlink(missing_ok=True)
