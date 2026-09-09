@@ -35,11 +35,22 @@ recortan la piel: se remontarán encima, según el montaje solicitado.
 
 ## Fijación usando los puertos normales
 
-No hay agujeros adicionales de montaje. Todos los puertos usan `port_cut()`
+No hay agujeros adicionales para fijar la piel. Todos los puertos usan `port_cut()`
 y el paso central de `through_plate()` de la biblioteca RobotSkin existente.
 La retícula de 10 mm parte del origen del chasis, por lo que coincide con su
 retícula de tornillos de 20 mm. `chassis_ports` en `checks.json` enumera los
 puertos que coinciden con agujeros físicos utilizables de cada placa.
+
+Las cuatro fijaciones del brazo señaladas en la foto tienen claros independientes
+de Ø12 mm para cabezas, tuercas y arandelas, derivados de los agujeros mayores
+del CAD superior: (-31.727, 25.225), (31.773, 25.225), (-27.753, 95) y
+(27.799, 95) mm. `--arm-fastener-diameter` permite ajustar el acceso (8–16 mm)
+a la tornillería real. El techo contiene los cuatro agujeros; en la piel superior
+quedan dentro del recorte abierto del brazo. No se taladra ni se cambia la placa.
+Esta corrección no modifica la colocación del brazo en el ensamblaje.
+El STEP `Base_SO101.step` confirma el patrón: pares de 63.5 y 55.55 mm de ancho,
+separados 69.775 mm. Los claros siguen los agujeros físicos confirmados, no el
+desplazamiento de la instancia del brazo; ese desfase CAD permanece sin corregir.
 
 Fijar las pieles por esos mismos puertos, con tornillos M3 y los insertos de
 RobotSkin. Usar un único inserto por unión: no enroscar un tornillo a través
@@ -69,6 +80,7 @@ Resultados en `cad/generated/robotskin/`:
 - `floor_base_fit.png`: STL del piso y huellas v2 con 4 mm por lado.
 - `floor_wheel_fit.png`: piso instalado y conjuntos completos de rueda.
 - `upper_windows.png`: ventanas del CAD superior y techo en coordenadas instaladas.
+- `arm_fastener_access.png`: cuatro accesos del brazo resaltados en verde.
 - `checks.json`, `wheel_orientation_checks.json`: geometría, fijaciones y ejes.
 
 Las verificaciones exigen mallas cerradas y conectadas, grosor de 4 mm, paso

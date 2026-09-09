@@ -255,14 +255,22 @@ def main():
     window.SetSize(1600, 900)
     upper = [e for e in SCENE if e["name"] == "base_plate_layer2-v3"]
     ceiling = [{"name": "ceiling_skin", "file": "ceiling_installed.stl"}]
+    layout = json.loads((OUT / "layout.json").read_text())
+    fasteners = next(e["arm_fasteners"] for e in layout if e["name"] == "ceiling")
     for index, (parts, title) in enumerate((
         (upper, "Upper-plate CAD: rounded cable windows"),
         (ceiling, "Ceiling skin: same installed XY coordinates"),
     )):
-        panel(window, (index / 2, 0, (index + 1) / 2, 1), parts,
-              title + "\n60 x 20 mm at (0, 0); 20 x 30 mm at (0, 50); R4\nPhoto-approximated dimensions",
+        renderer = panel(window, (index / 2, 0, (index + 1) / 2, 1), parts,
+              title + "\n60 x 20 mm at (0, 0); 20 x 30 mm at (0, 50); R4\n"
+              + f"Green: four arm accesses, diameter {fasteners[0]['diameter']:g} mm",
               (0, 0, 500), (0, 0, 50), 140, (0, 1, 0))
+        for fastener in fasteners:
+            points = np.array(fastener["cut"])
+            for a, b in zip(points, np.roll(points, -1, axis=0)):
+                line(renderer, [*a, 62], [*b, 62], (0.08, 0.7, 0.3))
     save(window, "upper_windows.png")
+    save(window, "arm_fastener_access.png")
     print(json.dumps(checks, indent=2))
 
 

@@ -62,7 +62,7 @@ def footprint(solid, z, clearance):
     return [[v.Point.x, v.Point.y] for v in wire.OrderedVertexes]
 
 
-def prepare(clearance, motor_clearance):
+def prepare(clearance, motor_clearance, arm_fastener_diameter):
     doc = App.openDocument("cad/assembly/LeKiwi.FCStd")
     model = ET.Element("robot")
     links = {item.UrdfName: item for item in doc.LeKiwiLinks.Group}
@@ -262,11 +262,21 @@ def prepare(clearance, motor_clearance):
         if name == "top":
             cuts += arm_boxes
         windows = []
+        arm_fasteners = []
         if name != "floor":
             for wire in profile.Wires:
+                box = wire.BoundBox
+                if 5.2 < box.XLength < 5.5 and 5.2 < box.YLength < 5.5:
+                    centre = box.Center
+                    radius = arm_fastener_diameter / 2
+                    cut = [[centre.x + radius * math.cos(i * math.tau / 64),
+                            centre.y + radius * math.sin(i * math.tau / 64)] for i in range(64)]
+                    arm_fasteners.append(dict(centre=[centre.x, centre.y], diameter=arm_fastener_diameter, cut=cut))
+                    cuts.append(cut)
                 if not wire.isSame(profile.OuterWire) and Part.Face(wire).Area > 100:
                     windows.append([[p.x, p.y] for p in wire.discretize(Deflection=0.02)])
             assert len(windows) == 2, "Upper plate must contain both cable windows"
+            assert len(arm_fasteners) == 4, "Upper plate must contain four arm mounting holes"
             cuts += windows
         for polygon in cuts:
             region = region.cut(face(polygon))
@@ -338,6 +348,7 @@ def prepare(clearance, motor_clearance):
                 port_count=len(ports),
                 motor_bases=motor_bases,
                 windows=windows,
+                arm_fasteners=arm_fasteners,
             )
         )
         print(f"{name}: {len(ports)} complete ports, z={z:g}..{z + 4:g} mm")
@@ -383,6 +394,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--finish", action="store_true")
     parser.add_argument("--clearance", type=float, default=1.0)
+    parser.add_argument("--arm-fastener-diameter", type=float, default=12.0,
+                        help="Access diameter for the four arm screw heads/nuts/washers (mm)")
     parser.add_argument(
         "--motor-clearance",
         type=float,
@@ -394,5 +407,7 @@ if __name__ == "__main__":
         parser.error("--clearance must be between 0.5 and 3 mm")
     if not math.isfinite(args.motor_clearance) or not 0.5 <= args.motor_clearance <= 6:
         parser.error("--motor-clearance must be between 0.5 and 6 mm")
+    if not math.isfinite(args.arm_fastener_diameter) or not 8 <= args.arm_fastener_diameter <= 16:
+        parser.error("--arm-fastener-diameter must be between 8 and 16 mm")
     OUT.mkdir(parents=True, exist_ok=True)
-    finish() if args.finish else prepare(args.clearance, args.motor_clearance)
+    finish() if args.finish else prepare(args.clearance, args.motor_clearance, args.arm_fastener_diameter)

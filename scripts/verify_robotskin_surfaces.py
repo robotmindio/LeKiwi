@@ -39,6 +39,17 @@ for entry in json.loads((OUT / "layout.json").read_text()):
     )
     region = Polygon(entry["outline"]).buffer(-0.5, join_style="mitre")
     windows = entry["windows"]
+    fasteners = entry["arm_fasteners"]
+    assert len(fasteners) == (0 if name == "floor" else 4)
+    if fasteners:
+        centres = sorted(f["centre"] for f in fasteners)
+        assert np.allclose(centres, [(-31.727, 25.225), (-27.753, 95),
+                                     (27.799, 95), (31.773, 25.225)], atol=0.002)
+        for fastener in fasteners:
+            assert fastener["cut"] in entry["cuts"]
+            points = np.array(fastener["cut"])
+            assert 8 <= fastener["diameter"] <= 16
+            assert np.allclose(np.linalg.norm(points - fastener["centre"], axis=1), fastener["diameter"] / 2)
     assert len(windows) == (0 if name == "floor" else 2)
     if windows:
         measured = sorted(Polygon(w).bounds for w in windows)
