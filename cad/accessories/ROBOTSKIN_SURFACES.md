@@ -101,7 +101,13 @@ Verificación del 2026-09-08: `verify_robot.sh`, `compare_reauthored_assets.sh -
 `verify_robotskin_surfaces.py`, `correct_chassis_rods.py` e `install_wheel_mount_v2.py`
 aprobados; la revisión con ventanas también pasa `verify_laser_plate_sources.sh`,
 el ensayo completo del robot, la comparación estricta y la comprobación de las
-tres pieles. Puertos con ventanas: superior 172, piso 222, techo 190. Piso y techo
+tres pieles. Puertos con ventanas y accesos del brazo: superior 172, piso 222,
+techo 178. Piso y techo
 conservan seis agujeros independientes para separadores; dos claros superiores
 se abren al recorte del brazo. Desviación máxima eje/radio en las tres ruedas:
 0.172°. Las imágenes proceden de geometría CAD/STL, no de una ilustración generada.
+
+2026-09-09: los cuatro accesos confirmados del brazo pasan la verificación de
+posiciones, diámetros y exclusión de todas las caras STL en ambas pieles superiores.
+Las tres mallas siguen cerradas, conectadas y con 4 mm de grosor; placa y brazo
+no se han modificado. La revisión instalada se actualiza en `LeKiwi_RobotSkin.FCStd`.
