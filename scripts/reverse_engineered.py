@@ -17,3 +17,14 @@ def entries(part):
         return
     for component in components:
         yield {**part, **component}
+
+
+def original_component_path(output):
+    """Path to the isolated original-body reference next to a generated OUTPUT.
+
+    Shared by build_reverse_engineered_sources.py (which writes it) and
+    verify_reverse_engineered_sources.py (which reads it) so the naming
+    convention lives in one place.
+    """
+    output = Path(output)
+    return output.with_name(output.stem + "_original.stl")

@@ -5,16 +5,19 @@ from pathlib import Path
 import Mesh
 
 from scripts.compare_reauthored_assets import aligned_comparison
-from scripts.reverse_engineered import MANIFESTS, entries, parts
+from scripts.reverse_engineered import MANIFESTS, entries, original_component_path, parts
+
+if not MANIFESTS:
+    raise SystemExit("no reverse-engineered manifests found under cad/reverse_engineered")
 
 
 def reference_component(part):
     if not part.get("original_component_signature"):
         return Path(part["original"])
-    output = Path(part["output"])
-    return output.with_name(output.stem + "_original.stl")
+    return original_component_path(part["output"])
 
 
+checked = 0
 for manifest in MANIFESTS:
     for part in parts(manifest):
         for entry in entries(part):
@@ -34,3 +37,8 @@ for manifest in MANIFESTS:
                 f"{entry['id']}: pass max={result['max_surface_error_mm']:.3f} mm "
                 f"p95={result['p95_surface_error_mm']:.3f} mm"
             )
+            checked += 1
+
+if checked == 0:
+    raise SystemExit("no reverse-engineered parts had a generated output to check")
+print(f"validated {checked} reverse-engineered part(s) across {len(MANIFESTS)} manifest(s)")

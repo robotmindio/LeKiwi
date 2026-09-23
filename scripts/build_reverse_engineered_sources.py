@@ -6,7 +6,7 @@ from pathlib import Path
 
 import trimesh
 
-from scripts.reverse_engineered import MANIFESTS, entries, parts
+from scripts.reverse_engineered import MANIFESTS, entries, original_component_path, parts
 
 
 def source_path(part):
@@ -46,7 +46,7 @@ def reference_component(part):
     matching_components = [component for component in components if matches_signature(component)]
     if len(matching_components) != 1:
         raise RuntimeError(f"{part['id']}: component signature matched {len(matching_components)} original bodies")
-    output = Path(part["output"]).with_name(Path(part["output"]).stem + "_original.stl")
+    output = original_component_path(part["output"])
     matching_components[0].export(output)
     return output
 
