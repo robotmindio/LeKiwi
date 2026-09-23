@@ -15,7 +15,7 @@ from pathlib import Path
 import FreeCAD as App
 import Mesh
 
-from scripts.cad_utils import mesh_filename, urdf_matrix
+from scripts.cad_utils import mesh_filename, native_part_replacements, urdf_matrix
 
 URDF = Path("URDF/LeKiwi.baseline.urdf")
 MAPPING = Path("cad/reference_mapping.json")
@@ -273,21 +273,22 @@ def main(arguments):
         print(json.dumps(result, indent=2))
         raise SystemExit(0 if result["status"] == "pass" else 1)
 
-    if set(arguments) - {"--strict"}:
+    if set(arguments) - {"--strict", "--report-only"}:
         raise SystemExit(
-            "usage: compare_reauthored_assets.py [--strict] | --mesh ORIGINAL.stl GENERATED.stl | --mesh-align ORIGINAL.stl GENERATED.stl"
+            "usage: compare_reauthored_assets.py [--strict | --report-only] | --mesh ORIGINAL.stl GENERATED.stl | --mesh-align ORIGINAL.stl GENERATED.stl"
         )
+    if "--strict" in arguments and "--report-only" in arguments:
+        raise SystemExit("--strict and --report-only are mutually exclusive")
 
-    strict = "--strict" in arguments
+    # Strict is the default: a failed comparison fails the run. Pass
+    # --report-only to only write cad/validation/reauthored_asset_comparison.json
+    # without failing (kept explicit rather than making --strict a no-op flag,
+    # since older invocations relied on non-strict being the default).
+    strict = "--report-only" not in arguments
     root = ET.parse(URDF).getroot()
     visuals = {link.get("name"): link.find("visual") for link in root.findall("link")}
     entries = []
-    replacements = {
-        link: item["reference_mesh"]
-        for item in json.loads(Path("cad/native_parts.json").read_text())
-        if item.get("reference_mesh")
-        for link in item["links"]
-    }
+    replacements = native_part_replacements()
     for item in json.loads(MAPPING.read_text()):
         if not item["source_kind"].startswith("native FreeCAD"):
             continue
