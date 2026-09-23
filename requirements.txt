@@ -1,0 +1,13 @@
+# Python dependencies for scripts/ that run outside FreeCAD's bundled
+# interpreter (plain `python3`, not `run_freecad_script.sh`).
+#
+# FreeCAD itself is not pip-installable; see README.md for how to get it.
+# cadquery is used by scripts/export_so101_wrist.py and cad/cadquery/*; set
+# CADQUERY_PYTHON to an interpreter that has it installed if it is not
+# available in the default one.
+cadquery
+numpy
+pytest
+shapely
+trimesh
+vtk
