@@ -143,6 +143,7 @@ def main():
         reference = Mesh.Mesh("3DPrintMeshes/drive_motor_mount_v2.stl")
         for item in mapping:
             if item["urdf_link"].startswith("drive_motor_mount-v11"):
+                link_shape = links[item["urdf_link"]].CadParts[0].Shape
                 item.update(
                     mesh_filename="../3DPrintMeshes/drive_motor_mount_v2.stl",
                     visual_xyz="0 0 0",
@@ -151,7 +152,7 @@ def main():
                         bounds(source.Final.Shape), bounds(reference)
                     ),
                     link_bbox_error=bounds_error(
-                        bounds(source.Final.Shape), bounds(reference)
+                        bounds(link_shape), bounds(reference)
                     ),
                     volume_error=abs(source.Final.Shape.Volume / reference.Volume - 1),
                 )
