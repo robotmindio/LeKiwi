@@ -1,0 +1,51 @@
+name: verify-model
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install OpenSCAD, Flatpak and ROS 2 xacro
+        run: |
+          sudo curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+            -o /usr/share/keyrings/ros-archive-keyring.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu noble main" \
+            | sudo tee /etc/apt/sources.list.d/ros2.list
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends openscad flatpak python3-numpy ros-jazzy-xacro
+
+      - name: Install pinned FreeCAD
+        run: ./scripts/install_freecad.sh
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install CadQuery
+        run: |
+          uv venv --python 3.11 "$RUNNER_TEMP/cadquery"
+          uv pip install --python "$RUNNER_TEMP/cadquery/bin/python" -r cad/cadquery/requirements.txt
+          echo "CADQUERY_PYTHON=$RUNNER_TEMP/cadquery/bin/python" >> "$GITHUB_ENV"
+
+      # Rebuilds the model in a scratch directory, runs every CAD check and
+      # fails when the committed Xacro, URDF or meshes are stale.
+      - name: Verify generated robot model
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          ./scripts/verify_robot.sh
+
+      - name: Verify manufacturing sources
+        run: ./scripts/verify_manufacturing.sh
