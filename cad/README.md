@@ -34,7 +34,13 @@ All other arm meshes are refreshed from the pinned upstream source on every
 export. `export_robot.sh` requires CadQuery; set `CADQUERY_PYTHON` to the Python
 executable of an existing CadQuery environment if it is not installed in the
 default interpreter. `verify_robot.sh` runs its STEP-fidelity check first.
-The complete export also records `URDF/model-manifest.json`. Run
+`cad/cadquery/requirements.txt` pins the CadQuery version CI uses.
+The export also writes `URDF/LeKiwi.urdf`, the plain-URDF expansion of the Xacro
+for consumers without xacro; `URDF/LeKiwi.baseline.urdf` is the original
+upstream model that the migration and semantics checks compare against.
+`verify_robot.sh` rebuilds everything in a scratch directory and fails if the
+committed Xacro, URDF or meshes differ from that rebuild; CI runs it on every
+push. The complete export also records `URDF/model-manifest.json`. Run
 `python3 scripts/model_manifest.py --check` to detect source or output changes
 since the last export; the ROS vendor script runs this check before copying.
 
@@ -51,7 +57,7 @@ The lidar reuses the removed Pi case's screw pair at x=+/-20, y=-100 mm,
 plus the corresponding y=-80 mm row. Its bracket faces rearward; the lidar
 centre is x=-5, y=-135 mm. `verify_sensor_mounts.py` checks all four fasteners
 against the actual upper-plate contours. The historical Pi case mounting
-datum is retained in `URDF/LeKiwi.urdf`, not as installed case geometry.
+datum is retained in `URDF/LeKiwi.baseline.urdf`, not as installed case geometry.
 The Astra uses the diagonal pair nearest the operator's two fingernails:
 CAD (-100, -20) and (-80, -60) mm, separated by sqrt(2000) = 44.721 mm.
 Its bracket centre is (-90, -40, 7) mm and its local yaw is 116.565 degrees,

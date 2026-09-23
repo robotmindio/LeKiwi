@@ -17,7 +17,7 @@ import Mesh
 
 from scripts.cad_utils import mesh_filename, urdf_matrix
 
-URDF = Path("URDF/LeKiwi.urdf")
+URDF = Path("URDF/LeKiwi.baseline.urdf")
 MAPPING = Path("cad/reference_mapping.json")
 OUTPUT = Path("cad/validation/reauthored_asset_comparison.json")
 # ponytail: sampled rather than full Hausdorff; raise this or use a full-mesh

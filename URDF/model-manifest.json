@@ -1,7 +1,7 @@
 {
   "inputs": {
     "3DPrintMeshes/drive_motor_mount_v2.stl": "9ad701cf2c012c735edac7867db5e3b8f24142a89b58cb0f7729b1d9a2c9615b",
-    "URDF/LeKiwi.urdf": "f889c474f7f71098b17144fd42e35b3ba0d33de7b7b63ae127206ce739cceb82",
+    "URDF/LeKiwi.baseline.urdf": "f889c474f7f71098b17144fd42e35b3ba0d33de7b7b63ae127206ce739cceb82",
     "cad/accessories/SENSOR_MOUNTS.md": "79a7137d290e1d50d8ee541dd2e71926990d54c46407b4c7a83cb7261eb4321f",
     "cad/accessories/astra_pro_compact_mount.scad": "da647a7c832e9de2473eac2592b48d0055d720fd29d7b3d71ff1767c65d473f9",
     "cad/accessories/rpi5_table_installed.scad": "5cd1180ee2ffce9abe3a9ee10197f27310298ec44043a9739be0708b8c04e789",
@@ -42,7 +42,7 @@
     "scripts/cad_utils.py": "d4c1beb6fd1e5be8307f268586e111613b6a98930c7ddfc77c4ddb4cdc4a2aa6",
     "scripts/correct_chassis_rods.py": "ac043d8b5af40f21a9e05b0f81910db8a22d12d142d043551cd961d76e333011",
     "scripts/export_cad_meshes.py": "7ba98f3d54a10c66b70e4da25c120c9f1bc505b95c78624df3728a31ba26cdf6",
-    "scripts/export_robot.sh": "9aeb71d424589451522d3d5afe3e70d3b9a07eec90af7af14f39de48606afba6",
+    "scripts/export_robot.sh": "b9f0a696570465c4c8bd8c4892e1ee817d56fa1d9005f9c1cc5da38cd7f1f8d3",
     "scripts/export_so101_wrist.py": "2d92eca857a69db16bf07c48ae769aaf0cbb9333a2e1167af9d1f8d858e91896",
     "scripts/export_xacro.py": "cbfaa796c3c48645e877d3bb108682c4a553196c2288af883259cfde53a28de9",
     "scripts/export_xacro.sh": "565cec96208422bdd9a541931ab6b7376da2a12994564fa879b11448f70102bd",
@@ -53,6 +53,7 @@
     "scripts/upper_plate_windows.py": "1e0ff395128a1fe750d2c9f83781a5ba90c86a9f7a867de187fc26b21aa68b03"
   },
   "outputs": {
+    "URDF/LeKiwi.urdf": "c63a6e3302b69f9e3380b8f6da56b9b802167f60ecdfb8793f4a697990a9056d",
     "URDF/LeKiwi.urdf.xacro": "794f02e0f59046e6de656223bb48bad3b26313c03ff0d2cdd053e0a4befcf983",
     "URDF/meshes/reauthored/4-Omni-Directional-Wheel_Single_Body-v1-1.stl": "42b0ddb6c1cb8f5c33dfd80a7ff0457ed929e64284b8959a3fa16fb24e737ec6",
     "URDF/meshes/reauthored/4-Omni-Directional-Wheel_Single_Body-v1-2.stl": "b753948f880be9aa15faea5563411fc823f22ac92aa81257d6df9f609f765eea",
@@ -65,7 +66,6 @@
     "URDF/meshes/reauthored/94868A713_NO-THREADS_Female-Threaded-Hex-Standoff.stl": "2431b19fa561caffe476a1f48c31eb0953be20bc81f61138dfd64eb187f2671b",
     "URDF/meshes/reauthored/Base_08q-v1.stl": "d9c8a7384ccc3fe3b7b1ca20d43c3843f5358faa514b122b17a727c21d8fa4b8",
     "URDF/meshes/reauthored/Battery---Battery-5.2-Ah-DC5521-Plug-v2.stl": "ed87f0621fb502e2a3d013dd38ee553541bef1a2425a08da4bebe5a4973a1c0c",
-    "URDF/meshes/reauthored/Bottom-V2-v3.stl": "b21cf8e5b1c534b7701aae6559b1ad6952818a914a55ca617c90f227b5c14b61",
     "URDF/meshes/reauthored/Camera-Model-v3-1.stl": "64d3954d26f8b11f4cf03587eda3e789162ed6a2463f47c7bdfd55cbba800435",
     "URDF/meshes/reauthored/Camera-Model-v3.stl": "45de967e480f775bc8ea6dfb0311ee627cccb6c257f4a0895c76aa0c5a6f9cf7",
     "URDF/meshes/reauthored/Camera-Mount-v8.stl": "f8c717b9df965adc88e43f7f7431d556a7bbb536a6c9e1d3a2532914acad79b4",
@@ -84,7 +84,6 @@
     "URDF/meshes/reauthored/STS3215_03a-v1-4.stl": "4e08815a6b13825907b46aba72691eb02104848af617cd4b19a6314c6aad6bc9",
     "URDF/meshes/reauthored/STS3215_03a-v1.stl": "f0e06e908b23296187fe18343f7449622656f12e6875dedfd209c4660f787665",
     "URDF/meshes/reauthored/STS3215_03a_Wrist_Roll-v1.stl": "650d768e93b474a9b984b171337c8946a3762d1678a6310321b1c773bcd80bc3",
-    "URDF/meshes/reauthored/Top-V2-v2.stl": "2d88a63cd91b89fc92c2f0ed17824664321e04c2c4c2ad6ded93a6b72e7cd8b2",
     "URDF/meshes/reauthored/WaveShare_Mounting_Plate_01d-v1.stl": "df51177c3851c128fa27dda1d3af516cfc57ddb3feb4ff399b4330082963464b",
     "URDF/meshes/reauthored/Wrist-Camera-Mount-v11.stl": "04dd206d75122095ce325276bb0823c952281beeede7c1293d2b14a33b991667",
     "URDF/meshes/reauthored/Wrist_Roll_08c-v1.stl": "37ee57d276850d6fb49b028bb8e908453e16dc3025e7701a03a40ca2b38ebbe4",
@@ -117,7 +116,6 @@
     "URDF/meshes/so101/under_arm_so101_v1.stl": "d01d1f2de365651dcad9d6669e94ff87ff7652b5bb2d10752a66a456a86dbc71",
     "URDF/meshes/so101/upper_arm_so101_v1.stl": "475056e03a17e71919b82fd88ab9a0b898ab50164f2a7943652a6b2941bb2d4f",
     "URDF/meshes/so101/waveshare_mounting_plate_so101_v2.stl": "e197e24005a07d01bbc06a8c42311664eaeda415bf859f68fa247884d0f1a6e9",
-    "URDF/meshes/so101/wrist_roll_follower_so101_v1.stl": "4b17b410a12d64ec39554abc3e8054d8a97384b2dc4a8d95a5ecb2a93670f5f4",
-    "URDF/meshes/so101/wrist_roll_pitch_so101_v2.stl": "6c7ec5525b4d8b9e397a30ab4bb0037156a5d5f38a4adf2c7d943d6c56eda5ae"
+    "URDF/meshes/so101/wrist_roll_follower_so101_v1.stl": "4b17b410a12d64ec39554abc3e8054d8a97384b2dc4a8d95a5ecb2a93670f5f4"
   }
 }

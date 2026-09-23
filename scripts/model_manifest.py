@@ -18,7 +18,7 @@ def snapshot(root):
     inputs = [
         root / path
         for path in (
-            "URDF/LeKiwi.urdf",
+            "URDF/LeKiwi.baseline.urdf",
             "cad/assembly/LeKiwi.FCStd",
             "cad/accessories/astra_pro_compact_mount.scad",
             "cad/accessories/sensor_mount_spec.json",
@@ -54,7 +54,7 @@ def snapshot(root):
     inputs += list(
         (root / "cad/upstream/SO-ARM100/Simulation/SO101/assets").glob("*.stl")
     )
-    outputs = [root / "URDF/LeKiwi.urdf.xacro"]
+    outputs = [root / "URDF/LeKiwi.urdf.xacro", root / "URDF/LeKiwi.urdf"]
     outputs += list((root / "URDF/meshes/reauthored").glob("*.stl"))
     outputs += list((root / "URDF/meshes/so101").glob("*.stl"))
     return {"inputs": hashes(root, inputs), "outputs": hashes(root, outputs)}

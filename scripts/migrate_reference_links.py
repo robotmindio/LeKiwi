@@ -13,7 +13,7 @@ from scripts.cad_utils import bounds, bounds_error, urdf_matrix
 
 
 ASSEMBLY = Path("cad/assembly/LeKiwi.FCStd")
-URDF = Path("URDF/LeKiwi.urdf")
+URDF = Path("URDF/LeKiwi.baseline.urdf")
 MAPPING = Path("cad/reference_mapping.json")
 NATIVE_PARTS_FILE = Path("cad/native_parts.json")
 MODE = os.environ.get("CAD_MIGRATION_MODE") or "report"

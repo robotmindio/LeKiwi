@@ -31,6 +31,8 @@ LEKIWI_GENERATED_ROOT=$generated_root ./scripts/run_freecad_script.sh \
   scripts/replace_arm_with_so101.py "$output_root/URDF/.LeKiwi.generated.urdf.xacro" \
   "$output_root/URDF/LeKiwi.urdf.xacro"
 rm "$output_root/URDF/.LeKiwi.generated.urdf.xacro"
+# Expanded for consumers without xacro; run in URDF/ so the header is path-free.
+(cd "$output_root/URDF" && xacro LeKiwi.urdf.xacro -o LeKiwi.urdf)
 if [[ $output_root == "$project_dir" ]]; then
   python3 scripts/model_manifest.py
 fi
