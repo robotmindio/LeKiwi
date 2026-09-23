@@ -1,36 +1,29 @@
 Open CAD and release work
 
-  - Decide whether the remaining 33 URDF links need native parametric
-    FreeCAD models. The current assembly uses 23 imported STEP BREP
-    references and 10 canonical URDF mesh references; their exact mapping
-    is in cad/reference_mapping.json.
+  - Decide whether the remaining 14 URDF links need native parametric
+    FreeCAD models (STEP BREP or canonical-URDF-mesh references instead of
+    an editable FreeCAD source). Their exact mapping is in
+    cad/reference_mapping.json.
 
-  - Reauthor optional/non-URDF print assets with no exact editable source:
-      - 3DPrintMeshes/battery_mount_eu.stl
-      - 3DPrintMeshes/5v_specific/5v_power_bank_holder.stl
-      - 3DPrintMeshes/drive_motor_mount_v2.stl
-      - 3DPrintMeshes/modified_base_arm.stl
-      - 3DPrintMeshes/jetson_holder.stl
+  - Reauthoring the 19 optional/non-URDF print assets with no exact
+    editable source is done for 11 of them (see
+    cad/reverse_engineered/*/parts.json and
+    `3DPrintMeshes/webcam_mount/so100_gripper_cam_mount_insert.FCStd`, an
+    exact SO-ARM100 STEP derivative). 8 still have no reauthored source and
+    depend on the unavailable Fusion parametric history:
       - 3DPrintMeshes/wrist_camera_mount.stl
-      - 3DPrintMeshes/webcam_mount/so100_gripper_cam_mount_insert.stl
-      - 3DPrintMeshes/wired_specific/cable_holder v0.stl
-      - 3DPrintMeshes/wired_specific/usb_connector_case v1.stl
       - 3DPrintMeshes/dynamixel_specific/Dynamixel_omni_wheel_mount v2.stl
+        and dynamixel_wheel_hub .stl (share the same Fusion component)
       - 3DPrintMeshes/dynamixel_specific/center_triangular_insert.stl
-      - 3DPrintMeshes/dynamixel_specific/dynamixel_drive_motor_mount.stl
       - 3DPrintMeshes/dynamixel_specific/dynamixel_kiwi_servo_mount.stl
-      - 3DPrintMeshes/dynamixel_specific/dynamixel_modified_base_arm.stl
-      - 3DPrintMeshes/dynamixel_specific/dynamixel_wheel_hub .stl
       - 3DPrintMeshes/dynamixel_specific/follower_base.stl
       - 3DPrintMeshes/dynamixel_specific/modified_static_side_with_mount.stl
       - 3DPrintMeshes/dynamixel_specific/pi_case_bottom.stl
       - 3DPrintMeshes/dynamixel_specific/webcam_base_mount.stl
 
     `drive_motor_mount_v2.stl` and `wrist_camera_mount.stl` are revisions
-    distinct from the core URDF models, so each needs its own source.
-    The standard SO-100/SO-101 arm is available from the external Apache-2.0
-    project; `modified_base_arm.stl` and the gripper-camera insert are not
-    verified upstream equivalents.
+    distinct from the core URDF models, so each needs its own source;
+    `drive_motor_mount_v2.stl` has one, `wrist_camera_mount.stl` does not yet.
 
   - If native feature histories are required, reauthor the two webcam STEP
     accessories; their current FreeCAD documents are editable BREP imports,
@@ -49,7 +42,7 @@ Open CAD and release work
   - The three mesh warnings are the canonical omni-wheel meshes, each used by
     one wheel link. They contain non-manifold facets; repairing them removes
     242 of 314244 facets and changes volume, so preserve source fidelity and
-    guard the explicit exception with `./scripts/verify_mesh_integrity.sh`.
+    guard the explicit exception with `make verify-mesh-integrity`.
 
   - Perform physical print, laser-cut, fit, fastener-clearance, strength,
     and full-assembly tests, accounting for material thickness, kerf, printer
@@ -58,8 +51,9 @@ Open CAD and release work
   - Set CAD-derived mass and inertia from chosen material/infill density or
     measured finished-part masses, including hardware.
 
-  - Provision a ROS environment and run runtime validation in RViz, Gazebo,
-    and/or MoveIt after finalizing geometry and mass properties.
+  - ROS environment validation is partly done: Xacro expansion and
+    check_urdf pass under ROS Jazzy. RViz, Gazebo, and MoveIt runtime
+    validation after finalizing geometry and mass properties is not done.
 
 Conditional / blocked work
 
