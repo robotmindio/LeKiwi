@@ -12,6 +12,14 @@
 
 The final 36-link Xacro replaces that reference assembly's legacy arm subtree with the pinned SO-101 model described below and omits the removed Pi case. The exact source and validation result for every retained CAD link is recorded in [reference_mapping.json](reference_mapping.json). The RobotSkin LD06 body is authored directly in `LeKiwi.FCStd`; its mount and the compact Astra mount are regenerated from their OpenSCAD sources before every export. The hidden `LeKiwiReferenceParts` group is retained only for placement and validation; it is not the geometry exported for a reauthored part.
 
+## Development prerequisites
+
+- **FreeCAD** (tested against the version pinned by the [Flathub `org.freecad.FreeCAD`](https://flathub.org/apps/org.freecad.FreeCAD) package): `scripts/run_freecad_script.sh` launches it as `flatpak run --command=FreeCADCmd org.freecad.FreeCAD`. See `scripts/install_freecad.sh`.
+- **OpenSCAD**, on `PATH`, for the RobotSkin lidar/Astra mounts, RobotSkin surfaces, and the reverse-engineered print sources.
+- **xacro** and **check_urdf** (ROS Jazzy: `source /opt/ros/jazzy/setup.bash`) to expand and validate the generated Xacro, as `verify_xacro.py` does.
+- **Python packages** in [requirements.txt](../requirements.txt) (`pip install -r requirements.txt`) for the scripts that run under plain `python3` rather than FreeCAD's interpreter: trimesh, numpy, shapely, pytest, and cadquery/vtk for the CadQuery arm sources and RobotSkin renderers.
+- **CadQuery**: `export_robot.sh` requires it for the native SO-101 wrist. If it is not installed in the default `python3`, set `CADQUERY_PYTHON` to the interpreter of an environment that has it, e.g. `CADQUERY_PYTHON=/path/to/venv/bin/python3 ./scripts/export_robot.sh`.
+
 ## Arm source
 
 The upstream [SO-ARM100](upstream/SO-ARM100/) repository is a pinned Git submodule at
@@ -97,9 +105,9 @@ The complete LeKiwi-specific manufactured set represented by the URDF is editabl
 Each printed-part file has an `Editable dimensions` (`Parameters`) object and a normal FreeCAD feature tree ending in `Final`; it contains profile features, Part extrusions, primitives, fuses, and cuts—not an imported mesh or opaque BREP wrapper. Open a source file in FreeCAD, change a parameter or profile feature, and save it. Then relink and regenerate:
 
 ```sh
-./scripts/link_native_part_sources.sh
+make link-native-part-sources
 ./scripts/export_robot.sh
-./scripts/verify_native_part_sources.sh
+make verify-native-part-sources
 ```
 
 `build_native_part_sources.sh` reconstructs the six initial source files from the validated STEP/STL references. It intentionally overwrites those source files, so use it to reset or regenerate a baseline, not after manual edits you intend to keep.
@@ -145,25 +153,27 @@ separate audit because those files do not feed the robot Xacro:
 For a stricter shape-fidelity audit, run:
 
 ```sh
-./scripts/compare_reauthored_assets.sh
+make compare-reauthored-assets
 ```
 
 It compares each native FreeCAD export with its configured reference mesh using
-bidirectional sampled surface distance. Add `--strict` to fail on more than
-0.25 mm maximum or 0.10 mm 95th-percentile deviation. The checked-in baseline
+bidirectional sampled surface distance and fails on more than 0.25 mm maximum
+or 0.10 mm 95th-percentile deviation. Pass `ARGS=--report-only` to only write
+the comparison report without failing the run. The checked-in baseline
 uses the v2 STL for all three motor cages (0.211 mm maximum, 0.041 mm p95
 sampled deviation); this remains separate from the older bounding-box and volume check.
+`verify_robot.sh` runs this check in its strict (default) mode.
 
 ## Mass and inertia
 
 Native source links deliberately keep `UseCadMass=False` until a real material density or printed mass is known. After choosing material or measuring a finished part, activate CAD-derived mass, centre of mass, and the full inertia tensor for the relevant assembly link:
 
 ```sh
-./scripts/attach_cad_part.sh cad/assembly/LeKiwi.FCStd drive_motor_mount-v11-2 CadDriveMotorMountV11_2 1240 0
+make attach-cad-part ARGS="cad/assembly/LeKiwi.FCStd drive_motor_mount-v11-2 CadDriveMotorMountV11_2 1240 0"
 ./scripts/export_robot.sh
 ```
 
-Here `1240` is only an example density in kg/m³. Use a measured printed mass instead of `0` for FDM or assembled parts; it accounts for infill, walls, and hardware. The exporter combines all solid CAD parts in a link with the parallel-axis theorem. Purchased components should use measured or vendor mass overrides.
+Here `1240` is only an example density in kg/m³. Use a measured printed mass instead of `0` for FDM or assembled parts; it accounts for infill, walls, and hardware. The exporter combines all solid CAD parts in a link with the parallel-axis theorem. Purchased components should use measured or vendor mass overrides. `verify_xacro.py` does not exact-match a `UseCadMass=True` link's `<inertial>` against the baseline URDF (which never had real CAD mass); instead it checks the exported mass and inertia tensor physically: positive finite mass, a positive-definite inertia tensor, and principal moments that satisfy the rotational triangle inequality.
 
 Chassis joint metadata remains editable in the `LeKiwiJoints` group. SO-101 joint names, parents, children, axes, origins, and limits come from the pinned upstream URDF; together they form the deterministic composite Xacro contract.
 
@@ -184,17 +194,26 @@ RobotSkin exports after chassis corrections; old generated skins are not current
 ## Rebuild after replacing the Fusion STEP export
 
 ```sh
-./scripts/import_step_reference.sh
-./scripts/seed_robot_metadata.sh
-./scripts/build_laser_plate_sources.sh
-./scripts/verify_laser_plate_sources.sh
-./scripts/build_native_part_sources.sh
+make import-step-reference
+make seed-robot-metadata
+make build-laser-plate-sources
+make verify-laser-plate-sources
+make build-native-part-sources
 ./scripts/migrate_reference_links.sh --apply
-./scripts/link_base_plate_sources.sh
-./scripts/link_native_part_sources.sh
+make link-base-plate-sources
+make link-native-part-sources
 ./scripts/migrate_reference_links.sh --apply
+./scripts/run_freecad_script.sh scripts/correct_chassis_rods.py --apply
+./scripts/run_freecad_script.sh scripts/install_wheel_mount_v2.py --apply
 ./scripts/export_robot.sh
-./scripts/verify_native_part_sources.sh
+make verify-native-part-sources
 ```
+
+`correct_chassis_rods.py --apply` and `install_wheel_mount_v2.py --apply` must
+run after the assembly's base plates and native parts are linked (so their
+holes and reference geometry exist to validate against) and before the final
+`export_robot.sh`, so the corrected chassis-rod and v2 wheel-mount placements
+are baked into `cad/assembly/LeKiwi.FCStd` before the Xacro and meshes are
+generated from it.
 
 The first migration pass creates hidden placement references. The second records the validated native sources after they have been linked.

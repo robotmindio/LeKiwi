@@ -41,8 +41,8 @@ Build or reset those documents, then verify that they still match their
 corresponding print STLs:
 
 ```sh
-./scripts/build_accessory_sources.sh
-./scripts/verify_accessory_sources.sh
+make build-accessory-sources
+make verify-accessory-sources
 ```
 
 These are editable Open STEP BREP documents in FreeCAD's Part workbench. The
