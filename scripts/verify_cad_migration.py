@@ -7,10 +7,16 @@ from pathlib import Path
 
 import Mesh
 
-from scripts.cad_utils import bounds, bounds_error, mesh_filename, urdf_matrix
+from scripts.cad_utils import (
+    PI_CASE_LINKS,
+    bounds,
+    bounds_error,
+    mesh_filename,
+    native_part_replacements,
+    urdf_matrix,
+)
 
 MAX_ERROR = 0.02
-REMOVED_LINKS = {"Bottom-V2-v3", "Top-V2-v2"}
 
 
 if len(sys.argv) != 4:
@@ -21,17 +27,12 @@ if len(sys.argv) != 4:
 urdf_path, mapping_path, output_directory = map(Path, sys.argv[1:])
 mapping = {item["urdf_link"]: item for item in json.loads(mapping_path.read_text())}
 root = ET.parse(urdf_path).getroot()
-replacements = {
-    link: item["reference_mesh"]
-    for item in json.loads(Path("cad/native_parts.json").read_text())
-    if item.get("reference_mesh")
-    for link in item["links"]
-}
+replacements = native_part_replacements()
 links = [
     link
     for link in root.findall("link")
     if not link.get("name").startswith("so101_")
-    and link.get("name") not in REMOVED_LINKS
+    and link.get("name") not in PI_CASE_LINKS
 ]
 if not {link.get("name") for link in links} <= set(mapping):
     raise SystemExit("mapping does not cover every CAD-derived URDF link")
