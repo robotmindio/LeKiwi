@@ -11,6 +11,8 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
 
+from scripts.cad_utils import SO101_YELLOW_RGBA
+
 
 ROOT = Path(__file__).resolve().parents[1]
 XACRO_NS = "http://www.ros.org/wiki/xacro"
@@ -133,7 +135,7 @@ def replace_arm(model: ET.Element) -> None:
         if material.get("name") not in existing_materials:
             model.append(copy.deepcopy(material))
     arm_material = ET.Element("material", {"name": "so101_yellow"})
-    ET.SubElement(arm_material, "color", {"rgba": "1.0 0.82 0.12 1.0"})
+    ET.SubElement(arm_material, "color", {"rgba": SO101_YELLOW_RGBA})
     model.append(arm_material)
 
     xacro_model = model.find(f"{{{XACRO_NS}}}property") is not None

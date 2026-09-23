@@ -5,13 +5,13 @@ import json
 import sys
 from pathlib import Path
 import FreeCAD as App
-from scripts.cad_utils import urdf_matrix
+from scripts.cad_utils import PI_CASE_LINKS, require, urdf_matrix
 
 assembly = sys.argv[1] if len(sys.argv) > 1 else "cad/assembly/LeKiwi.FCStd"
 generated_path = sys.argv[2] if len(sys.argv) > 2 else "URDF/LeKiwi.urdf.xacro"
 doc = App.openDocument(assembly)
 links = {link.UrdfName: link for link in doc.getObject("LeKiwiLinks").Group}
-assert not {"Bottom-V2-v3", "Top-V2-v2"} & links.keys()
+require(not PI_CASE_LINKS & links.keys(), "removed Pi case must not be present")
 plate_holes = []
 for part in links["base_plate_layer2-v3"].CadParts:
     for wire in part.Shape.Wires:
@@ -21,25 +21,31 @@ for part in links["base_plate_layer2-v3"].CadParts:
 robot = ET.parse(generated_path).getroot()
 spec = json.loads(Path("cad/accessories/sensor_mount_spec.json").read_text())
 mount = robot.find("joint[@name='robotskin_lidar_mount_joint']")
-assert mount.find("parent").get("link") == "base_plate_layer2-v3"
+require(mount.find("parent").get("link") == "base_plate_layer2-v3", "lidar mount parent")
 pose = urdf_matrix(mount.find("origin"))
 for x, y in spec["lidar"]["bracket_holes_local_mm"]:
     hole = pose.multVec(App.Vector(x, y, 0))
-    assert min((hole - target).Length for target in plate_holes) < .001, hole
+    require(min((hole - target).Length for target in plate_holes) < .001, f"lidar bracket hole {hole} unmatched")
 centre = pose.multVec(App.Vector(*(value * 1000 for value in spec["lidar"]["body_center_m"])))
-assert (centre - App.Vector(*spec["lidar"]["body_center_in_plate_mm"])).Length < .001
+require(
+    (centre - App.Vector(*spec["lidar"]["body_center_in_plate_mm"])).Length < .001,
+    "lidar body center mismatch",
+)
 print("lidar bracket matches all four rear plate holes, including the old Pi pair")
 astra = robot.find("joint[@name='astra_pro_compact_mount_joint']")
-assert astra.find("parent").get("link") == "base_plate_layer2-v3"
+require(astra.find("parent").get("link") == "base_plate_layer2-v3", "astra mount parent")
 pose = urdf_matrix(astra.find("origin"))
 first, second = spec["astra"]["plate_holes_mm"]
 spacing = (App.Vector(*first) - App.Vector(*second)).Length
 for x, target in zip((-spacing / 2, spacing / 2), (first, second)):
     hole = pose.multVec(App.Vector(x, 0, 0))
-    assert (hole - App.Vector(*target)).Length < .001, hole
-    assert min((hole - target).Length for target in plate_holes) < .001, hole
+    require((hole - App.Vector(*target)).Length < .001, f"astra hole {hole} does not match {target}")
+    require(min((hole - target).Length for target in plate_holes) < .001, f"astra hole {hole} unmatched")
 origin = [value * 1000 for value in spec["astra"]["mount_origin_m"]]
-assert (pose.multVec(App.Vector()) - App.Vector(*origin)).Length < .001
+require(
+    (pose.multVec(App.Vector()) - App.Vector(*origin)).Length < .001,
+    "astra mount origin mismatch",
+)
 print("Astra bracket matches the operator-selected left-edge plate holes")
 plate = robot.find("joint[@name='rpi5_through_plate_joint']")
 assert plate.find("parent").get("link") == "base_plate_layer2-v3"

@@ -7,7 +7,7 @@ import cadquery as cq
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "cad/cadquery"))
-from so101_part8 import part8
+from so101_part8 import part8  # noqa: E402 - requires the sys.path insert above
 
 shape = part8().val()
 if not shape.isValid() or len(shape.Solids()) != 1:

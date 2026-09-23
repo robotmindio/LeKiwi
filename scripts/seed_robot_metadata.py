@@ -1,15 +1,12 @@
 """Embed the validated URDF link and joint data in a FreeCAD document."""
 
-import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import FreeCAD as App
 
-
-def object_name(prefix, name):
-    return prefix + re.sub(r"[^0-9A-Za-z_]", "_", name)
+from scripts.cad_utils import object_name
 
 
 def attr(element, name, default=""):

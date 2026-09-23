@@ -1,0 +1,11 @@
+{
+  "rod": "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff",
+  "positions": {
+    "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff": [-60, 80],
+    "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-1": [-100, 0],
+    "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-2": [100, 0],
+    "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-3": [-60, -80],
+    "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-4": [60, 80],
+    "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-5": [60, -80]
+  }
+}

@@ -1,14 +1,15 @@
 """Add the deterministic sensor mounts and RPi 5 stack to the editable LeKiwi assembly."""
 
-import re
+import hashlib
 import sys
 import json
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import FreeCAD as App
 import Mesh
 import Part
+
+from scripts.cad_utils import PI_CASE_LINKS, object_name
 
 
 if len(sys.argv) != 12:
@@ -46,8 +47,93 @@ ASTRA_MOUNT_RPY = tuple(spec["astra"]["mount_rpy_rad"])
 RPI5 = spec["rpi5"]
 
 
-def object_name(prefix, name):
-    return prefix + re.sub(r"[^0-9A-Za-z_]", "_", name)
+def file_hash(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def joint_matches(document, name, parent, child, xyz, rpy=(0, 0, 0)):
+    joint = document.getObject(object_name("Joint_", name))
+    if not joint:
+        return False
+    expected_xyz = " ".join(str(value) for value in xyz)
+    expected_rpy = " ".join(str(value) for value in rpy)
+    return (
+        joint.Parent == parent
+        and joint.Child == child
+        and joint.OriginXYZ == expected_xyz
+        and joint.OriginRPY == expected_rpy
+    )
+
+
+def mesh_source_matches(document, name, source):
+    # Compare the OpenSCAD *source* hash, not the regenerated STL's: OpenSCAD's
+    # STL export is not byte-stable across identical runs (facet order and
+    # float formatting vary), so hashing the mesh would never match twice in
+    # a row even when nothing changed.
+    link = document.getObject(object_name("Link_", name))
+    if not link or not link.CadParts:
+        return False
+    part = link.CadParts[0]
+    return (
+        hasattr(part, "SourceFile")
+        and hasattr(part, "SourceHash")
+        and part.SourceFile == source.as_posix()
+        and part.SourceHash == file_hash(source)
+    )
+
+
+def cylinder_source_matches(document, name, radius, height):
+    link = document.getObject(object_name("Link_", name))
+    if not link or not link.CadParts:
+        return False
+    part = link.CadParts[0]
+    return (
+        hasattr(part, "SourceRadiusMm")
+        and hasattr(part, "SourceHeightMm")
+        and abs(part.SourceRadiusMm - radius) < 1e-9
+        and abs(part.SourceHeightMm - height) < 1e-9
+    )
+
+
+def mounts_already_current(document, links_group):
+    """True when every sensor mount already matches its current source.
+
+    Every export runs this script, so without a change check it would remove
+    and re-add each mount and save the assembly on every export even when the
+    OpenSCAD sources, meshes, and mount spec are unchanged, churning the
+    binary FCStd for no reason.
+    """
+    existing_links = {item.UrdfName for item in links_group.Group}
+    if PI_CASE_LINKS & existing_links:
+        return False
+    return (
+        mesh_source_matches(document, "robotskin_lidar_mount", lidar_source)
+        and joint_matches(
+            document,
+            "robotskin_lidar_mount_joint",
+            "base_plate_layer2-v3",
+            "robotskin_lidar_mount",
+            MOUNT_ORIGIN,
+            MOUNT_RPY,
+        )
+        and cylinder_source_matches(document, "ld06_body", LD06_RADIUS_MM, LD06_HEIGHT_MM)
+        and joint_matches(
+            document,
+            "ld06_body_mount",
+            "robotskin_lidar_mount",
+            "ld06_body",
+            LD06_CENTER,
+        )
+        and mesh_source_matches(document, "astra_pro_compact_mount", astra_source)
+        and joint_matches(
+            document,
+            "astra_pro_compact_mount_joint",
+            "base_plate_layer2-v3",
+            "astra_pro_compact_mount",
+            ASTRA_MOUNT_ORIGIN,
+            ASTRA_MOUNT_RPY,
+        )
+    )
 
 
 def remove(document, name):
@@ -138,14 +224,22 @@ joints = document.getObject("LeKiwiJoints")
 if not links or not joints:
     raise RuntimeError("missing LeKiwi robot metadata")
 
+if mounts_already_current(document, links):
+    output = assembly_path.parent.parent.parent / "URDF/meshes/reauthored"
+    output.mkdir(parents=True, exist_ok=True)
+    for name in ("robotskin_lidar_mount", "ld06_body", "astra_pro_compact_mount"):
+        link = next(item for item in links.Group if item.UrdfName == name)
+        Mesh.export(link.CadParts, str(output / f"{name}.stl"))
+    print("sensor mounts already match their sources; no assembly changes")
+    sys.exit(0)
+
 # Keep the historical reference parts, but do not export the removed Pi case
 # as installed hardware. Their old mounting datum remains in the source URDF.
-removed = {"Bottom-V2-v3", "Top-V2-v2"}
 for joint in list(joints.Group):
-    if joint.Child in removed:
+    if joint.Child in PI_CASE_LINKS:
         document.removeObject(joint.Name)
 for link in list(links.Group):
-    if link.UrdfName in removed:
+    if link.UrdfName in PI_CASE_LINKS:
         for part in link.CadParts:
             part.Visibility = False
         document.removeObject(link.Name)
@@ -176,6 +270,8 @@ mount.addProperty("App::PropertyString", "SourceFile", "Source")
 mount.SourceFile = lidar_source.as_posix()
 mount.addProperty("App::PropertyString", "GeneratedMesh", "Source")
 mount.GeneratedMesh = lidar_mesh.as_posix()
+mount.addProperty("App::PropertyString", "SourceHash", "Source")
+mount.SourceHash = file_hash(lidar_source)
 mount.addProperty("App::PropertyString", "SourceKind", "Source")
 mount.SourceKind = "RobotSkin OpenSCAD source"
 mount.Visibility = False
@@ -193,6 +289,10 @@ add_joint(
 lidar = document.addObject("Part::Feature", "LD06Body")
 lidar.Label = "LDROBOT LD06 lidar"
 lidar.Shape = Part.makeCylinder(LD06_RADIUS_MM, LD06_HEIGHT_MM)
+lidar.addProperty("App::PropertyFloat", "SourceRadiusMm", "Source")
+lidar.SourceRadiusMm = LD06_RADIUS_MM
+lidar.addProperty("App::PropertyFloat", "SourceHeightMm", "Source")
+lidar.SourceHeightMm = LD06_HEIGHT_MM
 lidar.addProperty("App::PropertyString", "SourceKind", "Source")
 lidar.SourceKind = "LDROBOT LD06 cylindrical envelope"
 lidar.Visibility = False
@@ -213,6 +313,8 @@ astra.addProperty("App::PropertyString", "SourceFile", "Source")
 astra.SourceFile = astra_source.as_posix()
 astra.addProperty("App::PropertyString", "GeneratedMesh", "Source")
 astra.GeneratedMesh = astra_mesh.as_posix()
+astra.addProperty("App::PropertyString", "SourceHash", "Source")
+astra.SourceHash = file_hash(astra_source)
 astra.addProperty("App::PropertyString", "SourceKind", "Source")
 astra.SourceKind = "Astra Pro compact-mount OpenSCAD source"
 astra.Visibility = False

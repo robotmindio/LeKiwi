@@ -16,29 +16,29 @@ All LeKiwi-specific manufactured parts represented by the URDF assembly now have
 Open a source file in FreeCAD and edit its `Parameters` object or its named profile/Part features. Save it, then run:
 
 ```sh
-./scripts/link_native_part_sources.sh
+make link-native-part-sources
 ./scripts/export_robot.sh
-./scripts/verify_native_part_sources.sh
+make verify-native-part-sources
 ```
 
-The first script replaces only the managed native `CadParts` links and verifies their bounding boxes and volumes against the baseline. It leaves `UseCadMass=False`; set an actual printed mass or density with `attach_cad_part.sh` before asking the Xacro exporter to calculate inertia.
+The first command replaces only the managed native `CadParts` links and verifies their bounding boxes and volumes against the baseline. It leaves `UseCadMass=False`; set an actual printed mass or density with `attach_cad_part.py` (via `make attach-cad-part ARGS="..."`) before asking the Xacro exporter to calculate inertia.
 
 To recreate the initial six models from the reference STEP and canonical STL files, run:
 
 ```sh
-./scripts/build_native_part_sources.sh
-./scripts/link_native_part_sources.sh
+make build-native-part-sources
+make link-native-part-sources
 ./scripts/export_robot.sh
-./scripts/verify_native_part_sources.sh
+make verify-native-part-sources
 ```
 
 The builder overwrites these six `.FCStd` files. It is a reset tool, not a save operation for manual changes.
 
 The source models use independent FreeCAD profile features and standard Part operations; none embeds an external mesh or BREP as its final solid. The wrist-camera mount keeps one hidden `InterfaceClearance` BREP cut tool derived from the Fusion XRef it must fit; its surrounding body, plate, bosses, and holes remain native FreeCAD features. Their dimensional starting points came from the Fusion STEP export, except the omni-wheel mount, whose canonical URDF STL revision is the authoritative geometry. The Fusion archive embeds proprietary `.f3d` files, but its timeline has no reliable open-source importer.
 
-`verify_native_part_sources.sh` checks the native feature-tree contract and the
+`verify_native_part_sources.py` checks the native feature-tree contract and the
 2% bounds/volume placement tolerance. It is not a surface-equivalence test.
-Run `./scripts/compare_reauthored_assets.sh` for the stricter bidirectional
+Run `make compare-reauthored-assets` for the stricter bidirectional
 mesh audit. The checked-in report passes all eleven active native link instances
 against the configured STEP/STL references, including the user-selected v2 cage.
 The v2 rebuild's sampled deviation is 0.211 mm maximum and 0.041 mm p95;
