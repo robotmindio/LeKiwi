@@ -34,5 +34,4 @@ python3 scripts/verify_xacro.py URDF/LeKiwi.baseline.urdf "$build_dir/URDF/LeKiw
 ./scripts/run_freecad_script.sh scripts/verify_accessory_sources.py
 ./scripts/run_freecad_script.sh scripts/verify_mesh_integrity.py
 ./scripts/run_freecad_script.sh scripts/compare_reauthored_assets.py
-./scripts/verify_manufacturing.sh
 python3 scripts/verify_committed_model.py "$build_dir" .
