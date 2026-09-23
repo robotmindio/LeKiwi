@@ -17,8 +17,8 @@ The final 36-link Xacro replaces that reference assembly's legacy arm subtree wi
 - **FreeCAD** (tested against the version pinned by the [Flathub `org.freecad.FreeCAD`](https://flathub.org/apps/org.freecad.FreeCAD) package): `scripts/run_freecad_script.sh` launches it as `flatpak run --command=FreeCADCmd org.freecad.FreeCAD`. See `scripts/install_freecad.sh`.
 - **OpenSCAD**, on `PATH`, for the RobotSkin lidar/Astra mounts, RobotSkin surfaces, and the reverse-engineered print sources.
 - **xacro** and **check_urdf** (ROS Jazzy: `source /opt/ros/jazzy/setup.bash`) to expand and validate the generated Xacro, as `verify_xacro.py` does.
-- **Python packages** in [requirements.txt](../requirements.txt) (`pip install -r requirements.txt`) for the scripts that run under plain `python3` rather than FreeCAD's interpreter: trimesh, numpy, shapely, pytest, and cadquery/vtk for the CadQuery arm sources and RobotSkin renderers.
-- **CadQuery**: `export_robot.sh` requires it for the native SO-101 wrist. If it is not installed in the default `python3`, set `CADQUERY_PYTHON` to the interpreter of an environment that has it, e.g. `CADQUERY_PYTHON=/path/to/venv/bin/python3 ./scripts/export_robot.sh`.
+- **Python packages** in [requirements.txt](../requirements.txt) (`pip install -r requirements.txt`) for the scripts that run under plain `python3` rather than FreeCAD's interpreter: trimesh, numpy, shapely, pytest, and vtk for the RobotSkin renderers.
+- **CadQuery**: `export_robot.sh` requires it for the native SO-101 wrist. `cad/cadquery/requirements.txt` pins the version CI installs into its own environment; if CadQuery is not installed in the default `python3`, set `CADQUERY_PYTHON` to the interpreter of an environment that has it, e.g. `CADQUERY_PYTHON=/path/to/venv/bin/python3 ./scripts/export_robot.sh`.
 
 ## Arm source
 
