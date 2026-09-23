@@ -5,18 +5,15 @@ The original LeKiwi_reference.FCStd remains untouched.
 """
 
 import argparse
+import json
 from pathlib import Path
 
-ROD = "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff"
-# Chassis millimetres, identified from the 20 mm grid in the marked underside photo.
-POSITIONS = {
-    ROD: (-60, 80),
-    ROD + "-1": (-100, 0),
-    ROD + "-2": (100, 0),
-    ROD + "-3": (-60, -80),
-    ROD + "-4": (60, 80),
-    ROD + "-5": (60, -80),
-}
+# Chassis millimetres, identified from the 20 mm grid in the marked underside
+# photo. Shared with verify_xacro.py so it is not an import dependency on this
+# one-off migration script.
+_SPEC = json.loads(Path("cad/chassis_rod_positions.json").read_text())
+ROD = _SPEC["rod"]
+POSITIONS = {name: tuple(xy) for name, xy in _SPEC["positions"].items()}
 
 
 def main():

@@ -1,5 +1,7 @@
 """Generate Xacro from LeKiwi FreeCAD robot metadata."""
 
+import json
+import os
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -191,6 +193,19 @@ for joint in joints_group.Group:
 ET.indent(root, space="    ")
 output.parent.mkdir(parents=True, exist_ok=True)
 ET.ElementTree(root).write(output, encoding="utf-8", xml_declaration=True)
+
+# Record which links carry CAD-derived mass/inertia so verify_xacro.py can
+# validate their <inertial> physically instead of exact-matching it against
+# the baseline URDF's placeholder values.
+generated_root = Path(os.environ.get("LEKIWI_GENERATED_ROOT", "cad/generated"))
+generated_root.mkdir(parents=True, exist_ok=True)
+cad_mass_links = [
+    property_value(link, "UrdfName")
+    for link in links_group.Group
+    if link.UseCadMass
+]
+(generated_root / "cad_mass_links.json").write_text(json.dumps(cad_mass_links) + "\n")
+
 print(
     f"saved {output} with {len(links_group.Group)} links and {len(joints_group.Group)} joints"
 )
