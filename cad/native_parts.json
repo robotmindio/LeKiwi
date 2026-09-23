@@ -1,9 +1,11 @@
 [
   {
     "source": "drive_motor_mount",
-    "legacy_print": "3DPrintMeshes/drive_motor_mount.stl",
-    "reference_object": "Part__Feature001",
-    "mesh_frame": false,
+    "legacy_print": "3DPrintMeshes/drive_motor_mount_v2.stl",
+    "reference_mesh": "3DPrintMeshes/drive_motor_mount_v2.stl",
+    "reference_object": null,
+    "mesh_frame": true,
+    "link_frame": true,
     "links": {
       "drive_motor_mount-v11-2": "CadDriveMotorMountV11_2",
       "drive_motor_mount-v11-1": "CadDriveMotorMountV11_1",

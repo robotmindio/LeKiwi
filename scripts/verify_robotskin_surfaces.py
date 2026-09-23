@@ -1,0 +1,109 @@
+"""Check the three print meshes against their measured, collision-checked layouts."""
+
+import json
+import math
+from pathlib import Path
+import sys
+
+import numpy as np
+import shapely
+from shapely.geometry import Polygon
+import trimesh
+
+from correct_chassis_rods import POSITIONS
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.dont_write_bytecode = True  # Keep imports from dirtying the pinned submodule.
+sys.path.insert(0, str(ROOT / "cad/upstream/RobotSkin/scripts"))
+from validate_stl import validate  # noqa: E402 - reuse pinned RobotSkin mesh checks
+
+OUT = ROOT / "cad/generated/robotskin"
+for entry in json.loads((OUT / "layout.json").read_text()):
+    name = entry["name"]
+    path = OUT / (name + ".stl")
+    assert not (errors := validate(path)), (name, errors)
+    mesh = trimesh.load_mesh(path)
+    assert np.allclose(mesh.bounds[:, 2], [0, 4], atol=0.001), name
+    ports = np.array(entry["ports"], dtype=float)
+    assert (ports % 10 == 0).all(), f"{name}: grid must align with chassis datum"
+    assert len(entry["chassis_ports"]) >= 4
+    assert set(map(tuple, entry["chassis_ports"])) <= set(map(tuple, ports))
+    if name == "ceiling":
+        ports[:, 1] *= -1
+    rays = np.column_stack((ports, np.full(len(ports), -1.0)))
+    assert not mesh.ray.intersects_any(
+        rays, np.tile([0, 0, 1], (len(ports), 1))
+    ).any(), (
+        name,
+        "every normal RobotSkin port must have a clear central screw passage",
+    )
+    region = Polygon(entry["outline"]).buffer(-0.5, join_style="mitre")
+    windows = entry["windows"]
+    fasteners = entry["arm_fasteners"]
+    assert len(fasteners) == (0 if name == "floor" else 4)
+    if fasteners:
+        centres = sorted(f["centre"] for f in fasteners)
+        assert np.allclose(centres, [(-31.727, 25.225), (-27.753, 95),
+                                     (27.799, 95), (31.773, 25.225)], atol=0.002)
+        for fastener in fasteners:
+            assert fastener["cut"] in entry["cuts"]
+            points = np.array(fastener["cut"])
+            assert 8 <= fastener["diameter"] <= 16
+            assert np.allclose(np.linalg.norm(points - fastener["centre"], axis=1), fastener["diameter"] / 2)
+    assert len(windows) == (0 if name == "floor" else 2)
+    if windows:
+        measured = sorted(Polygon(w).bounds for w in windows)
+        assert np.allclose(measured, [(-30, -10, 30, 10), (-10, 35, 10, 65)], atol=0.002)
+        assert np.allclose(sorted(Polygon(w).area for w in windows),
+                           [600 - (4 - math.pi) * 16, 1200 - (4 - math.pi) * 16], atol=1)
+        assert all(w in entry["cuts"] for w in windows)
+    assert len(entry["posts"]) == 6
+    assert {tuple(round(v, 3) for v in p[:2]) for p in entry["posts"]} == set(
+        POSITIONS.values()
+    )
+    if name == "floor":
+        assert len(entry["motor_bases"]) == 3
+        for base in entry["motor_bases"]:
+            points = np.array(base["footprint"])
+            cut = base["cut"]
+            margin = base["clearance_mm"]
+            rectangle = np.array(
+                Polygon(points).minimum_rotated_rectangle.exterior.coords
+            )[:4]
+            lengths = sorted(
+                np.linalg.norm(np.roll(rectangle, -1, axis=0) - rectangle, axis=1)
+            )
+            assert np.allclose(lengths, [34.8, 34.8, 47.5, 47.5], atol=0.002)
+            expected = Polygon(points).buffer(margin, join_style="mitre")
+            assert expected.symmetric_difference(Polygon(cut)).area < 0.01
+            assert cut in entry["cuts"]
+    for cut in entry["cuts"]:
+        region = region.difference(Polygon(cut))
+    for x, y, radius in entry["posts"]:
+        region = region.difference(
+            Polygon(
+                [
+                    (
+                        x + radius * math.cos(i * math.tau / 32),
+                        y + radius * math.sin(i * math.tau / 32),
+                    )
+                    for i in range(32)
+                ]
+            )
+        )
+    assert region.is_valid and region.geom_type == "Polygon", name
+    xy = mesh.vertices[:, :2].copy()
+    if name == "ceiling":
+        xy[:, 1] *= -1
+    # STL ASCII rounding is below 0.002 mm; preserve the measured clearances.
+    allowed = region.buffer(0.002)
+    shapely.prepare(allowed)
+    assert shapely.covers(allowed, shapely.points(xy)).all(), name
+    # Also reject triangles bridging a reserved hole even if their corners fit.
+    triangles = shapely.polygons(xy[mesh.faces])
+    nonflat = shapely.area(triangles) > 1e-8
+    assert shapely.covers(allowed, triangles[nonflat]).all(), name
+    assert not shapely.covers(allowed, shapely.points([[1000, 1000]])).any()
+    print(
+        f"PASS {name}: closed, connected, 4 mm thick; vertices and faces within envelope"
+    )

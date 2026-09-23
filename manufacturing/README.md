@@ -37,5 +37,5 @@ identifier until a build configuration selects an exact item.
 Run the check after changing the inventory:
 
 ```sh
-./scripts/verify_manufacturing_sources.sh
+./scripts/verify_manufacturing.sh
 ```

@@ -2,6 +2,13 @@
   "schema": 2,
   "prints": [
     {
+      "id": "astra-pro-compact-mount",
+      "stl": "3DPrintMeshes/astra_pro_compact_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/accessories/astra_pro_compact_mount.scad",
+      "fidelity": "surface_validated"
+    },
+    {
       "id": "power-bank-holder-5v",
       "stl": "3DPrintMeshes/5v_specific/5v_power_bank_holder.stl",
       "source_state": "open_parametric",
@@ -245,10 +252,42 @@
   ],
   "additional_prints": [
     {
+      "id": "astra-pro-compact-mount-assembly",
+      "output": "URDF/meshes/reauthored/astra_pro_compact_mount.stl",
+      "source_state": "open_parametric",
+      "source": "cad/accessories/astra_pro_compact_mount.scad",
+      "build": "scripts/sync_robotskin_lidar.sh",
+      "fidelity": "assembly_validated"
+    },
+    {
       "id": "robotskin-ld06-mount",
       "output": "URDF/meshes/reauthored/robotskin_lidar_mount.stl",
       "source_state": "open_parametric",
       "source": "cad/upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad",
+      "build": "scripts/sync_robotskin_lidar.sh",
+      "fidelity": "assembly_validated"
+    },
+    {
+      "id": "robotskin-rpi5-through-plate",
+      "output": "URDF/meshes/reauthored/rpi5_through_plate.stl",
+      "source_state": "open_parametric",
+      "source": "cad/upstream/RobotSkin/scad/parts/through_plate_12x10.scad",
+      "build": "scripts/sync_robotskin_lidar.sh",
+      "fidelity": "assembly_validated"
+    },
+    {
+      "id": "robotskin-rpi5-usb-carrier",
+      "output": "URDF/meshes/reauthored/rpi5_usb_carrier.stl",
+      "source_state": "open_parametric",
+      "source": "cad/upstream/RobotSkin/scad/parts/rpi5_usb_carrier.scad",
+      "build": "scripts/sync_robotskin_lidar.sh",
+      "fidelity": "assembly_validated"
+    },
+    {
+      "id": "robotskin-rpi5-table",
+      "output": "URDF/meshes/reauthored/rpi5_table.stl",
+      "source_state": "open_parametric",
+      "source": "cad/accessories/rpi5_table_installed.scad",
       "build": "scripts/sync_robotskin_lidar.sh",
       "fidelity": "assembly_validated"
     }

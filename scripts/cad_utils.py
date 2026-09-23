@@ -1,6 +1,11 @@
 import math
+import re
 
 import FreeCAD as App
+
+
+def mesh_filename(name):
+    return re.sub(r"[^0-9A-Za-z_.-]", "_", name) + ".stl"
 
 
 def bounds(shape_or_mesh):

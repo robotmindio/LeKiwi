@@ -62,5 +62,7 @@ for source in PARTS:
             raise RuntimeError(f"{urdf_link}: wrong native source link")
         if not part.LinkedObject or part.LinkedObject.Name != "Final":
             raise RuntimeError(f"{urdf_link}: native source does not target Final")
+        if part.Visibility:
+            raise RuntimeError(f"{urdf_link}: link-local export source is visible in the assembly")
 
 print(f"validated {len(PARTS)} native feature trees and {sum(len(part['links']) for part in PARTS)} assembly links")

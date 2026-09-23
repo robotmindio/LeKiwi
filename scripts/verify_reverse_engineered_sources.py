@@ -1,27 +1,11 @@
 """Surface-check the generated reverse-engineered print sources."""
 
-import json
 from pathlib import Path
 
 import Mesh
 
 from scripts.compare_reauthored_assets import aligned_comparison
-
-MANIFESTS = tuple(sorted(Path("cad/reverse_engineered").glob("*/parts.json")))
-
-
-def parts(path):
-    data = json.loads(path.read_text())
-    return data.get("parts", data) if isinstance(data, dict) else data
-
-
-def entries(part):
-    components = part.get("component_validations")
-    if not components:
-        yield part
-        return
-    for component in components:
-        yield {**part, **component}
+from scripts.reverse_engineered import MANIFESTS, entries, parts
 
 
 def reference_component(part):

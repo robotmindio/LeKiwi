@@ -1,5 +1,9 @@
 # Published accessory sources
 
+The [RobotSkin chassis overlays](ROBOTSKIN_SURFACES.md) cover the exterior top,
+interior floor and interior ceiling. Their OpenSCAD recipe derives clearances
+from the installed chassis and builds a separate FreeCAD review assembly.
+
 This directory contains FreeCAD documents only when an exact, redistributable
 editable source is already published with LeKiwi. They are intentionally kept
 outside the URDF assembly: webcam mounts are alternative camera hardware, not
@@ -10,6 +14,28 @@ the Arducam configuration represented in `LeKiwi.FCStd`.
 | Webcam base mount | `3DPrintMeshes/webcam_mount/webcam_mount.step` | `webcam_base_mount.FCStd` | Imported STEP BREP |
 | Webcam wrist mount | `3DPrintMeshes/webcam_mount/webcam_mount_wrist.step` | `webcam_wrist_mount.FCStd` | Imported STEP BREP |
 | SO-100 webcam gripper insert | `cad/upstream/SO-ARM100/STEP/SO100/Follower_Specific/Wrist_Roll_08c v1.step` + editable M3 clearance and hex-nut pocket | `so100_gripper_cam_mount_insert.FCStd` | SO-ARM100 STEP derivative |
+
+## Compact base-removed Astra Pro mount
+
+[`astra_pro_compact_mount.scad`](astra_pro_compact_mount.scad) is a direct,
+low-profile adapter for the clear space between two wheels. It keeps the camera
+upright at 8 degrees downward pitch. The base has two blind M3 insert sockets at
+44 mm centres;
+the camera saddle has two M2 holes at 18.0 mm centres and a
+26.2 x 7.4 x 6.3 mm pocket. Its plan dimensions use the measured 0.6 and
+1.3 mm play in the previous 26.6 x 8.5 mm print, leaving 0.2 mm total clearance
+on each axis. The M2 holes remain centered in the pocket on the lens-to-USB
+axis. Their head-access bores are 4.7 mm for the measured 4.5 mm screw heads.
+
+The camera contact plane is only 15.5 mm above the LeKiwi plate. Heat-set two
+M3x4x4 inserts from below into the large plate-facing surface, attach the camera
+using its M2x8 screws, then drive the M3 screws upward through the LeKiwi plate.
+The 4.0 mm diameter sockets are 4.2 mm deep; tune `m3_insert_hole` if the actual
+insert or printer needs a different fit. Print flat on its base:
+
+```sh
+openscad --export-format binstl -o 3DPrintMeshes/astra_pro_compact_mount.stl cad/accessories/astra_pro_compact_mount.scad
+```
 
 Build or reset those documents, then verify that they still match their
 corresponding print STLs:

@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">LeKiwi sensor placement: current CAD versus proposed redesign</title>
+  <desc id="desc">A two-dimensional top and side comparison of the existing placeholder Astra and front-right LD06 position with a raised, centered Astra and retained low lidar scan plane.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#263238"/></marker>
+    <marker id="blue-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#1687c5"/></marker>
+    <marker id="orange-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#e07a1f"/></marker>
+    <pattern id="placeholder" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#fff4d6"/><rect width="3" height="8" fill="#e7a02d"/></pattern>
+    <style>
+      text { font-family: Inter, Arial, sans-serif; fill: #1d2b34; }
+      .title { font-size: 34px; font-weight: 700; }
+      .subtitle { font-size: 18px; fill: #52636d; }
+      .panel { fill: #f8fafb; stroke: #c8d4da; stroke-width: 2; }
+      .panel-title { font-size: 26px; font-weight: 700; }
+      .section { font-size: 16px; font-weight: 700; letter-spacing: 1px; fill: #52636d; }
+      .label { font-size: 17px; font-weight: 700; }
+      .note { font-size: 15px; fill: #52636d; }
+      .small { font-size: 13px; fill: #52636d; }
+      .base { fill: #fefefe; stroke: #52636d; stroke-width: 3; }
+      .deck { fill: #e8eef1; stroke: #52636d; stroke-width: 3; }
+      .wheel { fill: #bcc8ce; stroke: #52636d; stroke-width: 3; }
+      .arm { fill: #52636d; opacity: .27; }
+      .camera { fill: #263238; stroke: #10191e; stroke-width: 2; }
+      .lidar { fill: #e07a1f; stroke: #a84f0c; stroke-width: 2; }
+      .coverage { fill: #61b7df; opacity: .18; stroke: #1687c5; stroke-width: 2; }
+      .scan { fill: none; stroke: #e07a1f; stroke-width: 3; stroke-dasharray: 7 6; }
+      .dimension { fill: none; stroke: #52636d; stroke-width: 1.7; marker-start: url(#arrow); marker-end: url(#arrow); }
+      .leader { fill: none; stroke: #52636d; stroke-width: 1.5; }
+      .axis { fill: none; stroke: #263238; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1080" fill="#ffffff"/>
+  <text x="60" y="62" class="title">LeKiwi sensor-layout comparison</text>
+  <text x="60" y="92" class="subtitle">All heights are from the floor to the optical / scan centre. Front is +Y. This is a placement schematic, not a fabrication drawing.</text>
+
+  <rect x="50" y="125" width="720" height="900" rx="18" class="panel"/>
+  <rect x="830" y="125" width="720" height="900" rx="18" class="panel"/>
+  <text x="80" y="170" class="panel-title">NOW — CAD / 10 cm Astra assumption</text>
+  <text x="860" y="170" class="panel-title">PROPOSED — mount designed around sensing</text>
+
+  <!-- Current: plan view -->
+  <text x="80" y="215" class="section">TOP VIEW</text>
+  <circle cx="410" cy="370" r="145" class="base"/>
+  <path d="M410 370 L410 260 A110 110 0 0 1 507 425 Z" class="arm"/>
+  <text x="430" y="392" class="small">arm sweep</text>
+  <line x1="410" y1="220" x2="410" y2="185" class="axis"/>
+  <text x="424" y="196" class="label">FRONT (+Y)</text>
+  <rect x="360" y="235" width="100" height="24" rx="5" fill="url(#placeholder)" stroke="#a66a12" stroke-width="2"/>
+  <text x="120" y="278" class="label">Astra: location not measured</text>
+  <text x="120" y="300" class="note">CAD TF is a zero-offset placeholder</text>
+  <path d="M330 286 L360 247" class="leader"/>
+  <circle cx="480" cy="280" r="24" class="lidar"/>
+  <path d="M480 256 A24 24 0 0 1 504 280" class="scan"/>
+  <text x="505" y="275" class="label">LD06</text>
+  <text x="505" y="297" class="note">front-right lower plate</text>
+  <text x="505" y="319" class="note">+90 mm front, +70 mm right</text>
+  <path d="M500 291 L505 291" class="leader"/>
+  <circle cx="280" cy="475" r="40" class="wheel"/><circle cx="540" cy="475" r="40" class="wheel"/><circle cx="410" cy="225" r="40" class="wheel" opacity=".25"/>
+  <text x="235" y="550" class="small">Existing LD06 general position is usable; the Astra is not a finalized physical pose.</text>
+
+  <!-- Current: side view -->
+  <text x="80" y="615" class="section">SIDE VIEW — ASSUMING 100 mm ASTRA CENTRE</text>
+  <line x1="105" y1="960" x2="715" y2="960" stroke="#263238" stroke-width="3"/>
+  <text x="110" y="985" class="small">floor</text>
+  <circle cx="270" cy="900" r="60" class="wheel"/><circle cx="570" cy="900" r="60" class="wheel"/>
+  <rect x="185" y="820" width="470" height="45" rx="20" class="deck"/>
+  <rect x="270" y="775" width="300" height="38" rx="15" class="deck"/>
+  <path d="M485 775 L565 690 L610 775 Z" class="arm"/>
+  <polygon points="205,841 332,828 335,856 208,869" fill="url(#placeholder)" stroke="#a66a12" stroke-width="2"/>
+  <text x="155" y="748" class="label">Astra: 100 mm assumed</text>
+  <text x="155" y="770" class="note">6° down only if this low position is forced</text>
+  <path d="M235 776 L255 830" class="leader"/>
+  <path d="M245 853 L110 895 L110 960 L245 873 Z" class="coverage"/>
+  <rect x="585" y="783" width="46" height="50" rx="8" class="lidar"/>
+  <line x1="580" y1="808" x2="690" y2="808" class="scan"/>
+  <text x="563" y="738" class="label">LD06 scan centre: 125 mm</text>
+  <path d="M604 744 L604 781" class="leader"/>
+  <line x1="690" y1="960" x2="690" y2="808" class="dimension"/>
+  <text x="696" y="887" class="small">125 mm</text>
+  <text x="130" y="1012" class="note">Problem: at 100 mm, the camera shares the deck / wheel-height blind wedge.</text>
+
+  <!-- Proposed: plan view -->
+  <text x="860" y="215" class="section">TOP VIEW</text>
+  <circle cx="1190" cy="370" r="145" class="base"/>
+  <path d="M1190 370 L1190 260 A110 110 0 0 1 1287 425 Z" class="arm"/>
+  <text x="1210" y="392" class="small">arm sweep</text>
+  <line x1="1190" y1="220" x2="1190" y2="185" class="axis"/>
+  <text x="1204" y="196" class="label">FRONT (+Y)</text>
+  <path d="M1110 245 L1270 245 L1305 340 L1075 340 Z" class="coverage"/>
+  <rect x="1107" y="230" width="166" height="34" rx="7" class="camera"/>
+  <circle cx="1150" cy="247" r="8" fill="#61b7df"/><circle cx="1230" cy="247" r="8" fill="#61b7df"/>
+  <circle cx="1128" cy="281" r="7" fill="#263238"/><circle cx="1252" cy="281" r="7" fill="#263238"/>
+  <text x="870" y="300" class="label">Astra: centred bridge mount</text>
+  <text x="870" y="322" class="note">two gusseted side plates; no yaw offset</text>
+  <path d="M1080 308 L1112 252" class="leader"/>
+  <circle cx="1300" cy="290" r="24" class="lidar"/>
+  <path d="M1300 266 A24 24 0 0 1 1324 290" class="scan"/>
+  <text x="1330" y="285" class="label">LD06</text>
+  <text x="1330" y="307" class="note">forward shoulder</text>
+  <text x="1330" y="329" class="note">outside arm sweep</text>
+  <circle cx="1060" cy="475" r="40" class="wheel"/><circle cx="1320" cy="475" r="40" class="wheel"/><circle cx="1190" cy="225" r="40" class="wheel" opacity=".25"/>
+  <text x="1015" y="550" class="small">Keep the lidar on whichever forward shoulder is opposite the measured full arm sweep.</text>
+
+  <!-- Proposed: side view -->
+  <text x="860" y="615" class="section">SIDE VIEW — RECOMMENDED GEOMETRY</text>
+  <line x1="885" y1="960" x2="1495" y2="960" stroke="#263238" stroke-width="3"/>
+  <text x="890" y="985" class="small">floor</text>
+  <circle cx="1050" cy="900" r="60" class="wheel"/><circle cx="1350" cy="900" r="60" class="wheel"/>
+  <rect x="965" y="820" width="470" height="45" rx="20" class="deck"/>
+  <rect x="1050" y="775" width="300" height="38" rx="15" class="deck"/>
+  <path d="M1265 775 L1345 690 L1390 775 Z" class="arm"/>
+  <path d="M1025 775 L1025 692 L1050 692 L1050 775 Z" class="camera"/>
+  <path d="M1120 775 L1120 692 L1145 692 L1145 775 Z" class="camera"/>
+  <polygon points="1002,686 1168,651 1175,686 1009,721" class="camera"/>
+  <circle cx="1045" cy="683" r="8" fill="#61b7df"/><circle cx="1125" cy="683" r="8" fill="#61b7df"/>
+  <path d="M1014 695 L890 902 L890 960 L1050 742 Z" class="coverage"/>
+  <text x="902" y="652" class="label">Astra: 220 mm centre, 12° down</text>
+  <text x="902" y="674" class="note">centre ray meets floor near 1.0 m ahead</text>
+  <line x1="1180" y1="960" x2="1180" y2="690" class="dimension"/>
+  <text x="1187" y="833" class="small">220 mm</text>
+  <rect x="1365" y="783" width="46" height="50" rx="8" class="lidar"/>
+  <line x1="1360" y1="808" x2="1470" y2="808" class="scan"/>
+  <text x="1292" y="738" class="label">LD06 scan centre: 125 mm</text>
+  <text x="1292" y="760" class="note">short, isolated side shelf</text>
+  <line x1="1470" y1="960" x2="1470" y2="808" class="dimension"/>
+  <text x="1477" y="887" class="small">125 mm</text>
+  <text x="910" y="1012" class="note">Bracket goal: keep the RGB-D camera rigid and clear of the deck; keep lidar low and outside arm travel.</text>
+
+  <!-- Legend -->
+  <rect x="920" y="38" width="16" height="16" class="camera"/><text x="945" y="52" class="small">RGB-D camera</text>
+  <circle cx="1065" cy="46" r="9" class="lidar"/><text x="1081" y="52" class="small">2D lidar</text>
+  <rect x="1165" y="38" width="18" height="16" class="coverage"/><text x="1192" y="52" class="small">field / scan plane</text>
+  <rect x="1362" y="38" width="18" height="16" fill="url(#placeholder)" stroke="#a66a12"/><text x="1388" y="52" class="small">placeholder</text>
+</svg>

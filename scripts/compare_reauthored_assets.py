@@ -7,7 +7,6 @@ finds the closest point on the opposite triangulated surface.
 
 import json
 import math
-import re
 import sys
 import xml.etree.ElementTree as ET
 from itertools import permutations, product
@@ -16,9 +15,9 @@ from pathlib import Path
 import FreeCAD as App
 import Mesh
 
-from scripts.cad_utils import urdf_matrix
+from scripts.cad_utils import mesh_filename, urdf_matrix
 
-URDF = Path("URDF/LeKiwi.urdf")
+URDF = Path("URDF/LeKiwi.baseline.urdf")
 MAPPING = Path("cad/reference_mapping.json")
 OUTPUT = Path("cad/validation/reauthored_asset_comparison.json")
 # ponytail: sampled rather than full Hausdorff; raise this or use a full-mesh
@@ -182,10 +181,6 @@ def surface_distances(source, target):
     return [math.sqrt(nearest_distance_squared(point, tree)) for point in sampled_points(source, SAMPLES_PER_DIRECTION)]
 
 
-def filename(name):
-    return re.sub(r"[^0-9A-Za-z_.-]", "_", name) + ".stl"
-
-
 def comparison(original, generated):
     distances = surface_distances(original, generated) + surface_distances(generated, original)
     maximum = max(distances)
@@ -263,41 +258,70 @@ def main(arguments):
         original_path, generated_path = map(Path, arguments[1:])
         if not original_path.is_file() or not generated_path.is_file():
             raise SystemExit("--mesh requires two existing STL files")
-        original, generated = Mesh.Mesh(str(original_path)), Mesh.Mesh(str(generated_path))
-        result = aligned_comparison(original, generated) if arguments[0] == "--mesh-align" else comparison(original, generated)
-        result.update(original_mesh=str(original_path), generated_mesh=str(generated_path))
+        original, generated = (
+            Mesh.Mesh(str(original_path)),
+            Mesh.Mesh(str(generated_path)),
+        )
+        result = (
+            aligned_comparison(original, generated)
+            if arguments[0] == "--mesh-align"
+            else comparison(original, generated)
+        )
+        result.update(
+            original_mesh=str(original_path), generated_mesh=str(generated_path)
+        )
         print(json.dumps(result, indent=2))
         raise SystemExit(0 if result["status"] == "pass" else 1)
 
     if set(arguments) - {"--strict"}:
-        raise SystemExit("usage: compare_reauthored_assets.py [--strict] | --mesh ORIGINAL.stl GENERATED.stl | --mesh-align ORIGINAL.stl GENERATED.stl")
+        raise SystemExit(
+            "usage: compare_reauthored_assets.py [--strict] | --mesh ORIGINAL.stl GENERATED.stl | --mesh-align ORIGINAL.stl GENERATED.stl"
+        )
 
     strict = "--strict" in arguments
     root = ET.parse(URDF).getroot()
     visuals = {link.get("name"): link.find("visual") for link in root.findall("link")}
     entries = []
+    replacements = {
+        link: item["reference_mesh"]
+        for item in json.loads(Path("cad/native_parts.json").read_text())
+        if item.get("reference_mesh")
+        for link in item["links"]
+    }
     for item in json.loads(MAPPING.read_text()):
         if not item["source_kind"].startswith("native FreeCAD"):
             continue
         name = item["urdf_link"]
+        if name not in visuals:
+            continue  # Retired SO-100 parts remain in the historical migration map.
         visual = visuals.get(name)
         mesh_xml = visual.find("geometry/mesh") if visual is not None else None
         if mesh_xml is None:
             raise RuntimeError(f"{name}: missing original URDF visual mesh")
-        original = Mesh.Mesh(str(URDF.parent / mesh_xml.get("filename")))
+        original = Mesh.Mesh(
+            replacements.get(name, str(URDF.parent / mesh_xml.get("filename")))
+        )
         origin = visual.find("origin")
-        original.transform(urdf_matrix(origin if origin is not None else ET.Element("origin")))
-        generated_path = URDF.parent / "meshes/reauthored" / filename(name)
+        if name not in replacements:
+            original.transform(
+                urdf_matrix(origin if origin is not None else ET.Element("origin"))
+            )
+        generated_path = URDF.parent / "meshes/reauthored" / mesh_filename(name)
+        if name == "base_plate_layer2-v3":
+            from scripts.upper_plate_windows import reference_mesh
+            original = reference_mesh()
         if not generated_path.is_file():
             raise RuntimeError(f"{name}: missing generated mesh {generated_path}")
         generated = Mesh.Mesh(str(generated_path))
         entry = {
             "urdf_link": name,
-            "original_mesh": mesh_xml.get("filename"),
+            "original_mesh": replacements.get(name, mesh_xml.get("filename")),
             "generated_mesh": str(generated_path.relative_to(URDF.parent)),
             **comparison(original, generated),
         }
         entries.append(entry)
+        if name == "base_plate_layer2-v3":
+            entry["reference_adjustment"] = "scripts/upper_plate_windows.py"
         print(
             f"{name}: {entry['status']} max={entry['max_surface_error_mm']:.3f} mm "
             f"p95={entry['p95_surface_error_mm']:.3f} mm rms={entry['rms_surface_error_mm']:.3f} mm "
@@ -319,7 +343,9 @@ def main(arguments):
         + "\n"
     )
     failures = [entry["urdf_link"] for entry in entries if entry["status"] == "fail"]
-    print(f"wrote {OUTPUT}; {len(entries) - len(failures)}/{len(entries)} native link instances pass")
+    print(
+        f"wrote {OUTPUT}; {len(entries) - len(failures)}/{len(entries)} native link instances pass"
+    )
     if strict and failures:
         raise SystemExit("surface-fidelity failures: " + ", ".join(failures))
 

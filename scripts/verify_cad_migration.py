@@ -1,27 +1,40 @@
 """Verify that FreeCAD-exported link meshes preserve the URDF geometry."""
 
 import json
-import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import Mesh
 
-from scripts.cad_utils import bounds, bounds_error, urdf_matrix
+from scripts.cad_utils import bounds, bounds_error, mesh_filename, urdf_matrix
 
 MAX_ERROR = 0.02
+REMOVED_LINKS = {"Bottom-V2-v3", "Top-V2-v2"}
 
 
 if len(sys.argv) != 4:
-    raise SystemExit("usage: verify_cad_migration.py BASELINE.urdf MAPPING.json REAUTHORED_MESH_DIRECTORY")
+    raise SystemExit(
+        "usage: verify_cad_migration.py BASELINE.urdf MAPPING.json REAUTHORED_MESH_DIRECTORY"
+    )
 
 urdf_path, mapping_path, output_directory = map(Path, sys.argv[1:])
 mapping = {item["urdf_link"]: item for item in json.loads(mapping_path.read_text())}
 root = ET.parse(urdf_path).getroot()
-links = root.findall("link")
-if set(mapping) != {link.get("name") for link in links}:
-    raise SystemExit("mapping does not cover exactly the URDF links")
+replacements = {
+    link: item["reference_mesh"]
+    for item in json.loads(Path("cad/native_parts.json").read_text())
+    if item.get("reference_mesh")
+    for link in item["links"]
+}
+links = [
+    link
+    for link in root.findall("link")
+    if not link.get("name").startswith("so101_")
+    and link.get("name") not in REMOVED_LINKS
+]
+if not {link.get("name") for link in links} <= set(mapping):
+    raise SystemExit("mapping does not cover every CAD-derived URDF link")
 
 for link in links:
     name = link.get("name")
@@ -29,17 +42,31 @@ for link in links:
     mesh_xml = visual.find("geometry/mesh") if visual is not None else None
     if mesh_xml is None:
         raise SystemExit(f"{name}: visual mesh is required")
-    expected = Mesh.Mesh(str(urdf_path.parent / mesh_xml.get("filename")))
+    expected = Mesh.Mesh(
+        replacements.get(name, str(urdf_path.parent / mesh_xml.get("filename")))
+    )
     origin = visual.find("origin")
-    expected.transform(urdf_matrix(origin if origin is not None else ET.Element("origin")))
-    actual_path = output_directory / (re.sub(r"[^0-9A-Za-z_.-]", "_", name) + ".stl")
+    if name not in replacements:
+        expected.transform(
+            urdf_matrix(origin if origin is not None else ET.Element("origin"))
+        )
+    actual_path = output_directory / mesh_filename(name)
+    if name == "base_plate_layer2-v3":
+        from scripts.upper_plate_windows import reference_mesh
+        expected = reference_mesh()
     if not actual_path.is_file() or actual_path.stat().st_size == 0:
         raise SystemExit(f"{name}: missing exported mesh {actual_path}")
     actual = Mesh.Mesh(str(actual_path))
     box_error = bounds_error(bounds(actual), bounds(expected))
     volume_error = abs(abs(actual.Volume) / abs(expected.Volume) - 1.0)
-    tolerance = 1e-6 if mapping[name]["source_kind"] == "canonical URDF STL mesh reference" else MAX_ERROR
+    tolerance = (
+        1e-6
+        if mapping[name]["source_kind"] == "canonical URDF STL mesh reference"
+        else MAX_ERROR
+    )
     if box_error > tolerance or volume_error > tolerance:
-        raise SystemExit(f"{name}: mesh mismatch (bbox={box_error:.3%}, volume={volume_error:.3%})")
+        raise SystemExit(
+            f"{name}: mesh mismatch (bbox={box_error:.3%}, volume={volume_error:.3%})"
+        )
 
 print(f"validated {len(links)} CAD-derived meshes against the baseline URDF")

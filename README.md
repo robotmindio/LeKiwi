@@ -53,7 +53,7 @@ Goals:
 
 We also provide the [URDF](./URDF/) exported from CAD for simulation.
 
-The open CAD migration is in [cad/](cad/): `LeKiwi_reference.FCStd` preserves the complete STEP reference assembly, while `LeKiwi.FCStd` is the editable FreeCAD-to-Xacro source covering all 47 URDF links. The SO-100 follower-arm and RobotSkin LD06 mount sources are pinned in [cad/upstream/](cad/upstream/); initialize them with `git submodule update --init --recursive`. See its [deterministic rebuild instructions](cad/README.md).
+The open CAD migration is in [cad/](cad/): `LeKiwi_reference.FCStd` preserves the complete STEP reference assembly, while `LeKiwi.FCStd` supplies the editable chassis and accessories. The full Xacro combines that export with the pinned official SO-101 follower model; it keeps LeRobot's stable joint names and the SO-101 kinematics and travel limits. The arm and RobotSkin LD06 sources are pinned in [cad/upstream/](cad/upstream/); initialize them with `git submodule update --init --recursive`. See the [deterministic rebuild instructions](cad/README.md).
 
 The [manufacturing source index](manufacturing/) is the authoritative answer to
 what can be edited, cut, or only printed as an STL. It covers every released

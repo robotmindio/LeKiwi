@@ -1,6 +1,8 @@
 scripts/__pycache__/
+cad/cadquery/__pycache__/
 cad/assembly/*.FCBak
 cad/parts/*.FCBak
 cad/accessories/*.FCBak
 /cad/generated/
 /cad/reverse_engineered/**/generated/
+/.verify-robot.*/
