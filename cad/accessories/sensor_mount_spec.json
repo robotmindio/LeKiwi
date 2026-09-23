@@ -14,5 +14,12 @@
     "mount_rpy_rad": [0.0, 0.0, 2.0344439357957027],
     "pitch_deg": 8.0,
     "camera_contact_height_mm": 15.5
+  },
+  "rpi5": {
+    "plate_origin_m": [0.125, -0.075, 0.007],
+    "plate_rpy_rad": [0.0, 0.0, -1.5707963267948966],
+    "plate_bolt_stations_mm": [[-55.0, -25.0], [-35.0, -45.0]],
+    "carrier_origin_m": [0.0, 0.0, 0.004],
+    "table_origin_m": [0.0, 0.0, 0.004]
   }
 }

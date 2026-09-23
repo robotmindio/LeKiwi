@@ -11,11 +11,13 @@ from correct_chassis_rods import POSITIONS, ROD
 
 XACRO_PROPERTY = "{http://www.ros.org/wiki/xacro}property"
 ROOT = Path(__file__).resolve().parents[1]
-ACCESSORY_LINKS = {"astra_pro_compact_mount", "robotskin_lidar_mount", "ld06_body"}
+RPI5_LINKS = ("rpi5_through_plate", "rpi5_usb_carrier", "rpi5_table")
+ACCESSORY_LINKS = {"astra_pro_compact_mount", "robotskin_lidar_mount", "ld06_body", *RPI5_LINKS}
 ACCESSORY_JOINTS = {
     "astra_pro_compact_mount_joint",
     "robotskin_lidar_mount_joint",
     "ld06_body_mount",
+    *(name + "_joint" for name in RPI5_LINKS),
 }
 
 
@@ -100,6 +102,24 @@ expected_joints = {
         "robotskin_lidar_mount",
         "ld06_body",
         mount_spec["lidar"]["body_center_m"],
+        [0, 0, 0],
+    ),
+    "rpi5_through_plate_joint": (
+        "base_plate_layer2-v3",
+        "rpi5_through_plate",
+        mount_spec["rpi5"]["plate_origin_m"],
+        mount_spec["rpi5"]["plate_rpy_rad"],
+    ),
+    "rpi5_usb_carrier_joint": (
+        "rpi5_through_plate",
+        "rpi5_usb_carrier",
+        mount_spec["rpi5"]["carrier_origin_m"],
+        [0, 0, 0],
+    ),
+    "rpi5_table_joint": (
+        "rpi5_through_plate",
+        "rpi5_table",
+        mount_spec["rpi5"]["table_origin_m"],
         [0, 0, 0],
     ),
 }

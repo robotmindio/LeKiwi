@@ -266,6 +266,30 @@
       "source": "cad/upstream/RobotSkin/scad/parts/lekiwi-lidar-base.scad",
       "build": "scripts/sync_robotskin_lidar.sh",
       "fidelity": "assembly_validated"
+    },
+    {
+      "id": "robotskin-rpi5-through-plate",
+      "output": "URDF/meshes/reauthored/rpi5_through_plate.stl",
+      "source_state": "open_parametric",
+      "source": "cad/upstream/RobotSkin/scad/parts/through_plate_12x10.scad",
+      "build": "scripts/sync_robotskin_lidar.sh",
+      "fidelity": "assembly_validated"
+    },
+    {
+      "id": "robotskin-rpi5-usb-carrier",
+      "output": "URDF/meshes/reauthored/rpi5_usb_carrier.stl",
+      "source_state": "open_parametric",
+      "source": "cad/upstream/RobotSkin/scad/parts/rpi5_usb_carrier.scad",
+      "build": "scripts/sync_robotskin_lidar.sh",
+      "fidelity": "assembly_validated"
+    },
+    {
+      "id": "robotskin-rpi5-table",
+      "output": "URDF/meshes/reauthored/rpi5_table.stl",
+      "source_state": "open_parametric",
+      "source": "cad/accessories/rpi5_table_installed.scad",
+      "build": "scripts/sync_robotskin_lidar.sh",
+      "fidelity": "assembly_validated"
     }
   ],
   "flat_parts": [

@@ -1,4 +1,4 @@
-"""Add the deterministic sensor mounts to the editable LeKiwi assembly."""
+"""Add the deterministic sensor mounts and RPi 5 stack to the editable LeKiwi assembly."""
 
 import re
 import sys
@@ -11,17 +11,25 @@ import Mesh
 import Part
 
 
-if len(sys.argv) != 6:
+if len(sys.argv) != 12:
     raise SystemExit(
         "usage: add_lidar_accessory.py ASSEMBLY.FCStd LIDAR.scad LIDAR.stl ASTRA.scad ASTRA.stl"
+        " RPI5_PLATE.scad RPI5_PLATE.stl RPI5_CARRIER.scad RPI5_CARRIER.stl"
+        " RPI5_TABLE.scad RPI5_TABLE.stl"
     )
 
 
-assembly_path, lidar_source, lidar_mesh, astra_source, astra_mesh = map(Path, sys.argv[1:])
+assembly_path, lidar_source, lidar_mesh, astra_source, astra_mesh = map(Path, sys.argv[1:6])
+rpi5_parts = (
+    ("rpi5_through_plate", "RPi5ThroughPlate", "RobotSkin 12x10 through plate", *sys.argv[6:8]),
+    ("rpi5_usb_carrier", "RPi5UsbCarrier", "RobotSkin RPi 5 + USB board carrier", *sys.argv[8:10]),
+    ("rpi5_table", "RPi5Table", "RobotSkin RPi 5 protection table", *sys.argv[10:12]),
+)
 spec = json.loads(Path("cad/accessories/sensor_mount_spec.json").read_text())
 for source, mesh, name in (
     (lidar_source, lidar_mesh, "RobotSkin lidar"),
     (astra_source, astra_mesh, "Astra compact mount"),
+    *((Path(source), Path(mesh), label) for _, _, label, source, mesh in rpi5_parts),
 ):
     if not source.is_file():
         raise RuntimeError(f"missing {name} OpenSCAD source: {source}")
@@ -35,6 +43,7 @@ LD06_RADIUS_MM = spec["lidar"]["body_radius_mm"]
 LD06_HEIGHT_MM = spec["lidar"]["body_height_mm"]
 ASTRA_MOUNT_ORIGIN = tuple(spec["astra"]["mount_origin_m"])
 ASTRA_MOUNT_RPY = tuple(spec["astra"]["mount_rpy_rad"])
+RPI5 = spec["rpi5"]
 
 
 def object_name(prefix, name):
@@ -154,6 +163,9 @@ for name in (
     "RobotSkinLidarMount",
     "LD06Body",
     "AstraProCompactMount",
+    *(f"{prefix}_{urdf}{suffix}" for urdf, *_ in rpi5_parts
+      for prefix, suffix in (("Link", ""), ("Joint", "_joint"))),
+    *(obj for _, obj, *_ in rpi5_parts),
 ):
     remove(document, name)
 
@@ -215,11 +227,36 @@ add_joint(
     ASTRA_MOUNT_RPY,
 )
 
+# Plate on the upper chassis plate; carrier and table lock into its ports.
+for (urdf, obj, label, source, mesh), parent, xyz, rpy in zip(
+    rpi5_parts,
+    ("base_plate_layer2-v3", "rpi5_through_plate", "rpi5_through_plate"),
+    (RPI5["plate_origin_m"], RPI5["carrier_origin_m"], RPI5["table_origin_m"]),
+    (RPI5["plate_rpy_rad"], (0, 0, 0), (0, 0, 0)),
+):
+    part = document.addObject("Mesh::Feature", obj)
+    part.Label = label
+    part.Mesh = Mesh.Mesh(str(Path(mesh).resolve()))
+    part.addProperty("App::PropertyString", "SourceFile", "Source")
+    part.SourceFile = Path(source).as_posix()
+    part.addProperty("App::PropertyString", "GeneratedMesh", "Source")
+    part.GeneratedMesh = Path(mesh).as_posix()
+    part.addProperty("App::PropertyString", "SourceKind", "Source")
+    part.SourceKind = "RobotSkin OpenSCAD source"
+    part.Visibility = False
+    add_link(document, links, urdf, part)
+    add_joint(document, joints, urdf + "_joint", parent, urdf, tuple(xyz), tuple(rpy))
+
 document.recompute()
 document.save()
 output = assembly_path.parent.parent.parent / "URDF/meshes/reauthored"
 output.mkdir(parents=True, exist_ok=True)
-for name in ("robotskin_lidar_mount", "ld06_body", "astra_pro_compact_mount"):
+for name in (
+    "robotskin_lidar_mount",
+    "ld06_body",
+    "astra_pro_compact_mount",
+    *(urdf for urdf, *_ in rpi5_parts),
+):
     link = next(item for item in links.Group if item.UrdfName == name)
     Mesh.export(link.CadParts, str(output / f"{name}.stl"))
-print("added RobotSkin lidar mount, LD06 body, and Astra compact mount")
+print("added RobotSkin lidar mount, LD06 body, Astra compact mount, and RPi 5 stack")

@@ -24,6 +24,7 @@ def outputs():
         f"astra_m3_spacing = {spacing:.15g};\n"
     )
     lidar = spec["lidar"]
+    rpi5 = spec["rpi5"]
     doc = f"""# Sensor mounts
 
 Generated from `sensor_mount_spec.json`; edit that file and run
@@ -34,6 +35,9 @@ Generated from `sensor_mount_spec.json`; edit that file and run
 - Astra plate holes (mm): `{astra['plate_holes_mm']}`
 - Astra mount origin (m): `{astra['mount_origin_m']}`
 - Astra pitch: `{astra['pitch_deg']} deg`
+- RPi 5 12x10 through-plate origin (m): `{rpi5['plate_origin_m']}`, yaw `{rpi5['plate_rpy_rad'][2]}` rad
+- RPi 5 through-plate bolt stations (plate mm): `{rpi5['plate_bolt_stations_mm']}`
+- RPi 5 carrier and table sit on the plate at (m): `{rpi5['carrier_origin_m']}`
 """
     return {SCAD_PATH: scad, DOC_PATH: doc}
 

@@ -1,4 +1,4 @@
-"""Verify the installed lidar bracket uses the removed Pi's real plate holes."""
+"""Verify the installed lidar, Astra and RPi 5 mounts use real upper-plate holes."""
 
 import xml.etree.ElementTree as ET
 import json
@@ -41,3 +41,19 @@ for x, target in zip((-spacing / 2, spacing / 2), (first, second)):
 origin = [value * 1000 for value in spec["astra"]["mount_origin_m"]]
 assert (pose.multVec(App.Vector()) - App.Vector(*origin)).Length < .001
 print("Astra bracket matches the operator-selected left-edge plate holes")
+plate = robot.find("joint[@name='rpi5_through_plate_joint']")
+assert plate.find("parent").get("link") == "base_plate_layer2-v3"
+pose = urdf_matrix(plate.find("origin"))
+for x, y in spec["rpi5"]["plate_bolt_stations_mm"]:
+    # 12x10 through-plate M3 stations sit on odd multiples of 5 mm.
+    assert abs(x) <= 55 and abs(y) <= 45 and x % 10 == 5 and y % 10 == 5, (x, y)
+    hole = pose.multVec(App.Vector(x, y, 0))
+    assert min((hole - target).Length for target in plate_holes) < .001, hole
+for name in ("rpi5_usb_carrier_joint", "rpi5_table_joint"):
+    # Carrier (x in -45..35, y +-15) and table (+-55, +-45) locks share the
+    # plate's station grid only when their frames coincide in XY.
+    joint = robot.find(f"joint[@name='{name}']")
+    assert joint.find("parent").get("link") == "rpi5_through_plate"
+    origin = urdf_matrix(joint.find("origin"))
+    assert (origin.multVec(App.Vector()) - App.Vector(0, 0, 4)).Length < .001, name
+print("RPi 5 through plate bolts to upper-plate holes; carrier and table lock into it")
