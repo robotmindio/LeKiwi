@@ -2,7 +2,6 @@
 
 import json
 import os
-import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -10,6 +9,7 @@ import FreeCAD as App
 import Mesh
 
 from scripts.cad_utils import bounds, bounds_error, urdf_matrix
+from scripts.cad_utils import object_name as _prefixed_object_name
 
 
 ASSEMBLY = Path("cad/assembly/LeKiwi.FCStd")
@@ -32,6 +32,13 @@ for native_part in json.loads(NATIVE_PARTS_FILE.read_text()):
         (link, (object_name, "native FreeCAD parametric source"))
         for link, object_name in native_part["links"].items()
     )
+# DEBT: the so101_* links (added when the arm was replaced with the pinned
+# SO-101 follower) are not in STEP_EXCEPTIONS or STEP_OBJECTS, so the
+# completeness check below already reports them "missing" against the current
+# baseline URDF independent of this pruning. They are sourced through
+# replace_arm_with_so101.py, never through this STEP migration, so excluding
+# them here needs a decision on how that should be recorded; revisit before
+# next running migrate_reference_links.py --apply against this baseline.
 STEP_EXCEPTIONS = {"base_plate_layer1-v5", "base_plate_layer2-v3"}
 STEP_OBJECTS = {
     "drive_motor_mount-v11-2": "Part__Feature001",
@@ -54,29 +61,18 @@ STEP_OBJECTS = {
     "Top-V2-v2": "Part__Feature067",
     "Camera-Mount-v8": "Part__Feature068",
     "Camera-Model-v3": "Camera_Model_v3",
-    "Base_08q-v1": "Base_08q_v1",
-    "WaveShare_Mounting_Plate_01d-v1": "Part__Feature078",
-    "Rotation_Pitch_08i-v1": "Part__Feature079",
-    "STS3215_03a-v1": "Part__Feature080",
-    "SO_ARM100_08k_Asym_Mirror_Clip-v1": "Part__Feature081",
-    "Passive_Horn_01-v1": "Part__Feature082",
-    "STS3215_03a-v1-1": "Part__Feature083",
-    "SO_ARM100_08k_116_Square-v1": "Part__Feature084",
-    "STS3215_03a-v1-2": "Part__Feature085",
-    "SO_ARM100_08k_Mirror-v1": "SO_ARM100_08k_Mirror_v1",
-    "STS3215_03a-v1-3": "Part__Feature088",
-    "Wrist_Roll_Pitch_08i-v1": "Part__Feature089",
-    "STS3215_03a_Wrist_Roll-v1": "Part__Feature090",
-    "Wrist_Roll_08c-v1": "Part__Feature091",
-    "STS3215_03a-v1-4": "Part__Feature092",
-    "Moving_Jaw_08d-v1": "Part__Feature093",
-    "Wrist-Camera-Mount-v11": "Part__Feature094",
     "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-1": "Part__Feature100",
     "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-2": "Part__Feature099",
-    "Camera-Model-v3-1": "Camera_Model_v001",
     "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-3": "Part__Feature074",
     "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-4": "Part__Feature073",
     "94868A713_NO-THREADS_Female-Threaded-Hex-Standoff-5": "Part__Feature072",
+    # The retired SO-100 arm entries (Base_08q-v1, Camera-Model-v3-1,
+    # Moving_Jaw_08d-v1, Passive_Horn_01-v1, Rotation_Pitch_08i-v1,
+    # SO_ARM100_08k_*, STS3215_03a-v1*, WaveShare_Mounting_Plate_01d-v1,
+    # Wrist-Camera-Mount-v11, Wrist_Roll_08c-v1, Wrist_Roll_Pitch_08i-v1) were
+    # pruned: none of those links remain in URDF/LeKiwi.urdf (replaced by the
+    # so101_* links), so nothing looks them up here. Their provenance stays in
+    # cad/reference_mapping.json's historical record.
 }
 
 
@@ -119,7 +115,7 @@ def transformed_shape(shape, matrix):
 
 
 def object_name(link_name):
-    return "CadReference_" + re.sub(r"[^0-9A-Za-z_]", "_", link_name)
+    return _prefixed_object_name("CadReference_", link_name)
 
 
 if MODE not in ("report", "apply"):
