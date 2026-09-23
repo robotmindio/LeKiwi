@@ -16,7 +16,7 @@ assembly=$output_root/cad/assembly/LeKiwi.FCStd
 if [[ $output_root != "$project_dir" ]]; then
   mkdir -p "$(dirname "$assembly")" "$output_root/URDF/meshes/reauthored"
   cp --reflink=auto cad/assembly/LeKiwi.FCStd "$assembly"
-  ln -s "$project_dir/cad/parts" "$output_root/cad/parts"
+  ln -sfn "$project_dir/cad/parts" "$output_root/cad/parts"
 fi
 
 generated_root=$output_root/cad/generated
