@@ -23,6 +23,11 @@ links = document.getObject("LeKiwiLinks")
 if not links:
     raise RuntimeError("missing LeKiwi robot metadata; run seed_robot_metadata.sh first")
 
+# Clear previously exported meshes first so a link that no longer has
+# CadParts (removed, renamed, or replaced) does not leave a stale STL behind.
+for stale in mesh_directory.glob("*.stl"):
+    stale.unlink()
+
 written = 0
 for link in links.Group:
     if not link.CadParts:
